@@ -1,7 +1,11 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using HalconDotNet;
+using HalconVision.Application;
+using HalconVision.Domain;
+using HalconVision.Halcon;
 
 var halconRoot = Environment.GetEnvironmentVariable("HALCONROOT");
 var halconArch = Environment.GetEnvironmentVariable("HALCONARCH");
@@ -53,6 +57,42 @@ try
     Console.WriteLine("STEP count_obj: starting");
     var count = connected.CountObj();
     Console.WriteLine($"STEP count_obj: OK; object count = {count}");
+
+    Console.WriteLine("STEP workflow_preview_contract: starting");
+    var registry = BuiltInNodeCatalog.Create();
+    registry.Register(new HalconNodeProvider(), [new HalconImageReadExecutor(), new HalconThresholdExecutor(), new HalconBlobAnalysisExecutor()]);
+    var imageNode = new NodeInstance
+    {
+        TypeId = HalconNodeProvider.ImageRead,
+        DisplayName = "读取图像",
+        Parameters = new Dictionary<string, JsonElement> { ["path"] = JsonSerializer.SerializeToElement(imagePath) }
+    };
+    var thresholdNode = new NodeInstance
+    {
+        TypeId = HalconNodeProvider.Threshold,
+        DisplayName = "二值化",
+        Parameters = new Dictionary<string, JsonElement>
+        {
+            ["minimum"] = JsonSerializer.SerializeToElement(128d),
+            ["maximum"] = JsonSerializer.SerializeToElement(255d)
+        }
+    };
+    var flow = new FlowDocument
+    {
+        Nodes = [imageNode, thresholdNode],
+        Edges = [new FlowEdge(Guid.NewGuid(), imageNode.Id, "image", thresholdNode.Id, "image")]
+    };
+    var engine = new WorkflowExecutionEngine(registry, new WorkflowGraphValidator(registry));
+    using var run = await engine.RunAsync(flow);
+    if (run.Status != WorkflowRunStatus.Success) throw new InvalidOperationException($"Workflow failed: {string.Join("; ", run.Errors)}");
+    Console.WriteLine("STEP workflow nodes: OK; image read and threshold both report success");
+    var runtimeOutputs = run.RuntimeOutputs
+        ?? throw new InvalidOperationException("Workflow reports success but returns no runtime outputs for node image preview.");
+    if (!runtimeOutputs.TryGetValue(thresholdNode.Id, out var thresholdOutputs) ||
+        !thresholdOutputs.TryGetValue("region", out var thresholdValue) || thresholdValue is not HRegion thresholdRegion)
+        throw new InvalidOperationException("The successful threshold node did not retain an HRegion for preview.");
+    var workflowRegionCount = thresholdRegion.CountObj();
+    Console.WriteLine($"STEP workflow preview outputs: OK; threshold HRegion remains usable after RunAsync; object count = {workflowRegionCount}");
     Console.WriteLine("RESULT: SUCCESS");
 }
 catch (Exception ex)

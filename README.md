@@ -1,17 +1,15 @@
 # HalconVisionPlatform
 
-独立的 HALCON 24.11 x64 / .NET 8 WPF 离线视觉检测平台。当前实现用于工程开发和本地图像验证，不代表相机、PLC、授权环境或产线验收已完成。
+HALCON 24.11 x64 / .NET 8 WPF 节点式视觉工作台。当前目标是先完成流程编辑、项目保存和 HALCON 图像数据通路；相机、PLC、HDevEngine 和产线验收尚未接入。
 
 ## 当前能力
 
-- 打开单张图像，显示图像尺寸和像素坐标。
-- 在 `HSmartWindowControlWPF` 视窗拖拽绘制矩形 ROI。
-- 配置灰度阈值、连通域面积上下限和目标数量，运行 Blob 检测并显示 ROI/结果框。
-- JSON 方案加载与保存；单图检测保存原图副本和结构化结果。
-- 选择目录执行顺序批量检测；每张图单独记录 OK、NG 或 ERROR，错误图不会中止整批；结束后保存整批 JSON 汇总。
-- 多选图像循环回放用于交互调试；回放结果只显示在界面，不作为批量或生产追溯记录。
-
-数据存储在 `%ProgramData%\HalconVisionPlatform\` 下的 `recipes`、`results` 和 `batches` 目录。所有 HALCON 图像算子位于 `HalconVision.Halcon` 适配层，领域结果不暴露 HALCON 原生对象。
+- 新建 `.hvproj` 单文件项目。空白项目立即包含一个空的“主流程”；流程和项目元数据保存在同一个项目文件中，不额外创建项目目录、流程目录或运行记录目录。
+- 打开 `.hvproj` 项目文件，保存当前流程到该文件。旧版 `project.json` 项目仍可打开。
+- 可扩展节点注册、节点画布、端口连线、属性编辑、撤销/重做、流程校验和顺序执行。
+- HALCON 节点库包含读取图像、二值化和 Blob 分析。图像读取支持单张图像或一个文件夹中的图像序列；二值化使用 HALCON `Threshold`，RGB 输入先转换为灰度；Blob 分析使用 `Connection`、`SelectShape` 和 `CountObj`。
+- 主图像窗和独立图像窗都支持适应窗口、按钮缩放、滚轮缩放，以及按住鼠标左键拖动平移。
+- HALCON `HImage` / `HRegion` 仅在流程运行期间传递，不写入项目文件。
 
 ## 构建与运行
 
@@ -22,10 +20,12 @@ dotnet build .\HalconVisionPlatform.sln
 dotnet run --project .\src\HalconVision.App\HalconVision.App.csproj
 ```
 
-批量检测前先打开样本图像或加载方案以设置 ROI 和参数，再选择目标目录。批次报告中的图像路径为执行机器上的来源路径；单图结果记录会将输入图像复制到结果目录。
+选择“新建”后指定 `.hvproj` 文件路径即可得到空白项目。使用“打开”选择该文件，使用“保存”将所有流程写回项目文件。
 
-## 已知边界
+## 当前边界
 
-当前没有真实相机、PLC、HDevEngine、自定义节点流程、测量/标定、用户权限、安装包和产线状态机。界面坐标拖拽与布局尚需在目标显示缩放下人工验收。HALCON 真实调用的本机证据见 [docs/evidence/HALCON_SMOKE_TEST.md](docs/evidence/HALCON_SMOKE_TEST.md)；阶段与限制见 [docs/LOOP.md](docs/LOOP.md)。
+图像读取目录按文件名顺序读取当前目录下支持的图像，不递归扫描子目录。项目中的图像路径保持为用户选择的本机路径。相机、PLC、HDevEngine、生产配方管理和检测追溯仍需后续开发。
+
+HALCON 真实调用的本机证据见 [docs/evidence/HALCON_SMOKE_TEST.md](docs/evidence/HALCON_SMOKE_TEST.md)；阶段与限制见 [docs/LOOP.md](docs/LOOP.md)。
 
 项目路线：[docs/PLAN.md on GitHub](https://github.com/wa52/HalconVisionPlatform/blob/main/docs/PLAN.md)。

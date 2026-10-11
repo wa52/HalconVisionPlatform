@@ -1,10 +1,13 @@
-using System.Globalization;
+using System.ComponentModel;
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Threading;
+using System.Text.Json;
 using HalconDotNet;
+using HalconVision.App;
 using HalconVision.Application;
 using HalconVision.Domain;
 using HalconVision.Halcon;
@@ -15,271 +18,482 @@ namespace HalconVision.App;
 
 public partial class MainWindow : Window
 {
-    private string? _imagePath;
-    private InspectionRecipe? _recipe;
-    private readonly HalconInspectionEngine _engine = new();
-    private readonly RecipeStore _recipeStore = new();
-    private readonly ResultStore _resultStore = new();
-    private readonly InspectionRunner _runner;
-    private readonly BatchInspectionRunner _batchRunner;
-    private readonly BatchResultStore _batchResultStore = new();
+    private readonly WorkflowWorkspaceViewModel _vm = new();
+    private NodePortViewModel? _pendingOutput;
+    private FlowNodeViewModel? _dragNode;
+    private Point _dragOffset;
+    private bool _dragging;
     private readonly HalconImagePresenter _imagePresenter = new();
-    private readonly DispatcherTimer _playTimer = new() { Interval = TimeSpan.FromMilliseconds(350) };
-    private string[] _sequence = [];
-    private int _sequenceIndex;
-    private int _imageWidth;
-    private int _imageHeight;
-    private bool _drawRoiArmed;
-    private (int Row, int Column)? _roiStart;
+    private GridLength _leftColumnWidth = new(260);
+    private GridLength _rightColumnWidth = new(300);
+    private GridLength _bottomRowHeight = new(270);
+    private bool _leftVisible = true;
+    private bool _rightVisible = true;
+    private bool _bottomVisible = true;
+    private string? _previewImagePath;
+    private int _previewImageWidth;
+    private int _previewImageHeight;
+    private bool _panningPreview;
+    private Point _lastPreviewPointer;
+    private CancellationTokenSource? _continuousCancellation;
 
     public MainWindow()
     {
-        InitializeComponent();
-        _runner = new InspectionRunner(_engine, _resultStore);
-        _batchRunner = new BatchInspectionRunner(_engine, _resultStore, _batchResultStore);
-        _playTimer.Tick += (_, _) => PlayNextFrame();
-        CheckEnvironment();
+        InitializeComponent(); DataContext = _vm;
     }
 
-    private void CheckEnvironment()
+    private void Window_Loaded(object sender, RoutedEventArgs e)
     {
-        var root = Environment.GetEnvironmentVariable("HALCONROOT");
-        var versionPath = string.IsNullOrWhiteSpace(root) ? null : Path.Combine(root, "version.txt");
+        var halconRoot = Environment.GetEnvironmentVariable("HALCONROOT");
+        var versionPath = string.IsNullOrWhiteSpace(halconRoot) ? null : Path.Combine(halconRoot, "version.txt");
         var version = versionPath is not null && File.Exists(versionPath) ? File.ReadAllText(versionPath).Trim() : "未检测到";
-        EnvironmentText.Text = $"HALCON {version}  ·  {Environment.GetEnvironmentVariable("HALCONARCH") ?? "x64"}";
-        AddLog($"运行环境：HALCON {version}，{Environment.GetEnvironmentVariable("HALCONARCH") ?? "架构未配置"}；图像处理运行在本机 HALCON Runtime。");
+        EnvironmentText.Text = $"HALCON {version}  ·  {Environment.GetEnvironmentVariable("HALCONARCH") ?? "架构未知"}";
+        _vm.Log("节点工作区就绪。创建或打开项目以开始编辑流程。");
     }
 
-    private void OpenImage_Click(object sender, RoutedEventArgs e)
+    private void NewProject_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFileDialog { Title = "选择图像样本", Filter = "图像文件|*.bmp;*.png;*.jpg;*.jpeg;*.tif;*.tiff;*.jp2|所有文件|*.*" };
-        if (dialog.ShowDialog(this) == true) LoadImage(dialog.FileName, "文件图像");
-    }
-
-    private void OpenSequence_Click(object sender, RoutedEventArgs e)
-    {
-        var dialog = new OpenFileDialog { Title = "选择同尺寸图像序列（可多选）", Multiselect = true, Filter = "图像文件|*.bmp;*.png;*.jpg;*.jpeg;*.tif;*.tiff;*.jp2" };
+        if (!ConfirmSaveBeforeSwitch()) return;
+        var dialog = new SaveFileDialog
+        {
+            Title = "新建 HALCON 项目",
+            Filter = "HALCON 项目文件|*.hvproj",
+            DefaultExt = ".hvproj",
+            AddExtension = true,
+            FileName = "新建项目.hvproj",
+            OverwritePrompt = false
+        };
         if (dialog.ShowDialog(this) != true) return;
-        StopPlayback();
-        _sequence = dialog.FileNames.OrderBy(p => p, StringComparer.OrdinalIgnoreCase).ToArray();
-        _sequenceIndex = 0;
-        PlayButton.IsEnabled = _sequence.Length > 0;
-        AddLog($"已载入文件回放序列：{_sequence.Length} 张。回放会逐帧运行当前 Blob 参数，不写入历史结果。");
-        LoadImage(_sequence[0], "文件回放");
+        var projectPath = Path.ChangeExtension(dialog.FileName, ".hvproj");
+        var name = Path.GetFileNameWithoutExtension(projectPath);
+        try { _vm.CreateProject(projectPath, name); _vm.Log($"已新建空白项目：{projectPath}"); }
+        catch (Exception ex) { ShowError("创建项目失败", ex); }
     }
 
-    private void LoadImage(string path, string mode)
+    private void OpenProject_Click(object sender, RoutedEventArgs e)
     {
+        if (!ConfirmSaveBeforeSwitch()) return;
+        var dialog = new OpenFileDialog { Title = "打开 HALCON 项目", Filter = "HALCON 项目文件|*.hvproj;project.json", CheckFileExists = true };
+        if (dialog.ShowDialog(this) != true) return;
+        try { _vm.OpenProject(dialog.FileName); _vm.Log($"项目已打开：{dialog.FileName}"); }
+        catch (Exception ex) { ShowError("打开项目失败", ex); }
+    }
+
+    private bool ConfirmSaveBeforeSwitch()
+    {
+        if (!_vm.HasUnsavedFlows) return true;
+        var result = MessageBox.Show(this, "当前流程有未保存的更改。是否保存后继续？", "未保存更改", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning);
+        if (result == MessageBoxResult.Cancel) return false;
+        if (result == MessageBoxResult.Yes) { _vm.SaveAll(); return true; }
+        return true;
+    }
+
+    private void Save_Click(object sender, RoutedEventArgs e) { try { _vm.SaveAll(); _vm.Log("项目与流程已保存。"); } catch (Exception ex) { ShowError("保存失败", ex); } }
+    private void Exit_Click(object sender, RoutedEventArgs e) => Close();
+    private void About_Click(object sender, RoutedEventArgs e) => MessageBox.Show(this, "HALCON 视觉检测平台\n可扩展节点式工程工作台\n图像读取、二值化和 Blob 分析通过 HALCON 24.11 执行。", "关于", MessageBoxButton.OK, MessageBoxImage.Information);
+
+    private void ToggleLeft_Click(object sender, RoutedEventArgs e)
+    {
+        _leftVisible = !_leftVisible;
+        if (_leftVisible) { LeftColumn.Width = _leftColumnWidth; LeftSplitterColumn.Width = new GridLength(5); }
+        else { if (LeftColumn.Width.Value > 0) _leftColumnWidth = LeftColumn.Width; LeftColumn.Width = new GridLength(0); LeftSplitterColumn.Width = new GridLength(0); }
+    }
+
+    private void ToggleRight_Click(object sender, RoutedEventArgs e)
+    {
+        _rightVisible = !_rightVisible;
+        if (_rightVisible) { RightColumn.Width = _rightColumnWidth; RightSplitterColumn.Width = new GridLength(5); }
+        else { if (RightColumn.Width.Value > 0) _rightColumnWidth = RightColumn.Width; RightColumn.Width = new GridLength(0); RightSplitterColumn.Width = new GridLength(0); }
+    }
+
+    private void ToggleBottom_Click(object sender, RoutedEventArgs e)
+    {
+        _bottomVisible = !_bottomVisible;
+        if (_bottomVisible) { BottomRow.Height = _bottomRowHeight; BottomSplitterRow.Height = new GridLength(5); }
+        else { if (BottomRow.Height.Value > 0) _bottomRowHeight = BottomRow.Height; BottomRow.Height = new GridLength(0); BottomSplitterRow.Height = new GridLength(0); }
+    }
+
+    private void FitCanvas_Click(object sender, RoutedEventArgs e) => _vm.SelectedFlow?.SetZoom(0.5);
+    private void OpenImageViewer_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_previewImagePath) || !File.Exists(_previewImagePath))
+        {
+            _vm.Log("请先在图像读取节点中选择图像，再使用独立查看。");
+            return;
+        }
+        new ImageViewerWindow(_previewImagePath) { Owner = this, WindowState = WindowState.Maximized }.Show();
+    }
+    private void Copy_Click(object sender, RoutedEventArgs e) => _vm.SelectedFlow?.CopySelection();
+    private void Paste_Click(object sender, RoutedEventArgs e) => _vm.SelectedFlow?.PasteSelection();
+    private void Delete_Click(object sender, RoutedEventArgs e) => _vm.SelectedFlow?.DeleteSelection();
+
+    private void ProjectArchive_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_vm.HasProject) { MessageBox.Show(this, "请先打开项目。", "项目管理", MessageBoxButton.OK, MessageBoxImage.Information); return; }
+        var choice = MessageBox.Show(this, "选择“是”导出当前项目，选择“否”从归档导入。", "项目归档", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
         try
         {
-            var dimensions = _imagePresenter.Display(path, ImageWindow.HalconWindow);
-            _imageWidth = dimensions.Width; _imageHeight = dimensions.Height; _imagePath = path;
-            if (_recipe is null) { _recipe = new InspectionRecipe { RoiWidth = _imageWidth, RoiHeight = _imageHeight }; ApplyRecipe(_recipe); }
-            else if (_recipe.RoiWidth == 0 || _recipe.RoiHeight == 0) { _recipe = _recipe with { RoiWidth = _imageWidth, RoiHeight = _imageHeight }; ApplyRecipe(_recipe); }
-            ImageInfoText.Text = $"{Path.GetFileName(path)}\n{_imageWidth} × {_imageHeight} px";
-            InputStateText.Text = mode; ViewportModeText.Text = mode;
-            RunButton.IsEnabled = true; CountText.Text = "—"; SetDecision("待检测", "#71808B", "#EEF1F3"); ElapsedText.Text = "等待运行";
-            DrawRoiOverlay();
-            AddLog($"已加载{mode}：{Path.GetFileName(path)}（{_imageWidth} × {_imageHeight}）");
+            if (choice == MessageBoxResult.Yes)
+            {
+                var save = new SaveFileDialog { Filter = "HALCON 项目归档|*.zip", FileName = $"{_vm.ProjectName}.zip" };
+                if (save.ShowDialog(this) == true) { _vm.ExportProject(save.FileName); _vm.Log($"项目已导出：{save.FileName}"); }
+            }
+            else if (choice == MessageBoxResult.No)
+            {
+                if (!ConfirmSaveBeforeSwitch()) return;
+                var open = new OpenFileDialog { Filter = "HALCON 项目归档|*.zip" };
+                if (open.ShowDialog(this) != true) return;
+                var folder = new OpenFolderDialog { Title = "选择导入项目的父目录" };
+                if (folder.ShowDialog(this) != true) return;
+                var name = Prompt("导入项目", "项目名称", Path.GetFileNameWithoutExtension(open.FileName)); if (name is null) return;
+                _vm.ImportProject(open.FileName, folder.FolderName, name); _vm.Log("项目归档已导入。");
+            }
         }
-        catch (Exception ex) { AddLog($"图像加载失败：{ex}"); MessageBox.Show(this, ex.Message, "无法加载图像", MessageBoxButton.OK, MessageBoxImage.Error); }
+        catch (Exception ex) { ShowError("项目归档失败", ex); }
     }
 
-    private void DrawRoi_Click(object sender, RoutedEventArgs e)
+    private void NewFlow_Click(object sender, RoutedEventArgs e)
     {
-        if (_imagePath is null) { AddLog("请先打开图像，再绘制 ROI。"); return; }
-        _drawRoiArmed = true; _roiStart = null; DrawRoiButton.Content = "拖拽图像绘制…";
-        AddLog("ROI 绘制已启用：在图像上按住左键拖出矩形。");
+        var name = Prompt("新建流程", "流程名称", "新流程"); if (name is null) return;
+        try { _vm.CreateFlow(name); _vm.Log($"已创建流程：{name}"); } catch (Exception ex) { ShowError("创建流程失败", ex); }
     }
 
-    private void ImageWindow_HMouseDown(object sender, HSmartWindowControlWPF.HMouseEventArgsWPF e)
+    private void ImportFlow_Click(object sender, RoutedEventArgs e)
     {
-        if (_drawRoiArmed && e.Button == MouseButton.Left && _imageWidth > 0)
-            _roiStart = (Clamp((int)Math.Round(e.Row), 0, _imageHeight - 1), Clamp((int)Math.Round(e.Column), 0, _imageWidth - 1));
+        var dialog = new OpenFileDialog { Filter = "流程文件|*.flow.json;*.json", CheckFileExists = true };
+        if (dialog.ShowDialog(this) != true) return;
+        try { _vm.ImportFlow(dialog.FileName); _vm.Log("流程文件已导入。"); } catch (Exception ex) { ShowError("导入流程失败", ex); }
     }
 
-    private void ImageWindow_HMouseUp(object sender, HSmartWindowControlWPF.HMouseEventArgsWPF e)
+    private void ExportFlow_Click(object sender, RoutedEventArgs e)
     {
-        if (!_drawRoiArmed || _roiStart is null || e.Button != MouseButton.Left) return;
+        if (_vm.SelectedFlow is null) return;
+        var dialog = new SaveFileDialog { Filter = "流程文件|*.flow.json", FileName = $"{_vm.SelectedFlow.Name}.flow.json" };
+        if (dialog.ShowDialog(this) == true) try { _vm.ExportFlow(_vm.SelectedFlow, dialog.FileName); _vm.Log("流程已导出。"); } catch (Exception ex) { ShowError("导出流程失败", ex); }
+    }
+
+    private void AddNode_Click(object sender, RoutedEventArgs e)
+    {
+        if (_vm.SelectedFlow is null || NodeCatalogList.SelectedItem is not NodeDefinition definition) return;
+        _vm.SelectedFlow.AddNode(definition); _vm.Log($"已添加节点：{definition.DisplayName}");
+    }
+    private void NodeCatalog_DoubleClick(object sender, MouseButtonEventArgs e) => AddNode_Click(sender, e);
+    private void Undo_Click(object sender, RoutedEventArgs e) => _vm.SelectedFlow?.Undo();
+    private void Redo_Click(object sender, RoutedEventArgs e) => _vm.SelectedFlow?.Redo();
+
+    private void Node_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.OriginalSource is DependencyObject original && FindParent<ButtonBase>(original) is not null) return;
+        if (sender is not FrameworkElement { DataContext: FlowNodeViewModel node } element || _vm.SelectedFlow is null) return;
+        _vm.SelectedFlow.SelectNode(node.Id, Keyboard.Modifiers.HasFlag(ModifierKeys.Control));
+        DisplaySelectedNodePreview();
+        var canvas = FindParent<Canvas>(element); if (canvas is null) return;
+        _dragNode = node; _dragOffset = e.GetPosition(canvas) - new Vector((int)node.X, (int)node.Y); _dragging = false;
+        element.CaptureMouse(); e.Handled = true;
+    }
+
+    private void Node_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (_dragNode is null || e.LeftButton != MouseButtonState.Pressed || sender is not FrameworkElement element) return;
+        var canvas = FindParent<Canvas>(element); if (canvas is null) return;
+        var point = e.GetPosition(canvas);
+        if (!_dragging) { _vm.SelectedFlow?.BeginMove(); _dragging = true; }
+        _vm.SelectedFlow?.MoveNode(_dragNode.Id, point.X - _dragOffset.X, point.Y - _dragOffset.Y);
+    }
+
+    private void Node_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is UIElement element) element.ReleaseMouseCapture();
+        _dragNode = null; _dragging = false;
+    }
+
+    private void Port_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: NodePortViewModel port } || _vm.SelectedFlow is null) return;
+        if (port.Direction == PortDirection.Output) { _pendingOutput = port; _vm.Log($"已选择输出端口：{port.Name}，请点击目标输入端口。"); return; }
+        if (_pendingOutput is null) { _vm.Log("请先选择一个输出端口。"); return; }
+        if (_vm.SelectedFlow.Connect(_pendingOutput.NodeId, _pendingOutput.Id, port.NodeId, port.Id, out var error)) _vm.Log($"连线已创建：{_pendingOutput.Name} → {port.Name}");
+        else _vm.Log($"连线未创建：{error}");
+        _pendingOutput = null;
+    }
+
+    private void Canvas_MouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (_vm.SelectedFlow is null || !Keyboard.Modifiers.HasFlag(ModifierKeys.Control)) return;
+        _vm.SelectedFlow.AdjustZoom(e.Delta > 0 ? 0.1 : -0.1); e.Handled = true;
+    }
+
+    private void Parameter_LostFocus(object sender, RoutedEventArgs e) { if (sender is FrameworkElement { Tag: NodeParameterViewModel parameter }) parameter.Commit(); }
+
+    private async void Run_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_vm.HasProject || _vm.SelectedFlow is null) { MessageBox.Show(this, "请先创建或打开项目。", "运行流程", MessageBoxButton.OK, MessageBoxImage.Information); return; }
+        if (_vm.IsRunning) return;
         try
         {
-            var row = Clamp((int)Math.Round(e.Row), 0, _imageHeight - 1); var col = Clamp((int)Math.Round(e.Column), 0, _imageWidth - 1);
-            var start = _roiStart.Value; var x = Math.Min(start.Column, col); var y = Math.Min(start.Row, row);
-            _recipe = ReadRecipe() with { RoiX = x, RoiY = y, RoiWidth = Math.Abs(col - start.Column) + 1, RoiHeight = Math.Abs(row - start.Row) + 1 };
-            ApplyRecipe(_recipe); DrawRoiOverlay();
-            AddLog($"ROI 已更新：X={_recipe.RoiX}, Y={_recipe.RoiY}, {_recipe.RoiWidth} × {_recipe.RoiHeight} px。");
+            var flow = _vm.SelectedFlow;
+            var progress = new Progress<NodeExecutionResult>(result => { flow.ApplyNodeResult(result); _vm.Log($"节点 {result.Status}: {result.NodeId}"); });
+            var runFlow = _vm.PrepareNextImageFlow(out var imagePath, out var hasSequence, out var sequenceEnded);
+            if (sequenceEnded || runFlow is null)
+            {
+                _vm.Log("文件夹图像已处理完，序列已重置；再次单次运行将从第一张开始。");
+                return;
+            }
+            if (hasSequence) _vm.Log($"单次运行：{Path.GetFileName(imagePath)}");
+            var run = await _vm.RunSelectedFlowAsync(progress, runFlow);
+            _vm.SetExecutionRun(run);
+            _vm.Log($"流程执行结束：{run.Status}，耗时 {(run.EndedAtUtc - run.StartedAtUtc).TotalMilliseconds:F1} ms。");
+            if (run.Status == WorkflowRunStatus.Success) DisplayLastSuccessfulNode(flow);
+            else _vm.ReturnImageToSequence(imagePath);
+            if (run.Errors.Count > 0) MessageBox.Show(this, string.Join(Environment.NewLine, run.Errors), "流程执行错误", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
-        catch (Exception ex) { AddLog($"ROI 未更新：请先修正检测参数。{ex.Message}"); }
-        finally { _drawRoiArmed = false; _roiStart = null; DrawRoiButton.Content = "绘制 ROI"; }
+        catch (Exception ex) { ShowError("流程执行失败", ex); }
     }
 
-    private void ImageWindow_HMouseMove(object sender, HSmartWindowControlWPF.HMouseEventArgsWPF e) => CoordinateText.Text = $"X {e.Column:F0}  Y {e.Row:F0}";
-
-    private void Run_Click(object sender, RoutedEventArgs e)
+    private async void ContinuousRun_Click(object sender, RoutedEventArgs e)
     {
-        if (_imagePath is null) return;
+        if (!_vm.HasProject || _vm.SelectedFlow is null) { MessageBox.Show(this, "请先创建或打开项目。", "连续运行", MessageBoxButton.OK, MessageBoxImage.Information); return; }
+        if (_continuousCancellation is not null || _vm.IsRunning) return;
+        _continuousCancellation = new CancellationTokenSource();
         try
         {
-            var recipe = ReadRecipe(); var persisted = _runner.Run(_imagePath, recipe); _recipe = recipe;
-            DisplayResult(_imagePath, recipe, persisted.Result);
-            AddLog($"检测完成：阈值 → 连通域 → 面积筛选，数量 {persisted.Result.ComponentCount}/{recipe.ExpectedComponentCount}，判定 {DecisionText.Text}；记录已保存。");
+            var flow = _vm.SelectedFlow;
+            var progress = new Progress<NodeExecutionResult>(result => { flow.ApplyNodeResult(result); _vm.Log($"节点 {result.Status}: {result.NodeId}"); });
+            var first = true;
+            while (!_continuousCancellation.IsCancellationRequested)
+            {
+                if (!ReferenceEquals(_vm.SelectedFlow, flow))
+                {
+                    _vm.Log("连续运行因切换流程而停止。");
+                    break;
+                }
+                var runFlow = _vm.PrepareNextImageFlow(out var imagePath, out var hasSequence, out var sequenceEnded);
+                if (sequenceEnded)
+                {
+                    if (!hasSequence) break;
+                    _vm.Log("文件夹图像序列循环至第一张。");
+                    continue;
+                }
+                if (runFlow is null) break;
+                if (first && !hasSequence)
+                {
+                    MessageBox.Show(this, "连续运行需要在读取图像节点中选择一个图像文件夹。", "连续运行", MessageBoxButton.OK, MessageBoxImage.Information);
+                    break;
+                }
+                first = false;
+                _vm.Log($"连续运行：{Path.GetFileName(imagePath)}");
+                var run = await _vm.RunSelectedFlowAsync(progress, runFlow);
+                _vm.SetExecutionRun(run);
+                if (run.Status == WorkflowRunStatus.Success)
+                {
+                    DisplayLastSuccessfulNode(flow);
+                    continue;
+                }
+                _vm.ReturnImageToSequence(imagePath);
+                if (run.Status != WorkflowRunStatus.Cancelled && run.Errors.Count > 0)
+                    MessageBox.Show(this, string.Join(Environment.NewLine, run.Errors), "连续运行错误", MessageBoxButton.OK, MessageBoxImage.Warning);
+                break;
+            }
+            _vm.Log(_continuousCancellation.IsCancellationRequested ? "连续运行已停止。" : "连续运行结束。");
         }
-        catch (Exception ex) { ShowInspectionError(ex); }
+        catch (Exception ex) { ShowError("连续运行失败", ex); }
+        finally { _continuousCancellation.Dispose(); _continuousCancellation = null; }
     }
 
-    private async void Batch_Click(object sender, RoutedEventArgs e)
+    private void CancelRun_Click(object sender, RoutedEventArgs e)
     {
-        if (_recipe is null || _imageWidth <= 0 || _imageHeight <= 0)
+        _continuousCancellation?.Cancel();
+        _vm.CancelRun();
+    }
+
+    private void DisplayLastSuccessfulNode(FlowTabViewModel flow)
+    {
+        var nodeResult = _vm.LastRun?.NodeResults.LastOrDefault(result => result.Status == NodeExecutionStatus.Success);
+        if (nodeResult is null) return;
+        flow.SelectNode(nodeResult.NodeId, false);
+        DisplaySelectedNodePreview();
+    }
+
+    private void DisplaySelectedNodePreview()
+    {
+        var node = _vm.SelectedFlow?.SelectedNode;
+        var run = _vm.LastRun;
+        if (node is null || run is null || run.FlowId != _vm.SelectedFlow?.Id || run.RuntimeOutputs is null ||
+            !run.RuntimeOutputs.TryGetValue(node.Id, out var runtime) ||
+            runtime.Values.OfType<HObject>().FirstOrDefault() is not { } iconicObject)
         {
-            MessageBox.Show(this, "请先打开一张样本图像并配置 ROI，或加载已有方案。", "需要检测方案", MessageBoxButton.OK, MessageBoxImage.Information);
+            PreviewEmptyText.Visibility = Visibility.Visible;
+            if (node is not null && node.TypeId == HalconNodeProvider.ImageRead)
+                PreviewEmptyText.Text = "图像节点运行后将在此显示图像";
+            else PreviewEmptyText.Text = "此节点尚无可显示的图像结果";
+            PreviewWindow.HalconWindow.ClearWindow();
             return;
         }
 
-        var dialog = new OpenFolderDialog { Title = "选择待批量检测的图像目录", Multiselect = false };
-        if (dialog.ShowDialog(this) != true) return;
-        var supportedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            { ".bmp", ".png", ".jpg", ".jpeg", ".tif", ".tiff", ".jp2" };
-        string[] paths;
-        try
+        var nodeResult = run.NodeResults.FirstOrDefault(result => result.NodeId == node.Id);
+        if (nodeResult is null) return;
+        var outputMetadata = nodeResult.Outputs.Values.FirstOrDefault(value => value.ValueKind == JsonValueKind.Object);
+        var width = outputMetadata.ValueKind == JsonValueKind.Object && outputMetadata.TryGetProperty("width", out var widthValue) ? widthValue.GetInt32() : 0;
+        var height = outputMetadata.ValueKind == JsonValueKind.Object && outputMetadata.TryGetProperty("height", out var heightValue) ? heightValue.GetInt32() : 0;
+        if (iconicObject is HImage image && image.CountObj() > 1)
         {
-            paths = Directory.EnumerateFiles(dialog.FolderName)
-                .Where(path => supportedExtensions.Contains(Path.GetExtension(path)))
-                .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
-                .ToArray();
+            using var firstImage = image.SelectObj(1);
+            firstImage.GetImageSize(out width, out height);
+            _imagePresenter.Display(firstImage, PreviewWindow.HalconWindow, width, height, PreviewHost.ActualWidth, PreviewHost.ActualHeight);
         }
-        catch (Exception ex)
+        else
         {
-            AddLog($"无法读取批量检测目录：{ex}");
-            MessageBox.Show(this, ex.Message, "无法读取图像目录", MessageBoxButton.OK, MessageBoxImage.Error);
-            return;
+            if (width <= 0 || height <= 0)
+            {
+                if (iconicObject is HImage imageObject) imageObject.GetImageSize(out width, out height);
+            }
+            _imagePresenter.Display(iconicObject, PreviewWindow.HalconWindow, width, height, PreviewHost.ActualWidth, PreviewHost.ActualHeight);
         }
-        if (paths.Length == 0)
+        _previewImageWidth = width; _previewImageHeight = height;
+        _previewImagePath = null;
+        PreviewEmptyText.Visibility = Visibility.Collapsed;
+        _vm.Log($"预览节点结果：{node.DisplayName}");
+    }
+
+    private void PickImage_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.Tag is not NodeParameterViewModel parameter) return;
+        string? selectedPath;
+        if (string.Equals(button.Content?.ToString(), "选文件夹…", StringComparison.Ordinal))
         {
-            MessageBox.Show(this, "所选目录中没有支持的图像文件。", "没有可检测图像", MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
+            var folderDialog = new OpenFolderDialog { Title = "选择包含图像的文件夹", Multiselect = false };
+            if (folderDialog.ShowDialog(this) != true) return;
+            selectedPath = folderDialog.FolderName;
         }
-
-        InspectionRecipe recipe;
-        try { recipe = ReadRecipe(); recipe.Validate(_imageWidth, _imageHeight); }
-        catch (Exception ex) { MessageBox.Show(this, ex.Message, "检测参数无效", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
-
-        BatchButton.IsEnabled = false; RunButton.IsEnabled = false; PlayButton.IsEnabled = false;
-        var progress = new Progress<int>(completed => InputStateText.Text = $"批量检测 {completed}/{paths.Length}");
-        AddLog($"批量检测开始：{paths.Length} 张图像，方案“{recipe.Name}”。");
-        try
+        else
         {
-            var summary = await Task.Run(() => _batchRunner.Run(paths, recipe, progress));
-            var summaryPath = Path.Combine(_batchResultStore.DirectoryPath, $"{summary.BatchId}.json");
-            CountText.Text = $"{summary.Passed}/{summary.Total}";
-            SetDecision(summary.Errors > 0 ? "含错误" : summary.Failed > 0 ? "含 NG" : "全部 OK",
-                summary.Errors + summary.Failed == 0 ? "#16845B" : "#B33A42",
-                summary.Errors + summary.Failed == 0 ? "#E5F4ED" : "#FBEAEC");
-            ElapsedText.Text = $"OK {summary.Passed}   NG {summary.Failed}   ERROR {summary.Errors}";
-            InputStateText.Text = "批量检测完成";
-            AddLog($"批量检测完成：OK {summary.Passed}，NG {summary.Failed}，ERROR {summary.Errors}；汇总：{summaryPath}");
-        }
-        catch (Exception ex)
-        {
-            InputStateText.Text = "批量检测失败"; AddLog($"批量检测未能生成汇总：{ex}");
-            MessageBox.Show(this, ex.Message, "批量检测失败", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-        finally
-        {
-            BatchButton.IsEnabled = true; RunButton.IsEnabled = _imagePath is not null; PlayButton.IsEnabled = _sequence.Length > 0;
-        }
-    }
-
-    private void Play_Click(object sender, RoutedEventArgs e)
-    {
-        if (_sequence.Length == 0) return;
-        _sequenceIndex = 0; _playTimer.Start(); PlayButton.IsEnabled = false; StopButton.IsEnabled = true;
-        InputStateText.Text = "文件回放 · 运行中"; ViewportModeText.Text = "文件回放 · RUN"; AddLog("开始文件序列回放；每帧执行检测，结果只显示在界面。"); PlayNextFrame();
-    }
-
-    private void Stop_Click(object sender, RoutedEventArgs e) => StopPlayback();
-    private void StopPlayback()
-    {
-        _playTimer.Stop(); StopButton.IsEnabled = false; PlayButton.IsEnabled = _sequence.Length > 0;
-        if (_sequence.Length > 0) { InputStateText.Text = "文件回放"; ViewportModeText.Text = "文件回放"; }
-    }
-
-    private void PlayNextFrame()
-    {
-        if (_sequence.Length == 0) { StopPlayback(); return; }
-        var path = _sequence[_sequenceIndex++ % _sequence.Length];
-        try
-        {
-            var dims = _imagePresenter.Display(path, ImageWindow.HalconWindow); _imageWidth = dims.Width; _imageHeight = dims.Height; _imagePath = path;
-            ImageInfoText.Text = $"{Path.GetFileName(path)}\n{_imageWidth} × {_imageHeight} px";
-            var recipe = ReadRecipe(); var result = _engine.Run(path, recipe); DisplayResult(path, recipe, result);
-        }
-        catch (Exception ex) { ShowInspectionError(ex, false); }
-    }
-
-    private void DisplayResult(string path, InspectionRecipe recipe, InspectionResult result)
-    {
-        _imagePresenter.Display(path, ImageWindow.HalconWindow);
-        var window = ImageWindow.HalconWindow; window.SetDraw("margin"); window.SetColor("cyan");
-        window.DispRectangle1((double)recipe.RoiY, (double)recipe.RoiX, (double)(recipe.RoiY + recipe.RoiHeight - 1), (double)(recipe.RoiX + recipe.RoiWidth - 1));
-        window.SetColor("lime green");
-        foreach (var c in result.Components) window.DispRectangle1((double)c.Y, (double)c.X, (double)(c.Y + c.Height - 1), (double)(c.X + c.Width - 1));
-        CountText.Text = result.ComponentCount.ToString(CultureInfo.InvariantCulture);
-        SetDecision(result.IsPass ? "OK" : "NG", result.IsPass ? "#16845B" : "#B33A42", result.IsPass ? "#E5F4ED" : "#FBEAEC");
-        ElapsedText.Text = $"{result.ElapsedMilliseconds:F1} ms   ·   面积筛选 {recipe.MinimumArea:G}–{recipe.MaximumArea:G} px²";
-    }
-
-    private void ShowInspectionError(Exception ex, bool showDialog = true)
-    {
-        CountText.Text = "—"; SetDecision("ERROR", "#B33A42", "#FBEAEC"); ElapsedText.Text = "检测失败 · 未判定";
-        AddLog($"HALCON 检测失败：{ex}"); if (showDialog) MessageBox.Show(this, ex.Message, "HALCON 检测失败", MessageBoxButton.OK, MessageBoxImage.Error);
-    }
-
-    private void DrawRoiOverlay()
-    {
-        if (_imagePath is null || _recipe is null) return;
-        try { ImageWindow.HalconWindow.SetDraw("margin"); ImageWindow.HalconWindow.SetColor("cyan"); ImageWindow.HalconWindow.DispRectangle1((double)_recipe.RoiY, (double)_recipe.RoiX, (double)(_recipe.RoiY + _recipe.RoiHeight - 1), (double)(_recipe.RoiX + _recipe.RoiWidth - 1)); } catch { }
-    }
-
-    private void LoadRecipe_Click(object sender, RoutedEventArgs e)
-    {
-        var dialog = new OpenFileDialog { Title = "加载检测方案", Filter = "方案文件|*.json|所有文件|*.*", InitialDirectory = _recipeStore.DirectoryPath };
-        if (dialog.ShowDialog(this) != true) return;
-        try { var recipe = _recipeStore.Load(dialog.FileName); if (_imageWidth > 0) recipe.Validate(_imageWidth, _imageHeight); _recipe = recipe; ApplyRecipe(recipe); AddLog($"已加载方案：{recipe.Name}"); }
-        catch (Exception ex) { AddLog($"方案加载失败：{ex.Message}"); MessageBox.Show(this, ex.Message, "无法加载方案", MessageBoxButton.OK, MessageBoxImage.Error); }
-    }
-
-    private void SaveRecipe_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            var recipe = ReadRecipe(); recipe.Validate(Math.Max(1, _imageWidth), Math.Max(1, _imageHeight));
-            var dialog = new SaveFileDialog { Title = "保存检测方案", Filter = "方案文件|*.json", FileName = $"{recipe.Name}.json", InitialDirectory = _recipeStore.DirectoryPath };
+            var dialog = new OpenFileDialog
+            {
+                Title = "选择 HALCON 输入图像",
+                Filter = "图像文件|*.bmp;*.png;*.jpg;*.jpeg;*.tif;*.tiff;*.jp2|所有文件|*.*",
+                CheckFileExists = true,
+                FileName = File.Exists(parameter.ValueText) ? parameter.ValueText : string.Empty
+            };
             if (dialog.ShowDialog(this) != true) return;
-            var path = _recipeStore.Save(recipe, dialog.FileName); _recipe = recipe; RecipeTitleText.Text = $"Blob / {recipe.Name}"; AddLog($"方案已保存：{path}");
+            selectedPath = dialog.FileName;
         }
-        catch (Exception ex) { AddLog($"方案保存失败：{ex.Message}"); MessageBox.Show(this, ex.Message, "无法保存方案", MessageBoxButton.OK, MessageBoxImage.Error); }
+
+        selectedPath = Path.GetFullPath(selectedPath);
+        parameter.ValueText = selectedPath;
+        parameter.Commit();
+        var previewPath = Directory.Exists(selectedPath)
+            ? EnumerateImageFiles(selectedPath).FirstOrDefault()
+            : selectedPath;
+        if (previewPath is null)
+        {
+            _previewImagePath = null;
+            _vm.Log("所选文件夹中没有支持的图像文件。");
+            return;
+        }
+
+        _previewImagePath = previewPath;
+        try
+        {
+            var dimensions = _imagePresenter.Display(_previewImagePath, PreviewWindow.HalconWindow);
+            _previewImageWidth = dimensions.Width;
+            _previewImageHeight = dimensions.Height;
+            Dispatcher.BeginInvoke(new Action(() => ImageFit_Click(this, new RoutedEventArgs())));
+        }
+        catch (Exception ex) { _vm.Log($"HALCON 图像预览失败：{ex}"); }
+        _vm.Log(Directory.Exists(selectedPath)
+            ? $"已选择图像文件夹：{selectedPath}（预览第一张：{Path.GetFileName(previewPath)}）"
+            : $"已选择图像：{selectedPath}");
     }
 
-    private InspectionRecipe ReadRecipe() => new()
-    {
-        Name = RecipeNameBox.Text.Trim(), ExpectedComponentCount = int.Parse(ExpectedCountBox.Text, CultureInfo.InvariantCulture),
-        ThresholdMinimum = double.Parse(ThresholdMinBox.Text, CultureInfo.InvariantCulture), ThresholdMaximum = double.Parse(ThresholdMaxBox.Text, CultureInfo.InvariantCulture),
-        MinimumArea = double.Parse(MinAreaBox.Text, CultureInfo.InvariantCulture), MaximumArea = double.Parse(MaxAreaBox.Text, CultureInfo.InvariantCulture),
-        RoiX = int.Parse(RoiXBox.Text, CultureInfo.InvariantCulture), RoiY = int.Parse(RoiYBox.Text, CultureInfo.InvariantCulture),
-        RoiWidth = int.Parse(RoiWidthBox.Text, CultureInfo.InvariantCulture), RoiHeight = int.Parse(RoiHeightBox.Text, CultureInfo.InvariantCulture)
-    };
+    private static IEnumerable<string> EnumerateImageFiles(string folder) =>
+        Directory.EnumerateFiles(folder, "*", SearchOption.TopDirectoryOnly)
+            .Where(path => Path.GetExtension(path).ToLowerInvariant() is ".bmp" or ".png" or ".jpg" or ".jpeg" or ".tif" or ".tiff" or ".jp2")
+            .OrderBy(path => path, StringComparer.OrdinalIgnoreCase);
 
-    private void ApplyRecipe(InspectionRecipe recipe)
+    private void ImageZoomIn_Click(object sender, RoutedEventArgs e) => _imagePresenter.Zoom(PreviewWindow.HalconWindow, 1.25);
+    private void ImageZoomOut_Click(object sender, RoutedEventArgs e) => _imagePresenter.Zoom(PreviewWindow.HalconWindow, 0.8);
+    private void ImageFit_Click(object sender, RoutedEventArgs e)
     {
-        RecipeNameBox.Text = recipe.Name; RecipeTitleText.Text = $"Blob / {recipe.Name}";
-        ExpectedCountBox.Text = recipe.ExpectedComponentCount.ToString(CultureInfo.InvariantCulture);
-        ThresholdMinBox.Text = recipe.ThresholdMinimum.ToString(CultureInfo.InvariantCulture); ThresholdMaxBox.Text = recipe.ThresholdMaximum.ToString(CultureInfo.InvariantCulture);
-        MinAreaBox.Text = recipe.MinimumArea.ToString(CultureInfo.InvariantCulture); MaxAreaBox.Text = recipe.MaximumArea.ToString(CultureInfo.InvariantCulture);
-        RoiXBox.Text = recipe.RoiX.ToString(CultureInfo.InvariantCulture); RoiYBox.Text = recipe.RoiY.ToString(CultureInfo.InvariantCulture);
-        RoiWidthBox.Text = recipe.RoiWidth.ToString(CultureInfo.InvariantCulture); RoiHeightBox.Text = recipe.RoiHeight.ToString(CultureInfo.InvariantCulture);
+        if (_previewImageWidth <= 0 || _previewImageHeight <= 0) return;
+        _imagePresenter.Fit(PreviewWindow.HalconWindow, _previewImageWidth, _previewImageHeight, PreviewHost.ActualWidth, PreviewHost.ActualHeight);
     }
 
-    private void SetDecision(string text, string foreground, string background) { DecisionText.Text = text; DecisionText.Foreground = (Brush)new BrushConverter().ConvertFromString(foreground)!; DecisionBadge.Background = (Brush)new BrushConverter().ConvertFromString(background)!; }
-    private static int Clamp(int value, int min, int max) => Math.Max(min, Math.Min(max, value));
-    private void AddLog(string message) => LogList.Items.Insert(0, $"{DateTime.Now:HH:mm:ss}  {message}");
+    private void PreviewHost_MouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        _imagePresenter.Zoom(PreviewWindow.HalconWindow, e.Delta > 0 ? 1.15 : 1 / 1.15);
+        e.Handled = true;
+    }
+
+    private void PreviewHost_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton != MouseButton.Left) return;
+        _panningPreview = true;
+        _lastPreviewPointer = e.GetPosition(PreviewHost);
+        PreviewHost.CaptureMouse();
+        PreviewHost.Cursor = Cursors.SizeAll;
+        e.Handled = true;
+    }
+
+    private void PreviewHost_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_panningPreview || e.LeftButton != MouseButtonState.Pressed) return;
+        var pointer = e.GetPosition(PreviewHost);
+        var delta = pointer - _lastPreviewPointer;
+        _imagePresenter.Pan(PreviewWindow.HalconWindow, delta.X, delta.Y, PreviewHost.ActualWidth, PreviewHost.ActualHeight);
+        _lastPreviewPointer = pointer;
+        e.Handled = true;
+    }
+
+    private void PreviewHost_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!_panningPreview) return;
+        _panningPreview = false;
+        PreviewHost.ReleaseMouseCapture();
+        PreviewHost.Cursor = Cursors.Arrow;
+        e.Handled = true;
+    }
+
+    private void Preview_HMouseDown(object sender, HalconDotNet.HSmartWindowControlWPF.HMouseEventArgsWPF e) { }
+
+    private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        var isTextEditing = Keyboard.FocusedElement is TextBoxBase;
+        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+        {
+            if (e.Key == Key.S) { Save_Click(sender, e); e.Handled = true; }
+            else if (isTextEditing) return;
+            else if (e.Key == Key.Z) { Undo_Click(sender, e); e.Handled = true; }
+            else if (e.Key == Key.Y) { Redo_Click(sender, e); e.Handled = true; }
+            else if (e.Key == Key.C) { _vm.SelectedFlow?.CopySelection(); e.Handled = true; }
+            else if (e.Key == Key.V) { _vm.SelectedFlow?.PasteSelection(); e.Handled = true; }
+        }
+        else if (!isTextEditing && e.Key == Key.Delete) { _vm.SelectedFlow?.DeleteSelection(); e.Handled = true; }
+    }
+
+    private void Window_Closing(object? sender, CancelEventArgs e)
+    {
+        if (!ConfirmSaveBeforeSwitch()) { e.Cancel = true; return; }
+        _continuousCancellation?.Cancel();
+        _vm.CancelRun();
+        _vm.Dispose();
+    }
+
+    private static string? Prompt(string title, string label, string initial)
+    {
+        var dialog = new Window { Title = title, Width = 390, Height = 155, WindowStartupLocation = WindowStartupLocation.CenterOwner, ResizeMode = ResizeMode.NoResize, Owner = global::System.Windows.Application.Current.MainWindow, Background = Brushes.White };
+        var panel = new StackPanel { Margin = new Thickness(16) }; panel.Children.Add(new TextBlock { Text = label, Margin = new Thickness(0, 0, 0, 6) });
+        var input = new TextBox { Text = initial }; panel.Children.Add(input);
+        var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 14, 0, 0) };
+        string? answer = null; var ok = new Button { Content = "确定", IsDefault = true, MinWidth = 72, Margin = new Thickness(0, 0, 6, 0) }; ok.Click += (_, _) => { answer = input.Text.Trim(); dialog.DialogResult = true; };
+        var cancel = new Button { Content = "取消", IsCancel = true, MinWidth = 72 }; buttons.Children.Add(ok); buttons.Children.Add(cancel); panel.Children.Add(buttons); dialog.Content = panel;
+        return dialog.ShowDialog() == true && !string.IsNullOrWhiteSpace(answer) ? answer : null;
+    }
+
+    private void ShowError(string title, Exception ex) { _vm.Log($"{title}：{ex}"); MessageBox.Show(this, ex.Message, title, MessageBoxButton.OK, MessageBoxImage.Error); }
+
+    private static T? FindParent<T>(DependencyObject child) where T : DependencyObject
+    {
+        for (var current = VisualTreeHelper.GetParent(child); current is not null; current = VisualTreeHelper.GetParent(current)) if (current is T parent) return parent;
+        return null;
+    }
 }

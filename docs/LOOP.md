@@ -78,3 +78,44 @@
 - Visually verify batch progress/status, single-image outputs, and summary JSON on a real folder with OK, NG, malformed, and mixed-size images.
 - Add resume/cancel policy only after agreeing how partial batches should be represented and whether incomplete batches may be resumed.
 - The offline graph editor, measurements/calibration, camera/PLC, deployment, and production acceptance remain open.
+
+## Round 4: Extensible node workspace foundation · 2026-10-11
+
+**Goal:** implement the project/flow foundation and a usable node editor before adding visual algorithms. The architecture and acceptance specification is `docs/NODE_PLATFORM_FRAMEWORK.md` (GitHub spec commit `469a3fb`).
+
+**Implemented:**
+
+- Added serializable project, flow, node, edge, port, and execution models with stable IDs and JSON parameters.
+- Added node definition/executor/registry contracts, three test nodes, graph validation (port/type/cardinality/required-input/cycle checks), deterministic DAG order, sequential execution, node status/log results, cancellation, and persisted run records.
+- Added a project store for create/open/save, project-relative resource paths, image import, folder management, safe rename/move and referenced-resource deletion, flow import/export, and guarded ZIP project import/export.
+- Replaced the startup page with a WPF workspace: project tree, node library, flow tabs, canvas, node properties, validation messages, image preview, and run logs. Canvas supports adding, moving, connecting, deleting, copy/paste, zoom, undo/redo, and save/reopen. The prior Blob workbench is retained as its own window.
+- Kept algorithm execution out of the node system; only test nodes are registered. The Blob workbench continues to use its existing recipe and HALCON path.
+
+**Evidence:**
+
+- `dotnet build .\src\HalconVision.App\HalconVision.App.csproj --no-restore -p:OutputPath=D:\AiProjects\HalconVisionPlatform\artifacts\verified\`: succeeded, 0 warnings, 0 errors, including all referenced projects.
+- No GUI automation surface was available in this turn. WPF startup, mouse interaction, actual flow round-trip, and archive round-trip have not been visually or end-to-end verified.
+- No new automated test suite was added. Build evidence verifies compilation only.
+
+**Gates still open:**
+
+- Manually verify create/open/save, node drag and selection, click-to-connect, copy/paste/delete/undo, wheel zoom, test-node run, resource import/preview, and project archive import/export in the running WPF app.
+- Add automated domain/persistence tests for malformed flows and archive/path safety before broadening the plugin surface.
+- Add HALCON algorithm nodes only in later, separately scoped work; camera/PLC/HDevEngine and production acceptance remain outside this round.
+
+## Round 5: Dark engineering workspace layout · 2026-10-11
+
+**Goal:** apply the approved UI layout concept to the existing WPF workspace while keeping the canvas as the primary editing surface.
+
+**Implemented:**
+
+- Restyled the main window as a dark industrial engineering workspace with menu and command bars, a project/file and node-library rail, central multi-flow canvas, right-side node inspector, bottom image and run-monitoring docks, and a status bar.
+- Added drag-resizable splitters, hide/restore commands for the left, right, and bottom panels, node-library filtering, run-result rows, and status-bar HALCON/runtime, flow, run, elapsed-time, and zoom fields.
+- Added an independent maximized image-view window for the currently previewed project image. The processing-result and compare tabs clearly indicate that algorithm nodes are not connected yet.
+- Preserved the separate Blob workbench and kept the workflow node catalog limited to the test nodes.
+
+**Evidence:**
+
+- `dotnet build .\src\HalconVision.App\HalconVision.App.csproj --no-restore -p:OutputPath=D:\AiProjects\HalconVisionPlatform\artifacts\verified\`: succeeded, 0 warnings, 0 errors.
+- `git diff --check`: no whitespace errors. Git reported only the repository's normal LF-to-CRLF notices for edited text files.
+- The compiled WPF application was launched and its window process reported responsive with the expected main-window title. No screenshot/UI automation surface was available, so panel resizing/hide-restore, multi-monitor image viewing, and appearance at target DPI remain unverified by direct interaction.

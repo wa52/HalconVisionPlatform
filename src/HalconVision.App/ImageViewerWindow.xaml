@@ -1,0 +1,12 @@
+<Window x:Class="HalconVision.App.ImageViewerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ha="http://schemas.mvtec.com/halcondotnet"
+        Title="图像独立查看" Height="800" Width="1200" MinWidth="700" MinHeight="500"
+        Background="#10171E" Foreground="#D6E0E5" WindowStartupLocation="CenterOwner">
+ <Grid><Grid.RowDefinitions><RowDefinition Height="40"/><RowDefinition Height="*"/><RowDefinition Height="25"/></Grid.RowDefinitions>
+  <Border Background="#1B2731" BorderBrush="#34434E" BorderThickness="0,0,0,1" Padding="8,0"><DockPanel LastChildFill="False"><StackPanel DockPanel.Dock="Right" Orientation="Horizontal"><Button Content="−" ToolTip="缩小" Click="ZoomOut_Click" Width="30" Padding="4,3"/><Button Content="+" ToolTip="放大" Click="ZoomIn_Click" Width="30" Padding="4,3"/><Button Content="适应窗口" Click="Fit_Click" Padding="8,3"/></StackPanel><TextBlock x:Name="ImageNameText" Text="图像预览" Foreground="#E1E8EC" FontWeight="SemiBold" VerticalAlignment="Center" DockPanel.Dock="Left"/><TextBlock Text="滚轮缩放 · 按住左键拖动" Foreground="#8798A1" FontSize="10" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="14,0"/></DockPanel></Border>
+  <Grid x:Name="ImageHost" Grid.Row="1" PreviewMouseWheel="ImageHost_MouseWheel" PreviewMouseLeftButtonDown="ImageHost_MouseDown" PreviewMouseMove="ImageHost_MouseMove" PreviewMouseLeftButtonUp="ImageHost_MouseUp"><ha:HSmartWindowControlWPF x:Name="ImageWindow"/></Grid>
+  <Border Grid.Row="2" Background="#141D25" Padding="8,3"><TextBlock x:Name="ImageInfoText" Foreground="#AAB8BE" FontSize="10"/></Border>
+ </Grid>
+</Window>

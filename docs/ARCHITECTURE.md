@@ -1,4 +1,4 @@
-# Architecture · first offline slice
+# Architecture · node workspace and offline inspection workbench
 
 The solution is a modular monolith. HALCON, WPF, persistence, and domain rules are separated by project references; no service or process boundary is introduced in this prototype.
 
@@ -10,11 +10,11 @@ HalconVision.App ──────> HalconVision.Application ──────
        └──────> HalconVision.Persistence <───────────────────────┘
 ```
 
-- **Domain:** `InspectionRecipe`, `InspectionResult`, batch item/status records, image dimensions, and validation. No WPF or HALCON types.
-- **Application:** `IInspectionEngine`, `InspectionRunner`, and `BatchInspectionRunner`; batch work is sequential, catches failures per image, and emits progress.
+- **Domain:** inspection/result data plus serializable project, flow, node, edge, port, and execution records. No WPF or HALCON types.
+- **Application:** inspection runners plus node definition/executor/registry contracts, graph validation, stable topological ordering, and sequential workflow execution. Built-in nodes are limited to text constant, pass-through, and log test nodes.
 - **HALCON:** owns `HImage`/`HRegion` lifetime, loads and displays images, applies ROI + threshold + connected components + area filtering, returns scalar/rectangle snapshots.
-- **Persistence:** JSON recipe files, per-image records with an input-image copy, and a batch summary under the per-machine ProgramData directory.
-- **App:** WPF controls, recipe fields, dialogs, status and logs. Directory batch execution runs off the UI thread; the HALCON adapter remains the only operator implementation.
+- **Persistence:** project workspace manifests and flow JSON under the project root, safe resource imports, project/flow archive operations, workflow run records, plus the earlier recipe and inspection stores.
+- **App:** WPF node workbench (project tree, node library, multi-flow tabs, canvas, properties, preview and logs) alongside a separately opened Blob inspection window. Node canvas editing and Blob algorithms remain separate.
 
 ## Batch result behavior
 
@@ -22,4 +22,4 @@ Each directory batch receives a unique ID and stores start/completion timestamps
 
 Per-image records live in `results`; batch summaries live in `batches`. The summary is written via a temporary file and replacement. A machine-specific absolute source path is retained for diagnostics; it is not a portable recipe reference.
 
-The current dependency graph is intentionally small and will grow only when camera, communication, authorization, and production workflow requirements are validated.
+No HALCON algorithm is registered as a workflow node yet. Camera, communication, authorization, production workflow and desktop interaction acceptance remain open.
