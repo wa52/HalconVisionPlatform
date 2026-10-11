@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using HalconDotNet;
 using HalconVision.Application;
 using HalconVision.Domain;
 using HalconVision.Halcon;
@@ -13,7 +14,7 @@ namespace HalconVision.App;
 
 public sealed class WorkflowWorkspaceViewModel : ObservableModel
 {
-    private readonly HalconDirectShowCameraManager _cameraManager = new();
+    private readonly HalconCameraManager _cameraManager = new();
     private readonly ProjectStore _projectStore = new();
     private readonly INodeRegistry _registry;
     private readonly WorkflowGraphValidator _validator;
@@ -41,16 +42,44 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
         _registry = registry;
         _validator = new WorkflowGraphValidator(_registry);
         _engine = new WorkflowExecutionEngine(_registry, _validator);
+        foreach (var item in _cameraManager.GetInstalledInterfaces()) CameraInterfaces.Add(item);
+        SelectedCameraInterface = CameraInterfaces.FirstOrDefault(item => item.Id == "DirectShow") ?? CameraInterfaces.FirstOrDefault();
     }
 
     public ObservableCollection<FlowTabViewModel> Flows { get; } = [];
     public ObservableCollection<ProjectTreeItem> ProjectTree { get; } = [];
     public ObservableCollection<string> Logs { get; } = [];
     public ObservableCollection<NodeExecutionResult> ExecutionResults { get; } = [];
+    public ObservableCollection<HalconAcquisitionInterface> CameraInterfaces { get; } = [];
     public ObservableCollection<HalconCameraDevice> CameraDevices { get; } = [];
+    private HalconAcquisitionInterface? _selectedCameraInterface;
+    private string? _preferredCameraDeviceId;
+    public HalconAcquisitionInterface? SelectedCameraInterface
+    {
+        get => _selectedCameraInterface;
+        set
+        {
+            if (!Set(ref _selectedCameraInterface, value)) return;
+            CameraDevices.Clear();
+            SelectedCameraDevice = null;
+            if (value is not null && _cameraManager.ConnectedInterfaceId is { } connected && connected != value.Id)
+                DisconnectCamera();
+            CommitSelectedCameraInterface();
+        }
+    }
     private HalconCameraDevice? _selectedCameraDevice;
     private string _cameraStatus = "未连接";
-    public HalconCameraDevice? SelectedCameraDevice { get => _selectedCameraDevice; set { if (Set(ref _selectedCameraDevice, value)) CommitSelectedCameraDevice(); } }
+    public HalconCameraDevice? SelectedCameraDevice
+    {
+        get => _selectedCameraDevice;
+        set
+        {
+            if (!Set(ref _selectedCameraDevice, value)) return;
+            if (value is not null && _cameraManager.ConnectedDeviceId is { } connected && connected != value.Id)
+                DisconnectCamera();
+            CommitSelectedCameraDevice();
+        }
+    }
     public string CameraStatus { get => _cameraStatus; private set => Set(ref _cameraStatus, value); }
     public bool IsCameraConnected => _cameraManager.ConnectedDeviceId is not null;
     public IReadOnlyCollection<NodeDefinition> NodeCatalog => _registry.Definitions;
@@ -77,21 +106,28 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
 
     public async Task ScanCamerasAsync()
     {
-        var devices = await Task.Run(_cameraManager.Scan);
+        var cameraInterface = SelectedCameraInterface ?? throw new InvalidOperationException("HALCON 没有可用的相机类别。");
+        var devices = await Task.Run(() => _cameraManager.Scan(cameraInterface.Id));
         CameraDevices.Clear();
         foreach (var device in devices) CameraDevices.Add(device);
-        if (_selectedCameraDevice is null || !devices.Any(device => device.Id == _selectedCameraDevice.Id))
-            SelectedCameraDevice = devices.FirstOrDefault();
+        SelectedCameraDevice = devices.FirstOrDefault(device => device.Id == _preferredCameraDeviceId)
+            ?? devices.FirstOrDefault(device => device.Id == _selectedCameraDevice?.Id)
+            ?? devices.FirstOrDefault();
         CameraStatus = devices.Count == 0 ? "未发现相机" : $"发现 {devices.Count} 台相机";
     }
 
-    public async Task ConnectSelectedCameraAsync()
+    public async Task<HImage> ConnectSelectedCameraAsync()
     {
+        var cameraInterface = SelectedCameraInterface ?? throw new InvalidOperationException("请先选择相机类别。");
         var device = SelectedCameraDevice ?? throw new InvalidOperationException("请先扫描并选择相机。");
-        await Task.Run(() => _cameraManager.Connect(device.Id));
-        CameraStatus = $"已连接：{device.Name}";
+        HImage image;
+        try { image = await Task.Run(() => _cameraManager.ConnectAndGrabPreview(cameraInterface.Id, device.Id, device.DeviceParameter)); }
+        catch (Exception ex) { CameraStatus = $"连接/取图失败：{ex.Message}"; Raise(nameof(IsCameraConnected)); throw; }
+        CameraStatus = $"已连接并取到首帧：{device.Name}";
         Raise(nameof(IsCameraConnected));
+        CommitSelectedCameraInterface();
         CommitSelectedCameraDevice();
+        return image;
     }
 
     public void DisconnectCamera()
@@ -105,8 +141,19 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
     {
         var selectedNode = SelectedFlow?.SelectedNode;
         if (selectedNode?.TypeId != HalconNodeProvider.CameraCapture) return;
-        var value = selectedNode.Parameters.FirstOrDefault(parameter => parameter.Definition.Id == "device")?.ValueText;
-        SelectedCameraDevice = CameraDevices.FirstOrDefault(device => device.Id == value) ?? CameraDevices.FirstOrDefault();
+        var interfaceId = selectedNode.Parameters.FirstOrDefault(parameter => parameter.Definition.Id == "interface")?.ValueText;
+        SelectedCameraInterface = CameraInterfaces.FirstOrDefault(item => item.Id == interfaceId) ?? SelectedCameraInterface;
+        _preferredCameraDeviceId = selectedNode.Parameters.FirstOrDefault(parameter => parameter.Definition.Id == "device")?.ValueText;
+        SelectedCameraDevice = CameraDevices.FirstOrDefault(device => device.Id == _preferredCameraDeviceId) ?? CameraDevices.FirstOrDefault();
+    }
+
+    private void CommitSelectedCameraInterface()
+    {
+        if (SelectedCameraInterface is null) return;
+        var parameter = SelectedFlow?.SelectedNode?.Parameters.FirstOrDefault(item => item.Definition.Id == "interface");
+        if (parameter is null) return;
+        parameter.ValueText = SelectedCameraInterface.Id;
+        parameter.Commit();
     }
 
     private void CommitSelectedCameraDevice()

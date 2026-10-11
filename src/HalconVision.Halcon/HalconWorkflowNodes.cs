@@ -21,9 +21,10 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
             [new NodeParameterDefinition("path", "图像文件或文件夹", "path", true, JsonSerializer.SerializeToElement(string.Empty))]);
 
         yield return new NodeDefinition(
-            CameraCapture, 1, "图像输入", "相机采集", "扫描 HALCON DirectShow 相机并在每次流程执行时抓取一帧图像。设备参数可填序号，例如 0。",
+            CameraCapture, 1, "图像输入", "相机采集", "从已连接的 HALCON 采集接口单次抓取一帧图像。",
             [new PortDefinition("image", "Image", PortDirection.Output, "halcon.image")],
-            [new NodeParameterDefinition("device", "相机设备", "camera", true, JsonSerializer.SerializeToElement("0"))]);
+            [new NodeParameterDefinition("interface", "相机类别", "cameraInterface", true, JsonSerializer.SerializeToElement("DirectShow")),
+             new NodeParameterDefinition("device", "相机设备", "camera", true, JsonSerializer.SerializeToElement("0"))]);
 
         yield return new NodeDefinition(
             Threshold, 1, "图像处理", "二值化", "对输入 HImage 执行 HALCON Threshold，输出 HRegion。",
@@ -45,9 +46,9 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
 /// <summary>Captures one frame from a camera connected through the workspace camera panel.</summary>
 public sealed class HalconCameraCaptureExecutor : INodeExecutor
 {
-    private readonly HalconDirectShowCameraManager _cameraManager;
+    private readonly HalconCameraManager _cameraManager;
 
-    public HalconCameraCaptureExecutor(HalconDirectShowCameraManager cameraManager) => _cameraManager = cameraManager;
+    public HalconCameraCaptureExecutor(HalconCameraManager cameraManager) => _cameraManager = cameraManager;
 
     public string TypeId => HalconNodeProvider.CameraCapture;
     public int Version => 1;
@@ -55,15 +56,19 @@ public sealed class HalconCameraCaptureExecutor : INodeExecutor
     public ValueTask<NodeExecutionOutput> ExecuteAsync(NodeExecutionContext context)
     {
         context.CancellationToken.ThrowIfCancellationRequested();
+        var interfaceId = context.Node.Parameters.TryGetValue("interface", out var interfaceValue)
+            ? interfaceValue.GetString()?.Trim()
+            : null;
         var device = context.Node.Parameters.TryGetValue("device", out var deviceValue)
             ? deviceValue.GetString()?.Trim()
             : null;
+        if (string.IsNullOrWhiteSpace(interfaceId)) interfaceId = "DirectShow";
         if (string.IsNullOrWhiteSpace(device) || string.Equals(device, "default", StringComparison.OrdinalIgnoreCase)) device = "0";
 
         HImage? image = null;
         try
         {
-            image = _cameraManager.GrabFrame(device);
+            image = _cameraManager.GrabFrame(interfaceId, device);
             image.GetImageSize(out int width, out int height);
             using var channels = image.CountChannels();
 
@@ -71,7 +76,7 @@ public sealed class HalconCameraCaptureExecutor : INodeExecutor
             {
                 ["image"] = JsonSerializer.SerializeToElement(new
                 {
-                    source = "HALCON DirectShow",
+                    source = $"HALCON {interfaceId}",
                     device,
                     count = 1,
                     width,
@@ -87,7 +92,7 @@ public sealed class HalconCameraCaptureExecutor : INodeExecutor
         catch (HalconException exception)
         {
             throw new InvalidOperationException(
-                $"HALCON DirectShow 相机采集失败（设备：{device}）。请检查相机连接状态和设备权限。原始错误：{exception.Message}",
+                $"HALCON 相机采集失败（接口：{interfaceId}，设备：{device}）。请检查连接状态、接口配置和设备权限。原始错误：{exception.Message}",
                 exception);
         }
         finally

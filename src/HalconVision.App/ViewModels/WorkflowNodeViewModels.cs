@@ -46,7 +46,7 @@ public sealed class NodeParameterViewModel : ObservableModel
     public string Name => Definition.Name;
     public string DataType => Definition.DataType;
     public bool IsPath => string.Equals(DataType, "path", StringComparison.Ordinal);
-    public bool IsCamera => string.Equals(DataType, "camera", StringComparison.Ordinal);
+    public bool IsCamera => DataType is "camera" or "cameraInterface";
     public string ValueText { get => _valueText; set => Set(ref _valueText, value); }
     public string? Error { get => _error; private set => Set(ref _error, value); }
 
@@ -56,7 +56,7 @@ public sealed class NodeParameterViewModel : ObservableModel
         {
             var element = Definition.DataType switch
             {
-                "string" or "path" or "camera" => JsonSerializer.SerializeToElement(ValueText),
+                "string" or "path" or "camera" or "cameraInterface" => JsonSerializer.SerializeToElement(ValueText),
                 "number" when double.TryParse(ValueText, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) && double.IsFinite(number) => JsonSerializer.SerializeToElement(number),
                 "bool" when bool.TryParse(ValueText, out var boolean) => JsonSerializer.SerializeToElement(boolean),
                 _ => throw new FormatException($"请输入有效的 {Definition.DataType} 值。")

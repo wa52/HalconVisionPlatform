@@ -367,9 +367,25 @@ public partial class MainWindow : Window
         catch (Exception ex) { ShowError("扫描相机失败", ex); }
     }
 
+    private async void CameraInterface_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!IsLoaded || _vm.SelectedCameraInterface is null) return;
+        try { await _vm.ScanCamerasAsync(); }
+        catch (Exception ex) { _vm.Log($"扫描 HALCON 接口 {_vm.SelectedCameraInterface.Id} 失败：{ex.Message}"); }
+    }
+
     private async void ConnectCamera_Click(object sender, RoutedEventArgs e)
     {
-        try { await _vm.ConnectSelectedCameraAsync(); }
+        try
+        {
+            using var image = await _vm.ConnectSelectedCameraAsync();
+            image.GetImageSize(out _previewImageWidth, out _previewImageHeight);
+            _imagePresenter.Display(image, PreviewWindow.HalconWindow, _previewImageWidth, _previewImageHeight,
+                PreviewHost.ActualWidth, PreviewHost.ActualHeight);
+            _previewImagePath = null;
+            PreviewEmptyText.Visibility = Visibility.Collapsed;
+            _vm.Log($"相机首帧已显示：{_vm.SelectedCameraInterface?.Id} / {_vm.SelectedCameraDevice?.Name}，{_previewImageWidth} × {_previewImageHeight}。");
+        }
         catch (Exception ex) { _vm.Log($"相机连接失败：{ex.Message}"); ShowError("相机连接失败", ex); }
     }
 
