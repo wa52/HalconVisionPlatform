@@ -113,7 +113,7 @@ public partial class MainWindow : Window
         else { if (BottomRow.Height.Value > 0) _bottomRowHeight = BottomRow.Height; BottomRow.Height = new GridLength(0); BottomSplitterRow.Height = new GridLength(0); }
     }
 
-    private void FitCanvas_Click(object sender, RoutedEventArgs e) => _vm.SelectedFlow?.SetZoom(0.5);
+    private void FitCanvas_Click(object sender, RoutedEventArgs e) => _vm.SelectedFlow?.SetZoom(0.85);
     private void OpenImageViewer_Click(object sender, RoutedEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(_previewImagePath) || !File.Exists(_previewImagePath))

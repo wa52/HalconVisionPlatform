@@ -133,7 +133,7 @@ public sealed class FlowTabViewModel : ObservableModel
     private readonly WorkflowGraphValidator _validator;
     private FlowDocument _document;
     private bool _isDirty;
-    private double _zoom = 0.33;
+    private double _zoom = 0.85;
     private FlowNodeViewModel? _selectedNode;
     private readonly Stack<string> _undo = [];
     private readonly Stack<string> _redo = [];
@@ -328,7 +328,7 @@ public sealed class FlowTabViewModel : ObservableModel
             var outIndex = source.OutputPorts.ToList().FindIndex(port => port.Id == edge.FromPortId);
             var inIndex = target.InputPorts.ToList().FindIndex(port => port.Id == edge.ToPortId);
             if (outIndex < 0 || inIndex < 0) continue;
-            Edges.Add(new FlowEdgeViewModel(source.X + 248, source.Y + 67 + outIndex * 26, target.X, target.Y + 67 + inIndex * 26, "#58B7B2"));
+            Edges.Add(new FlowEdgeViewModel(source.X + 152, source.Y + 38 + outIndex * 18, target.X + 12, target.Y + 38 + inIndex * 18, "#58B7B2"));
         }
     }
 }
