@@ -193,6 +193,7 @@ public partial class MainWindow : Window
         if (e.OriginalSource is DependencyObject original && FindParent<ButtonBase>(original) is not null) return;
         if (sender is not FrameworkElement { DataContext: FlowNodeViewModel node } element || _vm.SelectedFlow is null) return;
         _vm.SelectedFlow.SelectNode(node.Id, Keyboard.Modifiers.HasFlag(ModifierKeys.Control));
+        element.Focus();
         DisplaySelectedNodePreview();
         var canvas = FindParent<Canvas>(element); if (canvas is null) return;
         _dragNode = node; _dragOffset = e.GetPosition(canvas) - new Vector((int)node.X, (int)node.Y); _dragging = false;
