@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+artifacts/
+results/
+logs/
+data/
+config/local.*
+!config/*.example.*

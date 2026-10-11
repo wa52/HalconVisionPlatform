@@ -1,0 +1,34 @@
+HALCON .NET runtime probe
+TimestampUtc: 2026-10-11T14:25:02.6861872+00:00
+HALCONROOT: C:\Users\feng\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady
+HALCONARCH: x64-win64
+HALCONIMAGES: C:\Users\feng\AppData\Roaming\MVTec\HALCON-24.11-Progress-Steady\examples\images
+HALCON installation version: 24.11.1.1
+HALCON version file: C:\Users\feng\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\version.txt; file=; size=10
+HALCON managed interface: D:\AiProjects\HalconVisionPlatform\tools\HalconSmokeTest\bin\Debug\net8.0\MVTec.HalconDotNet.dll; assembly=24111.0.0.0; file=24111.0.0.0
+HALCON native runtime: C:\Users\feng\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\bin\x64-win64\halcon.dll; file=24.11.1.0; size=85076984
+.NET runtime: .NET 8.0.30
+OS: Microsoft Windows 10.0.26200
+OS architecture: X64
+Process architecture: X64
+Process bitness: 64-bit
+HALCON-related PATH entries: C:\Users\feng\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\bin\x64-win64
+Input image: C:\Users\feng\AppData\Roaming\MVTec\HALCON-24.11-Progress-Steady\examples\images\a01.png
+Input image exists: True
+STEP read_image: starting
+STEP read_image: OK; image size = 307 x 379
+STEP threshold: starting (gray range 128..255)
+STEP threshold: OK
+STEP connection: starting
+STEP connection: OK
+STEP count_obj: starting
+STEP count_obj: OK; object count = 2
+RESULT: SUCCESS
+Loaded HALCON modules:
+  D:\AiProjects\HalconVisionPlatform\tools\HalconSmokeTest\bin\Debug\net8.0\MVTec.HalconDotNet.dll; file=24111.0.0.0
+  C:\Users\feng\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\bin\x64-win64\halcon.DLL; file=24.11.1.0
+  C:\Users\feng\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\bin\x64-win64\mvloglib.dll; file=1.1.2
+  C:\Users\feng\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\bin\x64-win64\hcanvas.dll; file=24.11.1.1
+  C:\Users\feng\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\bin\x64-win64\halcondl.dll; file=24.11.1.1
+  C:\Users\feng\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\bin\x64-win64\libiomp5md.dll; file=20210428
+ProcessExitCode: 0
