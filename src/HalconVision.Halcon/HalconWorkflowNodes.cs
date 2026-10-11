@@ -9,6 +9,7 @@ namespace HalconVision.Halcon;
 public sealed class HalconNodeProvider : INodeDefinitionProvider
 {
     public const string ImageRead = "halcon.image-read";
+    public const string CameraCapture = "halcon.camera-capture";
     public const string Threshold = "halcon.threshold";
     public const string BlobAnalysis = "halcon.blob-analysis";
 
@@ -18,6 +19,11 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
             ImageRead, 1, "图像输入", "读取图像", "使用 HALCON 读取单张图像或文件夹中的图像序列，输出运行期 HImage 对象。",
             [new PortDefinition("image", "Image", PortDirection.Output, "halcon.image")],
             [new NodeParameterDefinition("path", "图像文件或文件夹", "path", true, JsonSerializer.SerializeToElement(string.Empty))]);
+
+        yield return new NodeDefinition(
+            CameraCapture, 1, "图像输入", "相机采集", "通过 HALCON MediaFoundation 连接本机视频采集设备并抓取一帧图像。",
+            [new PortDefinition("image", "Image", PortDirection.Output, "halcon.image")],
+            [new NodeParameterDefinition("device", "相机设备 ID", "string", true, JsonSerializer.SerializeToElement("default"))]);
 
         yield return new NodeDefinition(
             Threshold, 1, "图像处理", "二值化", "对输入 HImage 执行 HALCON Threshold，输出 HRegion。",
@@ -33,6 +39,69 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
              new PortDefinition("count", "Count", PortDirection.Output, "number")],
             [new NodeParameterDefinition("minimumArea", "最小面积", "number", true, JsonSerializer.SerializeToElement(1d)),
              new NodeParameterDefinition("maximumArea", "最大面积", "number", true, JsonSerializer.SerializeToElement(1_000_000_000d))]);
+    }
+}
+
+/// <summary>Captures one frame through HALCON's MediaFoundation acquisition interface.</summary>
+public sealed class HalconCameraCaptureExecutor : INodeExecutor
+{
+    private const string AcquisitionInterface = "MediaFoundation";
+
+    public string TypeId => HalconNodeProvider.CameraCapture;
+    public int Version => 1;
+
+    public ValueTask<NodeExecutionOutput> ExecuteAsync(NodeExecutionContext context)
+    {
+        context.CancellationToken.ThrowIfCancellationRequested();
+        var device = context.Node.Parameters.TryGetValue("device", out var deviceValue)
+            ? deviceValue.GetString()?.Trim()
+            : null;
+        if (string.IsNullOrWhiteSpace(device)) device = "default";
+
+        HTuple? information = null;
+        HTuple? devices = null;
+        HImage? image = null;
+        try
+        {
+            HOperatorSet.InfoFramegrabber(AcquisitionInterface, "device", out information, out devices);
+            context.Log($"HALCON {AcquisitionInterface} 可用设备：{(devices.Length > 0 ? devices.ToString() : "未发现设备")}。");
+
+            using var framegrabber = new HFramegrabber(
+                AcquisitionInterface, 1, 1, 0, 0, 0, 0, "default", -1, "default", -1,
+                "default", "default", device, -1, -1);
+            image = framegrabber.GrabImage();
+            image.GetImageSize(out int width, out int height);
+            using var channels = image.CountChannels();
+
+            var serialized = new Dictionary<string, JsonElement>
+            {
+                ["image"] = JsonSerializer.SerializeToElement(new
+                {
+                    source = $"HALCON {AcquisitionInterface}",
+                    device,
+                    count = 1,
+                    width,
+                    height,
+                    channels = channels.I
+                })
+            };
+            var runtime = new Dictionary<string, object?> { ["image"] = image };
+            image = null;
+            context.Log($"相机采集成功：{device}，{width} × {height}，{channels.I} 通道。");
+            return ValueTask.FromResult(new NodeExecutionOutput(serialized, runtime));
+        }
+        catch (HalconException exception)
+        {
+            throw new InvalidOperationException(
+                $"HALCON 相机采集失败（接口：{AcquisitionInterface}，设备：{device}）。请确认相机已连接、未被其他程序占用，且 HALCON MediaFoundation 接口可用。原始错误：{exception.Message}",
+                exception);
+        }
+        finally
+        {
+            image?.Dispose();
+            information?.Dispose();
+            devices?.Dispose();
+        }
     }
 }
 

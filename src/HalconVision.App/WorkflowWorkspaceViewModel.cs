@@ -355,6 +355,7 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
         registry.Register(new HalconNodeProvider(),
         [
             new HalconImageReadExecutor(),
+            new HalconCameraCaptureExecutor(),
             new HalconThresholdExecutor(),
             new HalconBlobAnalysisExecutor()
         ]);
