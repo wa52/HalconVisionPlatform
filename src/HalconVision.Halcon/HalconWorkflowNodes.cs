@@ -21,9 +21,9 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
             [new NodeParameterDefinition("path", "图像文件或文件夹", "path", true, JsonSerializer.SerializeToElement(string.Empty))]);
 
         yield return new NodeDefinition(
-            CameraCapture, 1, "图像输入", "相机采集", "通过 HALCON MediaFoundation 连接本机视频采集设备并抓取一帧图像。",
+            CameraCapture, 1, "图像输入", "相机采集", "扫描 HALCON DirectShow 相机并在每次流程执行时抓取一帧图像。设备参数可填序号，例如 0。",
             [new PortDefinition("image", "Image", PortDirection.Output, "halcon.image")],
-            [new NodeParameterDefinition("device", "相机设备 ID", "string", true, JsonSerializer.SerializeToElement("default"))]);
+            [new NodeParameterDefinition("device", "相机设备序号", "string", true, JsonSerializer.SerializeToElement("0"))]);
 
         yield return new NodeDefinition(
             Threshold, 1, "图像处理", "二值化", "对输入 HImage 执行 HALCON Threshold，输出 HRegion。",
@@ -45,7 +45,7 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
 /// <summary>Captures one frame through HALCON's MediaFoundation acquisition interface.</summary>
 public sealed class HalconCameraCaptureExecutor : INodeExecutor
 {
-    private const string AcquisitionInterface = "MediaFoundation";
+    private const string AcquisitionInterface = "DirectShow";
 
     public string TypeId => HalconNodeProvider.CameraCapture;
     public int Version => 1;
@@ -56,19 +56,28 @@ public sealed class HalconCameraCaptureExecutor : INodeExecutor
         var device = context.Node.Parameters.TryGetValue("device", out var deviceValue)
             ? deviceValue.GetString()?.Trim()
             : null;
-        if (string.IsNullOrWhiteSpace(device)) device = "default";
+        if (string.IsNullOrWhiteSpace(device) || string.Equals(device, "default", StringComparison.OrdinalIgnoreCase)) device = "0";
 
         HTuple? information = null;
         HTuple? devices = null;
         HImage? image = null;
+        var deviceListText = "尚未扫描";
         try
         {
             HOperatorSet.InfoFramegrabber(AcquisitionInterface, "device", out information, out devices);
-            context.Log($"HALCON {AcquisitionInterface} 可用设备：{(devices.Length > 0 ? devices.ToString() : "未发现设备")}。");
+            if (devices.Length == 0)
+                throw new InvalidOperationException($"HALCON {AcquisitionInterface} 没有扫描到相机。请检查相机连接和 Windows 相机权限。");
+
+            var availableDevices = devices.SArr;
+            deviceListText = string.Join("；", availableDevices);
+            var requestedIndex = ParseDeviceIndex(device, availableDevices);
+            var cameraName = availableDevices.FirstOrDefault(candidate => ParseDeviceIndex(candidate, availableDevices) == requestedIndex)
+                ?? availableDevices.FirstOrDefault(candidate => candidate.TrimStart().StartsWith($"[{requestedIndex}]", StringComparison.Ordinal));
+            context.Log($"HALCON {AcquisitionInterface} 可用设备：{string.Join("；", availableDevices)}；本次选择：{cameraName ?? requestedIndex.ToString()}。");
 
             using var framegrabber = new HFramegrabber(
-                AcquisitionInterface, 1, 1, 0, 0, 0, 0, "default", -1, "default", -1,
-                "default", "default", device, -1, -1);
+                AcquisitionInterface, 1, 1, 0, 0, 0, 0, "default", 8, "rgb", -1,
+                "false", "default", requestedIndex.ToString(), -1, 1);
             image = framegrabber.GrabImage();
             image.GetImageSize(out int width, out int height);
             using var channels = image.CountChannels();
@@ -78,7 +87,7 @@ public sealed class HalconCameraCaptureExecutor : INodeExecutor
                 ["image"] = JsonSerializer.SerializeToElement(new
                 {
                     source = $"HALCON {AcquisitionInterface}",
-                    device,
+                    device = cameraName ?? requestedIndex.ToString(),
                     count = 1,
                     width,
                     height,
@@ -87,13 +96,13 @@ public sealed class HalconCameraCaptureExecutor : INodeExecutor
             };
             var runtime = new Dictionary<string, object?> { ["image"] = image };
             image = null;
-            context.Log($"相机采集成功：{device}，{width} × {height}，{channels.I} 通道。");
+            context.Log($"相机采集成功：{cameraName ?? requestedIndex.ToString()}，{width} × {height}，{channels.I} 通道。");
             return ValueTask.FromResult(new NodeExecutionOutput(serialized, runtime));
         }
         catch (HalconException exception)
         {
             throw new InvalidOperationException(
-                $"HALCON 相机采集失败（接口：{AcquisitionInterface}，设备：{device}）。请确认相机已连接、未被其他程序占用，且 HALCON MediaFoundation 接口可用。原始错误：{exception.Message}",
+                $"HALCON 相机采集失败（接口：{AcquisitionInterface}，设备：{device}，扫描结果：{deviceListText}）。请确认相机未被其他程序占用且设备序号有效。原始错误：{exception.Message}",
                 exception);
         }
         finally
@@ -102,6 +111,23 @@ public sealed class HalconCameraCaptureExecutor : INodeExecutor
             information?.Dispose();
             devices?.Dispose();
         }
+    }
+
+    private static int ParseDeviceIndex(string configuredDevice, IReadOnlyList<string> availableDevices)
+    {
+        var candidate = configuredDevice.Trim();
+        var closingBracket = candidate.IndexOf(']');
+        if (candidate.StartsWith('[') && closingBracket > 1 && int.TryParse(candidate.AsSpan(1, closingBracket - 1), out var bracketedIndex))
+            return bracketedIndex;
+        if (int.TryParse(candidate, out var index)) return index;
+        var matchingDevice = availableDevices.FirstOrDefault(item => string.Equals(item, candidate, StringComparison.OrdinalIgnoreCase));
+        if (matchingDevice is not null)
+        {
+            var closeBracket = matchingDevice.IndexOf(']');
+            if (matchingDevice.StartsWith('[') && closeBracket > 1 && int.TryParse(matchingDevice.AsSpan(1, closeBracket - 1), out index))
+                return index;
+        }
+        throw new InvalidDataException($"无法识别相机设备“{configuredDevice}”。可用设备：{string.Join("；", availableDevices)}。请填写设备序号，例如 0。");
     }
 }
 
