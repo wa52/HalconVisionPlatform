@@ -4,7 +4,7 @@
         xmlns:ha="http://schemas.mvtec.com/halcondotnet"
         Title="HalconVisionPlatform · 工业视觉检测平台" Height="940" Width="1580" MinHeight="720" MinWidth="1180"
         Background="#111820" Foreground="#D6E0E5" WindowStartupLocation="CenterScreen"
-        Loaded="Window_Loaded" Closing="Window_Closing" PreviewKeyDown="Window_PreviewKeyDown">
+        Loaded="Window_Loaded" Closing="Window_Closing" PreviewKeyDown="Window_PreviewKeyDown" PreviewMouseMove="Window_PreviewMouseMove" PreviewMouseLeftButtonUp="Window_PreviewMouseLeftButtonUp">
  <Window.Resources>
   <SolidColorBrush x:Key="Chrome" Color="#17212A"/><SolidColorBrush x:Key="Panel" Color="#1B2731"/>
   <SolidColorBrush x:Key="PanelRaised" Color="#202E39"/><SolidColorBrush x:Key="Line" Color="#34434E"/>
@@ -22,7 +22,9 @@
   <Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="#26343F"/><Setter Property="Foreground" Value="#C9D5DA"/><Setter Property="BorderBrush" Value="#34434E"/><Setter Property="BorderThickness" Value="0,0,1,1"/><Setter Property="Padding" Value="8,6"/></Style>
   <Style TargetType="DataGridCell"><Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="#CED9DE"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="7,4"/></Style>
   <Style TargetType="MenuItem"><Setter Property="Foreground" Value="#D3DEE3"/><Setter Property="Background" Value="#17212A"/><Setter Property="Padding" Value="9,5"/></Style>
-  <DataTemplate x:Key="PortTemplate"><Button Width="18" Height="18" Padding="0" Margin="0" Background="Transparent" BorderThickness="0" Tag="{Binding}" Click="Port_Click" ToolTip="{Binding Name}"><Ellipse Width="9" Height="9" Fill="#42B7E9" Stroke="#DDF6FF" StrokeThickness="1" VerticalAlignment="Center"/></Button></DataTemplate>
+  <DataTemplate x:Key="PortTemplate"><Button Width="22" Height="22" Padding="0" Margin="0,-2" Background="Transparent" BorderThickness="0" Tag="{Binding}" PreviewMouseLeftButtonDown="Port_PreviewMouseLeftButtonDown" Click="Port_Click" ToolTip="拖到目标输入端口以连线；也可单击端口">
+   <Ellipse Width="12" Height="12" Fill="#42B7E9" Stroke="#DDF6FF" StrokeThickness="1.5" VerticalAlignment="Center"/>
+  </Button></DataTemplate>
   <DataTemplate x:Key="NodeTemplate"><Border Width="164" Focusable="True" Background="#202D37" BorderBrush="#465660" BorderThickness="1" CornerRadius="5" Padding="0" MouseLeftButtonDown="Node_MouseDown" MouseMove="Node_MouseMove" MouseLeftButtonUp="Node_MouseUp">
    <Border.Style><Style TargetType="Border"><Setter Property="BorderBrush" Value="#465660"/><Style.Triggers><DataTrigger Binding="{Binding IsSelected}" Value="True"><Setter Property="BorderBrush" Value="#43B8E9"/><Setter Property="BorderThickness" Value="2"/></DataTrigger></Style.Triggers></Style></Border.Style>
    <StackPanel><Border Background="#2C3B46" CornerRadius="4,4,0,0" Padding="8,5" Height="28"><TextBlock Text="{Binding DisplayName}" Foreground="White" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/></Border>

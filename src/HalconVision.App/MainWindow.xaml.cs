@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using ShapeLine = System.Windows.Shapes.Line;
 using System.Text.Json;
 using HalconDotNet;
 using HalconVision.App;
@@ -20,6 +21,9 @@ public partial class MainWindow : Window
 {
     private readonly WorkflowWorkspaceViewModel _vm = new();
     private NodePortViewModel? _pendingOutput;
+    private ButtonBase? _connectionCapture;
+    private Canvas? _connectionCanvas;
+    private ShapeLine? _connectionPreview;
     private FlowNodeViewModel? _dragNode;
     private Point _dragOffset;
     private bool _dragging;
@@ -233,6 +237,82 @@ public partial class MainWindow : Window
         if (_vm.SelectedFlow.Connect(_pendingOutput.NodeId, _pendingOutput.Id, port.NodeId, port.Id, out var error)) _vm.Log($"连线已创建：{_pendingOutput.Name} → {port.Name}");
         else _vm.Log($"连线未创建：{error}");
         _pendingOutput = null;
+    }
+
+    private void Port_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not ButtonBase { Tag: NodePortViewModel { Direction: PortDirection.Output } port } button) return;
+        _pendingOutput = port;
+        _connectionCanvas = FindWorkflowCanvas(button);
+        if (_connectionCanvas is null) return;
+        var start = button.TransformToAncestor(_connectionCanvas).Transform(new Point(button.ActualWidth / 2, button.ActualHeight / 2));
+        _connectionPreview = new ShapeLine
+        {
+            X1 = start.X, Y1 = start.Y, X2 = start.X, Y2 = start.Y,
+            Stroke = new SolidColorBrush(Color.FromRgb(52, 177, 242)), StrokeThickness = 3,
+            StrokeDashArray = [3, 2], IsHitTestVisible = false
+        };
+        Panel.SetZIndex(_connectionPreview, int.MaxValue);
+        _connectionCanvas.Children.Add(_connectionPreview);
+        _connectionCapture = button;
+        Mouse.Capture(button, CaptureMode.SubTree);
+        _connectionCanvas.Cursor = Cursors.Cross;
+        e.Handled = true;
+    }
+
+    private void Window_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (_connectionCanvas is null || _connectionPreview is null || e.LeftButton != MouseButtonState.Pressed) return;
+        var point = e.GetPosition(_connectionCanvas);
+        _connectionPreview.X2 = point.X;
+        _connectionPreview.Y2 = point.Y;
+    }
+
+    private void Window_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_connectionPreview is null || _connectionCanvas is null) return;
+        var canvas = _connectionCanvas;
+        var dropPoint = e.GetPosition(canvas);
+        var hit = canvas.InputHitTest(dropPoint) as DependencyObject;
+        var targetButton = hit is null ? null : FindParent<ButtonBase>(hit);
+        var targetPort = targetButton?.Tag as NodePortViewModel;
+        var source = _pendingOutput;
+        var shouldConnect = source is not null && targetPort is { Direction: PortDirection.Input };
+        if (shouldConnect && targetButton is not null)
+        {
+            var end = targetButton.TransformToAncestor(canvas).Transform(new Point(targetButton.ActualWidth / 2, targetButton.ActualHeight / 2));
+            _connectionPreview.X2 = end.X;
+            _connectionPreview.Y2 = end.Y;
+        }
+        ClearConnectionPreview();
+        if (!shouldConnect || source is null || targetPort is null || _vm.SelectedFlow is null) return;
+        _vm.SelectedFlow.SelectNode(targetPort.NodeId, false);
+        if (_vm.SelectedFlow.Connect(source.NodeId, source.Id, targetPort.NodeId, targetPort.Id, out var error))
+            _vm.Log($"连线已创建：{source.Name} → {targetPort.Name}");
+        else
+            _vm.Log($"连线未创建：{error}");
+        _pendingOutput = null;
+        e.Handled = true;
+    }
+
+    private void ClearConnectionPreview()
+    {
+        if (_connectionCanvas is not null)
+        {
+            if (_connectionPreview is not null) _connectionCanvas.Children.Remove(_connectionPreview);
+            _connectionCanvas.Cursor = Cursors.Arrow;
+        }
+        if (_connectionCapture is not null && Mouse.Captured == _connectionCapture) Mouse.Capture(null);
+        _connectionCapture = null;
+        _connectionPreview = null;
+        _connectionCanvas = null;
+    }
+
+    private static Canvas? FindWorkflowCanvas(DependencyObject element)
+    {
+        for (var current = element; current is not null; current = VisualTreeHelper.GetParent(current))
+            if (current is Canvas { Name: "NodeCanvas" } canvas) return canvas;
+        return null;
     }
 
     private void Canvas_MouseWheel(object sender, MouseWheelEventArgs e)
