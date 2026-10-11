@@ -39,9 +39,11 @@ public partial class MainWindow : Window
     private bool _panningCanvas;
     private Point _lastCanvasPointer;
     private ScrollViewer? _canvasScrollViewer;
+    private readonly string? _startupProjectPath;
 
-    public MainWindow()
+    public MainWindow(string? startupProjectPath = null)
     {
+        _startupProjectPath = startupProjectPath;
         InitializeComponent(); DataContext = _vm;
     }
 
@@ -52,6 +54,11 @@ public partial class MainWindow : Window
         var version = versionPath is not null && File.Exists(versionPath) ? File.ReadAllText(versionPath).Trim() : "未检测到";
         EnvironmentText.Text = $"HALCON {version}  ·  {Environment.GetEnvironmentVariable("HALCONARCH") ?? "架构未知"}";
         _vm.Log("节点工作区就绪。创建或打开项目以开始编辑流程。");
+        if (!string.IsNullOrWhiteSpace(_startupProjectPath))
+        {
+            try { _vm.OpenProject(_startupProjectPath); _vm.Log($"已从项目文件打开：{_startupProjectPath}"); }
+            catch (Exception ex) { ShowError("打开项目文件失败", ex); }
+        }
     }
 
     private void NewProject_Click(object sender, RoutedEventArgs e)
