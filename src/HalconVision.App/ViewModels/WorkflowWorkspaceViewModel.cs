@@ -13,6 +13,7 @@ namespace HalconVision.App;
 
 public sealed class WorkflowWorkspaceViewModel : ObservableModel
 {
+    private readonly HalconDirectShowCameraManager _cameraManager = new();
     private readonly ProjectStore _projectStore = new();
     private readonly INodeRegistry _registry;
     private readonly WorkflowGraphValidator _validator;
@@ -33,7 +34,7 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
         registry.Register(new HalconNodeProvider(),
         [
             new HalconImageReadExecutor(),
-            new HalconCameraCaptureExecutor(),
+            new HalconCameraCaptureExecutor(_cameraManager),
             new HalconThresholdExecutor(),
             new HalconBlobAnalysisExecutor()
         ]);
@@ -46,6 +47,12 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
     public ObservableCollection<ProjectTreeItem> ProjectTree { get; } = [];
     public ObservableCollection<string> Logs { get; } = [];
     public ObservableCollection<NodeExecutionResult> ExecutionResults { get; } = [];
+    public ObservableCollection<HalconCameraDevice> CameraDevices { get; } = [];
+    private HalconCameraDevice? _selectedCameraDevice;
+    private string _cameraStatus = "未连接";
+    public HalconCameraDevice? SelectedCameraDevice { get => _selectedCameraDevice; set { if (Set(ref _selectedCameraDevice, value)) CommitSelectedCameraDevice(); } }
+    public string CameraStatus { get => _cameraStatus; private set => Set(ref _cameraStatus, value); }
+    public bool IsCameraConnected => _cameraManager.ConnectedDeviceId is not null;
     public IReadOnlyCollection<NodeDefinition> NodeCatalog => _registry.Definitions;
     public IReadOnlyCollection<NodeDefinition> FilteredNodeCatalog => string.IsNullOrWhiteSpace(NodeSearchText)
         ? NodeCatalog
@@ -67,6 +74,49 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
     public string RunStateText => IsRunning ? "执行中" : LastRun?.Status.ToString() ?? "未运行";
     public string RunElapsedText => LastRun is null ? "—" : $"{(LastRun.EndedAtUtc - LastRun.StartedAtUtc).TotalMilliseconds:F1} ms";
     public void Log(string message) { LogText = $"{DateTime.Now:HH:mm:ss}  {message}"; Logs.Insert(0, LogText); }
+
+    public async Task ScanCamerasAsync()
+    {
+        var devices = await Task.Run(_cameraManager.Scan);
+        CameraDevices.Clear();
+        foreach (var device in devices) CameraDevices.Add(device);
+        if (_selectedCameraDevice is null || !devices.Any(device => device.Id == _selectedCameraDevice.Id))
+            SelectedCameraDevice = devices.FirstOrDefault();
+        CameraStatus = devices.Count == 0 ? "未发现相机" : $"发现 {devices.Count} 台相机";
+    }
+
+    public async Task ConnectSelectedCameraAsync()
+    {
+        var device = SelectedCameraDevice ?? throw new InvalidOperationException("请先扫描并选择相机。");
+        await Task.Run(() => _cameraManager.Connect(device.Id));
+        CameraStatus = $"已连接：{device.Name}";
+        Raise(nameof(IsCameraConnected));
+        CommitSelectedCameraDevice();
+    }
+
+    public void DisconnectCamera()
+    {
+        _cameraManager.Disconnect();
+        CameraStatus = "未连接";
+        Raise(nameof(IsCameraConnected));
+    }
+
+    public void LoadSelectedCameraDevice()
+    {
+        var selectedNode = SelectedFlow?.SelectedNode;
+        if (selectedNode?.TypeId != HalconNodeProvider.CameraCapture) return;
+        var value = selectedNode.Parameters.FirstOrDefault(parameter => parameter.Definition.Id == "device")?.ValueText;
+        SelectedCameraDevice = CameraDevices.FirstOrDefault(device => device.Id == value) ?? CameraDevices.FirstOrDefault();
+    }
+
+    private void CommitSelectedCameraDevice()
+    {
+        if (SelectedCameraDevice is null) return;
+        var parameter = SelectedFlow?.SelectedNode?.Parameters.FirstOrDefault(item => item.Definition.Id == "device");
+        if (parameter is null) return;
+        parameter.ValueText = SelectedCameraDevice.Id;
+        parameter.Commit();
+    }
 
     public ProjectWorkspace CreateProject(string projectFilePath, string name)
     {
@@ -292,5 +342,5 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
         RefreshProjectTree(); ProjectStatus = $"已打开项目：{workspace.Project.Name}";
     }
 
-    public void Dispose() => LastRun?.Dispose();
+    public void Dispose() { LastRun?.Dispose(); _cameraManager.Dispose(); }
 }

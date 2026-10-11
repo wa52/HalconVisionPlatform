@@ -200,6 +200,7 @@ public partial class MainWindow : Window
         if (e.OriginalSource is DependencyObject original && FindParent<ButtonBase>(original) is not null) return;
         if (sender is not FrameworkElement { DataContext: FlowNodeViewModel node } element || _vm.SelectedFlow is null) return;
         _vm.SelectedFlow.SelectNode(node.Id, Keyboard.Modifiers.HasFlag(ModifierKeys.Control));
+        _vm.LoadSelectedCameraDevice();
         element.Focus();
         DisplaySelectedNodePreview();
         var canvas = FindParent<Canvas>(element); if (canvas is null) return;
@@ -226,6 +227,7 @@ public partial class MainWindow : Window
     {
         if (sender is not Button { Tag: NodePortViewModel port } || _vm.SelectedFlow is null) return;
         _vm.SelectedFlow.SelectNode(port.NodeId, false);
+        _vm.LoadSelectedCameraDevice();
         if (port.Direction == PortDirection.Output) { _pendingOutput = port; _vm.Log($"已选择输出端口：{port.Name}，请点击目标输入端口。"); return; }
         if (_pendingOutput is null) { _vm.Log("请先选择一个输出端口。"); return; }
         if (_vm.SelectedFlow.Connect(_pendingOutput.NodeId, _pendingOutput.Id, port.NodeId, port.Id, out var error)) _vm.Log($"连线已创建：{_pendingOutput.Name} → {port.Name}");
@@ -278,6 +280,20 @@ public partial class MainWindow : Window
     }
 
     private void Parameter_LostFocus(object sender, RoutedEventArgs e) { if (sender is FrameworkElement { Tag: NodeParameterViewModel parameter }) parameter.Commit(); }
+
+    private async void ScanCameras_Click(object sender, RoutedEventArgs e)
+    {
+        try { await _vm.ScanCamerasAsync(); _vm.LoadSelectedCameraDevice(); }
+        catch (Exception ex) { ShowError("扫描相机失败", ex); }
+    }
+
+    private async void ConnectCamera_Click(object sender, RoutedEventArgs e)
+    {
+        try { await _vm.ConnectSelectedCameraAsync(); }
+        catch (Exception ex) { _vm.Log($"相机连接失败：{ex.Message}"); ShowError("相机连接失败", ex); }
+    }
+
+    private void DisconnectCamera_Click(object sender, RoutedEventArgs e) => _vm.DisconnectCamera();
 
     private async void Run_Click(object sender, RoutedEventArgs e)
     {
