@@ -22,7 +22,15 @@ public sealed class HalconImagePresenter
         ArgumentNullException.ThrowIfNull(window);
         window.ClearWindow();
         Fit(window, imageWidth, imageHeight, viewportWidth, viewportHeight);
-        window.DispObj(iconicObject);
+        if (iconicObject is HRegion region)
+        {
+            using var mask = region.RegionToBin(255, 0, imageWidth, imageHeight);
+            window.DispObj(mask);
+        }
+        else
+        {
+            window.DispObj(iconicObject);
+        }
         return new ImageDimensions(imageWidth, imageHeight);
     }
 

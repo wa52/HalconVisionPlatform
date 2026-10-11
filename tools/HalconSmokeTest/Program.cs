@@ -92,7 +92,11 @@ try
         !thresholdOutputs.TryGetValue("region", out var thresholdValue) || thresholdValue is not HRegion thresholdRegion)
         throw new InvalidOperationException("The successful threshold node did not retain an HRegion for preview.");
     var workflowRegionCount = thresholdRegion.CountObj();
-    Console.WriteLine($"STEP workflow preview outputs: OK; threshold HRegion remains usable after RunAsync; object count = {workflowRegionCount}");
+    using var previewMask = thresholdRegion.RegionToBin(255, 0, width, height);
+    previewMask.GetImageSize(out int previewWidth, out int previewHeight);
+    if (previewWidth != width || previewHeight != height)
+        throw new InvalidOperationException($"Threshold preview mask has unexpected size {previewWidth} x {previewHeight}.");
+    Console.WriteLine($"STEP workflow preview outputs: OK; retained HRegion objects = {workflowRegionCount}; black/white mask = {previewWidth} x {previewHeight}");
     Console.WriteLine("RESULT: SUCCESS");
 }
 catch (Exception ex)
