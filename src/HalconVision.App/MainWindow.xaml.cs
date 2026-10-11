@@ -36,6 +36,9 @@ public partial class MainWindow : Window
     private bool _panningPreview;
     private Point _lastPreviewPointer;
     private CancellationTokenSource? _continuousCancellation;
+    private bool _panningCanvas;
+    private Point _lastCanvasPointer;
+    private ScrollViewer? _canvasScrollViewer;
 
     public MainWindow()
     {
@@ -221,6 +224,44 @@ public partial class MainWindow : Window
     {
         if (_vm.SelectedFlow is null || !Keyboard.Modifiers.HasFlag(ModifierKeys.Control)) return;
         _vm.SelectedFlow.AdjustZoom(e.Delta > 0 ? 0.1 : -0.1); e.Handled = true;
+    }
+
+    private void CanvasZoomIn_Click(object sender, RoutedEventArgs e) => _vm.SelectedFlow?.AdjustZoom(0.1);
+    private void CanvasZoomOut_Click(object sender, RoutedEventArgs e) => _vm.SelectedFlow?.AdjustZoom(-0.1);
+
+    private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not ScrollViewer scrollViewer || e.ChangedButton != MouseButton.Middle) return;
+        _canvasScrollViewer = scrollViewer;
+        _lastCanvasPointer = e.GetPosition(scrollViewer);
+        _panningCanvas = true;
+        scrollViewer.Cursor = Cursors.SizeAll;
+        scrollViewer.CaptureMouse();
+        e.Handled = true;
+    }
+
+    private void Canvas_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_panningCanvas || _canvasScrollViewer is not { } scrollViewer || e.MiddleButton != MouseButtonState.Pressed) return;
+        var pointer = e.GetPosition(scrollViewer);
+        var delta = pointer - _lastCanvasPointer;
+        scrollViewer.ScrollToHorizontalOffset(scrollViewer.HorizontalOffset - delta.X);
+        scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - delta.Y);
+        _lastCanvasPointer = pointer;
+        e.Handled = true;
+    }
+
+    private void Canvas_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!_panningCanvas || e.ChangedButton != MouseButton.Middle) return;
+        _panningCanvas = false;
+        if (_canvasScrollViewer is { } scrollViewer)
+        {
+            scrollViewer.ReleaseMouseCapture();
+            scrollViewer.Cursor = Cursors.Arrow;
+        }
+        _canvasScrollViewer = null;
+        e.Handled = true;
     }
 
     private void Parameter_LostFocus(object sender, RoutedEventArgs e) { if (sender is FrameworkElement { Tag: NodeParameterViewModel parameter }) parameter.Commit(); }
