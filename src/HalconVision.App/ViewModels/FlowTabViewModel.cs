@@ -112,16 +112,18 @@ public sealed class FlowTabViewModel : ObservableModel
         IsDirty = true;
     }
 
-    public void DeleteSelection()
+    public int DeleteSelection()
     {
-        if (_selection.Count == 0) return;
+        var selectedIds = _selection.Count > 0 ? _selection.ToHashSet() : SelectedNode is null ? [] : [SelectedNode.Id];
+        if (selectedIds.Count == 0) return 0;
         PushUndo();
         _document = _document with
         {
-            Nodes = _document.Nodes.Where(node => !_selection.Contains(node.Id)).ToList(),
-            Edges = _document.Edges.Where(edge => !_selection.Contains(edge.FromNodeId) && !_selection.Contains(edge.ToNodeId)).ToList()
+            Nodes = _document.Nodes.Where(node => !selectedIds.Contains(node.Id)).ToList(),
+            Edges = _document.Edges.Where(edge => !selectedIds.Contains(edge.FromNodeId) && !selectedIds.Contains(edge.ToNodeId)).ToList()
         };
         _selection.Clear(); IsDirty = true; Rebuild();
+        return selectedIds.Count;
     }
 
     public void CopySelection()

@@ -128,7 +128,11 @@ public partial class MainWindow : Window
     }
     private void Copy_Click(object sender, RoutedEventArgs e) => _vm.SelectedFlow?.CopySelection();
     private void Paste_Click(object sender, RoutedEventArgs e) => _vm.SelectedFlow?.PasteSelection();
-    private void Delete_Click(object sender, RoutedEventArgs e) => _vm.SelectedFlow?.DeleteSelection();
+    private void Delete_Click(object sender, RoutedEventArgs e)
+    {
+        var removed = _vm.SelectedFlow?.DeleteSelection() ?? 0;
+        _vm.Log(removed > 0 ? $"已删除 {removed} 个节点及相关连线。" : "请先选中要删除的节点。");
+    }
 
     private void ProjectArchive_Click(object sender, RoutedEventArgs e)
     {
@@ -213,6 +217,7 @@ public partial class MainWindow : Window
     private void Port_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: NodePortViewModel port } || _vm.SelectedFlow is null) return;
+        _vm.SelectedFlow.SelectNode(port.NodeId, false);
         if (port.Direction == PortDirection.Output) { _pendingOutput = port; _vm.Log($"已选择输出端口：{port.Name}，请点击目标输入端口。"); return; }
         if (_pendingOutput is null) { _vm.Log("请先选择一个输出端口。"); return; }
         if (_vm.SelectedFlow.Connect(_pendingOutput.NodeId, _pendingOutput.Id, port.NodeId, port.Id, out var error)) _vm.Log($"连线已创建：{_pendingOutput.Name} → {port.Name}");
