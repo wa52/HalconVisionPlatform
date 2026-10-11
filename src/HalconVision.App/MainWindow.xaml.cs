@@ -398,6 +398,12 @@ public partial class MainWindow : Window
         try
         {
             var flow = _vm.SelectedFlow;
+            var hasCameraSource = flow.Document.Nodes.Any(node => node.TypeId == HalconVision.Halcon.HalconNodeProvider.CameraCapture);
+            if (hasCameraSource && !_vm.IsCameraConnected)
+            {
+                MessageBox.Show(this, "流程包含相机采集节点，请先在节点属性中连接相机。", "运行流程", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
             var progress = new Progress<NodeExecutionResult>(result => { flow.ApplyNodeResult(result); _vm.Log($"节点 {result.Status}: {result.NodeId}"); });
             var runFlow = _vm.PrepareNextImageFlow(out var imagePath, out var hasSequence, out var sequenceEnded);
             if (sequenceEnded || runFlow is null)
@@ -424,6 +430,12 @@ public partial class MainWindow : Window
         try
         {
             var flow = _vm.SelectedFlow;
+            var hasCameraSource = flow.Document.Nodes.Any(node => node.TypeId == HalconVision.Halcon.HalconNodeProvider.CameraCapture);
+            if (hasCameraSource && !_vm.IsCameraConnected)
+            {
+                MessageBox.Show(this, "流程包含相机采集节点，请先在节点属性中连接相机。", "连续运行", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
             var progress = new Progress<NodeExecutionResult>(result => { flow.ApplyNodeResult(result); _vm.Log($"节点 {result.Status}: {result.NodeId}"); });
             var first = true;
             while (!_continuousCancellation.IsCancellationRequested)
@@ -441,13 +453,15 @@ public partial class MainWindow : Window
                     continue;
                 }
                 if (runFlow is null) break;
-                if (first && !hasSequence)
+                if (first && !hasSequence && !hasCameraSource)
                 {
-                    MessageBox.Show(this, "连续运行需要在读取图像节点中选择一个图像文件夹。", "连续运行", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show(this, "连续运行需要配置读取图像文件夹，或添加并连接相机采集节点。", "连续运行", MessageBoxButton.OK, MessageBoxImage.Information);
                     break;
                 }
                 first = false;
-                _vm.Log($"连续运行：{Path.GetFileName(imagePath)}");
+                _vm.Log(hasSequence
+                    ? $"连续运行：{Path.GetFileName(imagePath)}"
+                    : "连续运行：相机采集下一帧");
                 var run = await _vm.RunSelectedFlowAsync(progress, runFlow);
                 _vm.SetExecutionRun(run);
                 if (run.Status == WorkflowRunStatus.Success)
