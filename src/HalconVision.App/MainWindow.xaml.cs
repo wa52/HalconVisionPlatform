@@ -40,6 +40,10 @@ public partial class MainWindow : Window
     private bool _panningPreview;
     private Point _lastPreviewPointer;
     private CancellationTokenSource? _continuousCancellation;
+    private Task? _executionTask;
+    private bool _closing;
+    private bool _closeReady;
+    private bool _switchingProject;
     private bool _panningCanvas;
     private Point _lastCanvasPointer;
     private ScrollViewer? _canvasScrollViewer;
@@ -65,8 +69,11 @@ public partial class MainWindow : Window
         }
     }
 
-    private void NewProject_Click(object sender, RoutedEventArgs e)
+    private async void NewProject_Click(object sender, RoutedEventArgs e)
     {
+        if (_closing || _switchingProject) return;
+        await PrepareProjectSwitchAsync();
+        if (_closing) return;
         if (!ConfirmSaveBeforeSwitch()) return;
         var dialog = new SaveFileDialog
         {
@@ -80,16 +87,19 @@ public partial class MainWindow : Window
         if (dialog.ShowDialog(this) != true) return;
         var projectPath = Path.ChangeExtension(dialog.FileName, ".hvproj");
         var name = Path.GetFileNameWithoutExtension(projectPath);
-        try { _vm.CreateProject(projectPath, name); _vm.Log($"已新建空白项目：{projectPath}"); }
+        try { _vm.CreateProject(projectPath, name); ClearPreview(); _vm.Log($"已新建空白项目：{projectPath}"); }
         catch (Exception ex) { ShowError("创建项目失败", ex); }
     }
 
-    private void OpenProject_Click(object sender, RoutedEventArgs e)
+    private async void OpenProject_Click(object sender, RoutedEventArgs e)
     {
+        if (_closing || _switchingProject) return;
+        await PrepareProjectSwitchAsync();
+        if (_closing) return;
         if (!ConfirmSaveBeforeSwitch()) return;
         var dialog = new OpenFileDialog { Title = "打开 HALCON 项目", Filter = "HALCON 项目文件|*.hvproj;project.json", CheckFileExists = true };
         if (dialog.ShowDialog(this) != true) return;
-        try { _vm.OpenProject(dialog.FileName); _vm.Log($"项目已打开：{dialog.FileName}"); }
+        try { _vm.OpenProject(dialog.FileName); ClearPreview(); _vm.Log($"项目已打开：{dialog.FileName}"); }
         catch (Exception ex) { ShowError("打开项目失败", ex); }
     }
 
@@ -363,22 +373,25 @@ public partial class MainWindow : Window
 
     private async void ScanCameras_Click(object sender, RoutedEventArgs e)
     {
+        if (_closing || !_vm.CanConfigureCamera) return;
         try { await _vm.ScanCamerasAsync(); _vm.LoadSelectedCameraDevice(); }
         catch (Exception ex) { ShowError("扫描相机失败", ex); }
     }
 
     private async void CameraInterface_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (!IsLoaded || _vm.SelectedCameraInterface is null) return;
+        if (!IsLoaded || _closing || !_vm.CanConfigureCamera || _vm.SelectedCameraInterface is null) return;
         try { await _vm.ScanCamerasAsync(); }
         catch (Exception ex) { _vm.Log($"扫描 HALCON 接口 {_vm.SelectedCameraInterface.Id} 失败：{ex.Message}"); }
     }
 
     private async void ConnectCamera_Click(object sender, RoutedEventArgs e)
     {
+        if (_closing || !_vm.CanConfigureCamera) return;
         try
         {
             using var image = await _vm.ConnectSelectedCameraAsync();
+            if (_closing) return;
             image.GetImageSize(out _previewImageWidth, out _previewImageHeight);
             _imagePresenter.Display(image, PreviewWindow.HalconWindow, _previewImageWidth, _previewImageHeight,
                 PreviewHost.ActualWidth, PreviewHost.ActualHeight);
@@ -389,12 +402,25 @@ public partial class MainWindow : Window
         catch (Exception ex) { _vm.Log($"相机连接失败：{ex.Message}"); ShowError("相机连接失败", ex); }
     }
 
-    private void DisconnectCamera_Click(object sender, RoutedEventArgs e) => _vm.DisconnectCamera();
+    private async void DisconnectCamera_Click(object sender, RoutedEventArgs e)
+    {
+        if (_closing) return;
+        await StopExecutionAsync();
+        await _vm.DisconnectCameraAsync();
+    }
 
     private async void Run_Click(object sender, RoutedEventArgs e)
     {
+        if (_closing || _executionTask is not null) return;
+        _executionTask = RunOnceAsync();
+        try { await _executionTask; }
+        finally { _executionTask = null; }
+    }
+
+    private async Task RunOnceAsync()
+    {
         if (!_vm.HasProject || _vm.SelectedFlow is null) { MessageBox.Show(this, "请先创建或打开项目。", "运行流程", MessageBoxButton.OK, MessageBoxImage.Information); return; }
-        if (_vm.IsRunning) return;
+        if (_vm.IsRunning || _continuousCancellation is not null) return;
         try
         {
             var flow = _vm.SelectedFlow;
@@ -424,6 +450,15 @@ public partial class MainWindow : Window
 
     private async void ContinuousRun_Click(object sender, RoutedEventArgs e)
     {
+        if (_closing || _executionTask is not null) return;
+        _vm.IsContinuousRunning = true;
+        _executionTask = RunContinuouslyAsync();
+        try { await _executionTask; }
+        finally { _executionTask = null; _vm.IsContinuousRunning = false; }
+    }
+
+    private async Task RunContinuouslyAsync()
+    {
         if (!_vm.HasProject || _vm.SelectedFlow is null) { MessageBox.Show(this, "请先创建或打开项目。", "连续运行", MessageBoxButton.OK, MessageBoxImage.Information); return; }
         if (_continuousCancellation is not null || _vm.IsRunning) return;
         _continuousCancellation = new CancellationTokenSource();
@@ -440,6 +475,8 @@ public partial class MainWindow : Window
             var first = true;
             while (!_continuousCancellation.IsCancellationRequested)
             {
+                // Always yield to input/rendering, including when every node completes synchronously.
+                await Task.Delay(33, _continuousCancellation.Token);
                 if (!ReferenceEquals(_vm.SelectedFlow, flow))
                 {
                     _vm.Log("连续运行因切换流程而停止。");
@@ -463,6 +500,12 @@ public partial class MainWindow : Window
                     ? $"连续运行：{Path.GetFileName(imagePath)}"
                     : "连续运行：相机采集下一帧");
                 var run = await _vm.RunSelectedFlowAsync(progress, runFlow);
+                if (run.Status == WorkflowRunStatus.Cancelled)
+                {
+                    run.Dispose();
+                    _vm.ReturnImageToSequence(imagePath);
+                    break;
+                }
                 _vm.SetExecutionRun(run);
                 if (run.Status == WorkflowRunStatus.Success)
                 {
@@ -476,8 +519,15 @@ public partial class MainWindow : Window
             }
             _vm.Log(_continuousCancellation.IsCancellationRequested ? "连续运行已停止。" : "连续运行结束。");
         }
+        catch (OperationCanceledException) when (_continuousCancellation.IsCancellationRequested) { _vm.Log("连续运行已停止。"); }
         catch (Exception ex) { ShowError("连续运行失败", ex); }
-        finally { _continuousCancellation.Dispose(); _continuousCancellation = null; }
+        finally
+        {
+            _continuousCancellation.Dispose();
+            _continuousCancellation = null;
+            // The last run remains available for inspection; acquisition is no longer active.
+            await _vm.DisconnectCameraAsync();
+        }
     }
 
     private void CancelRun_Click(object sender, RoutedEventArgs e)
@@ -650,12 +700,44 @@ public partial class MainWindow : Window
         else if (!isTextEditing && e.Key == Key.Delete) { _vm.SelectedFlow?.DeleteSelection(); e.Handled = true; }
     }
 
-    private void Window_Closing(object? sender, CancelEventArgs e)
+    private async Task PrepareProjectSwitchAsync()
     {
-        if (!ConfirmSaveBeforeSwitch()) { e.Cancel = true; return; }
+        _switchingProject = true;
+        try { await StopExecutionAsync(); await _vm.WaitForCameraOperationsAsync(); }
+        finally { _switchingProject = false; }
+    }
+
+    private async Task StopExecutionAsync()
+    {
         _continuousCancellation?.Cancel();
         _vm.CancelRun();
-        _vm.Dispose();
+        if (_executionTask is { } task) await task;
+    }
+
+    private void ClearPreview()
+    {
+        PreviewWindow.HalconWindow.ClearWindow();
+        _previewImagePath = null;
+        _previewImageWidth = _previewImageHeight = 0;
+        PreviewEmptyText.Visibility = Visibility.Visible;
+        PreviewEmptyText.Text = "选择并运行图像节点以显示结果";
+        foreach (var viewer in OwnedWindows.OfType<ImageViewerWindow>().ToArray()) viewer.Close();
+    }
+
+    private async void Window_Closing(object? sender, CancelEventArgs e)
+    {
+        if (_closeReady) return;
+        e.Cancel = true;
+        if (_closing) return;
+        if (!ConfirmSaveBeforeSwitch()) { e.Cancel = true; return; }
+        _closing = true;
+        await StopExecutionAsync();
+        await _vm.ShutdownAsync();
+        ClearPreview();
+        PreviewWindow.Dispose();
+        _closeReady = true;
+        // Cleanup can complete synchronously; close only after the original Closing event returns.
+        _ = Dispatcher.BeginInvoke(new Action(Close));
     }
 
     private static string? Prompt(string title, string label, string initial)
@@ -669,7 +751,11 @@ public partial class MainWindow : Window
         return dialog.ShowDialog() == true && !string.IsNullOrWhiteSpace(answer) ? answer : null;
     }
 
-    private void ShowError(string title, Exception ex) { _vm.Log($"{title}：{ex}"); MessageBox.Show(this, ex.Message, title, MessageBoxButton.OK, MessageBoxImage.Error); }
+    private void ShowError(string title, Exception ex)
+    {
+        _vm.Log($"{title}：{ex}");
+        if (!_closing) MessageBox.Show(this, ex.Message, title, MessageBoxButton.OK, MessageBoxImage.Error);
+    }
 
     private static T? FindParent<T>(DependencyObject child) where T : DependencyObject
     {

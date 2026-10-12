@@ -69,8 +69,10 @@ public sealed record WorkflowExecutionRun(
     IReadOnlyList<string> Logs,
     IReadOnlyDictionary<Guid, IReadOnlyDictionary<string, object?>>? RuntimeOutputs = null) : IDisposable
 {
+    private int _disposed;
     public void Dispose()
     {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
         if (RuntimeOutputs is null) return;
         var disposed = new HashSet<object>(ReferenceEqualityComparer.Instance);
         foreach (var value in RuntimeOutputs.Values.SelectMany(outputs => outputs.Values))

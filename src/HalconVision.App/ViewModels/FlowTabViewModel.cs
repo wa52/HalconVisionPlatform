@@ -99,6 +99,8 @@ public sealed class FlowTabViewModel : ObservableModel
 
     public void SetParameter(Guid nodeId, string key, JsonElement value)
     {
+        var target = _document.Nodes.FirstOrDefault(node => node.Id == nodeId);
+        if (target is null || target.Parameters.TryGetValue(key, out var current) && current.GetRawText() == value.GetRawText()) return;
         PushUndo();
         _document = _document with
         {

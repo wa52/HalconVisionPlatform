@@ -1,0 +1,34 @@
+PASS: node copy/paste
+PASS: delete selected pasted node
+PASS: undo delete
+PASS: redo delete
+PASS: node move
+PASS: canvas zoom
+PASS: reject duplicate wire
+PASS: delete node removes edges
+PASS: undo restores wiring
+PASS: project save/reopen
+PASS: unchanged parameter does not create unsaved changes
+PASS: single run threshold succeeds
+PASS: folder single run first image
+PASS: threshold black input produces zero foreground area
+PASS: folder single run next image
+PASS: threshold white input produces 64x64 foreground area
+PASS: previous HALCON outputs disposed on replacement
+PASS: 200 real HALCON runs release 400 previous image/region objects
+METRIC: repeated executions=200; released objects=400; elapsed=4229 ms
+PASS: prevent run reentry
+PASS: continuous dispatcher responsiveness
+PASS: stop drains execution task
+METRIC: heartbeat=58; stop=20 ms
+PASS: 10 repeated start/stop cycles
+PASS: bounded UI logs
+PASS: project switch releases old results
+PASS: camera-only continuous acquisition and threshold
+PASS: stop closes native acquisition handle
+PASS: close while running drains tasks and releases HALCON objects
+PASS: owned image viewer closes with workspace
+PASS: disposed workspace rejects reuse
+PASS: aliased runtime output disposed exactly once
+PASS: 3 workspace reopen/close cycles
+PASS: shutdown waits for concurrent device scan

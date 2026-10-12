@@ -27,6 +27,11 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
     private string _logText = "工作区就绪。";
     private WorkflowExecutionRun? _lastRun;
     private CancellationTokenSource? _runCancellation;
+    private Task<WorkflowExecutionRun>? _activeRunTask;
+    private readonly HashSet<Task> _cameraOperations = [];
+    private bool _shuttingDown;
+    private bool _disposed;
+    private int _cameraScanGeneration;
     private readonly Dictionary<(Guid FlowId, Guid NodeId), (string Folder, string[] Files, int NextIndex)> _imageSequenceCursors = [];
 
     public WorkflowWorkspaceViewModel()
@@ -98,16 +103,32 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
     public string NodeSearchText { get => _nodeSearchText; set { if (Set(ref _nodeSearchText, value)) Raise(nameof(FilteredNodeCatalog)); } }
     public bool HasUnsavedFlows => Flows.Any(flow => flow.IsDirty);
     public bool IsRunning => _runCancellation is not null;
+    private bool _isContinuousRunning;
+    public bool IsContinuousRunning
+    {
+        get => _isContinuousRunning;
+        set { if (Set(ref _isContinuousRunning, value)) { Raise(nameof(CanConfigureCamera)); Raise(nameof(RunStateText)); } }
+    }
+    public bool CanConfigureCamera => !IsRunning && !IsContinuousRunning && !_shuttingDown && _cameraOperations.Count == 0;
     public string LogText { get => _logText; private set => Set(ref _logText, value); }
     public WorkflowExecutionRun? LastRun { get => _lastRun; private set { if (Set(ref _lastRun, value)) { Raise(nameof(RunStateText)); Raise(nameof(RunElapsedText)); } } }
-    public string RunStateText => IsRunning ? "执行中" : LastRun?.Status.ToString() ?? "未运行";
+    public string RunStateText => IsContinuousRunning ? "连续运行中" : IsRunning ? "执行中" : LastRun?.Status.ToString() ?? "未运行";
     public string RunElapsedText => LastRun is null ? "—" : $"{(LastRun.EndedAtUtc - LastRun.StartedAtUtc).TotalMilliseconds:F1} ms";
-    public void Log(string message) { LogText = $"{DateTime.Now:HH:mm:ss}  {message}"; Logs.Insert(0, LogText); }
+    public const int MaximumLogEntries = 500;
+    public void Log(string message)
+    {
+        LogText = $"{DateTime.Now:HH:mm:ss}  {message}";
+        Logs.Insert(0, LogText);
+        while (Logs.Count > MaximumLogEntries) Logs.RemoveAt(Logs.Count - 1);
+    }
 
     public async Task ScanCamerasAsync()
     {
+        EnsureActive();
+        var generation = ++_cameraScanGeneration;
         var cameraInterface = SelectedCameraInterface ?? throw new InvalidOperationException("HALCON 没有可用的相机类别。");
-        var devices = await Task.Run(() => _cameraManager.Scan(cameraInterface.Id));
+        var devices = await CameraOperationAsync(() => _cameraManager.Scan(cameraInterface.Id));
+        if (_shuttingDown || generation != _cameraScanGeneration || SelectedCameraInterface?.Id != cameraInterface.Id) return;
         CameraDevices.Clear();
         foreach (var device in devices) CameraDevices.Add(device);
         SelectedCameraDevice = devices.FirstOrDefault(device => device.Id == _preferredCameraDeviceId)
@@ -118,11 +139,22 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
 
     public async Task<HImage> ConnectSelectedCameraAsync()
     {
+        EnsureActive();
+        if (IsRunning) throw new InvalidOperationException("请先停止流程，再连接相机。");
         var cameraInterface = SelectedCameraInterface ?? throw new InvalidOperationException("请先选择相机类别。");
         var device = SelectedCameraDevice ?? throw new InvalidOperationException("请先扫描并选择相机。");
+        var timeoutParameter = SelectedFlow?.SelectedNode?.Parameters.FirstOrDefault(parameter => parameter.Definition.Id == "grabTimeoutMs");
+        var timeout = 2000;
+        if (timeoutParameter is not null && (!int.TryParse(timeoutParameter.ValueText, out timeout) || timeout < 100 || timeout > 60000))
+            throw new InvalidOperationException("取图超时必须是 100 到 60000 毫秒之间的整数。");
         HImage image;
-        try { image = await Task.Run(() => _cameraManager.ConnectAndGrabPreview(cameraInterface.Id, device.Id, device.DeviceParameter)); }
+        try { image = await CameraOperationAsync(() => _cameraManager.ConnectAndGrabPreview(cameraInterface.Id, device.Id, device.DeviceParameter, timeout)); }
         catch (Exception ex) { CameraStatus = $"连接/取图失败：{ex.Message}"; Raise(nameof(IsCameraConnected)); throw; }
+        if (_shuttingDown)
+        {
+            image.Dispose();
+            throw new OperationCanceledException("窗口正在关闭，已释放相机预览图像。");
+        }
         CameraStatus = $"已连接并取到首帧：{device.Name}";
         Raise(nameof(IsCameraConnected));
         CommitSelectedCameraInterface();
@@ -139,6 +171,7 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
 
     public void LoadSelectedCameraDevice()
     {
+        if (!CanConfigureCamera) return;
         var selectedNode = SelectedFlow?.SelectedNode;
         if (selectedNode?.TypeId != HalconNodeProvider.CameraCapture) return;
         var interfaceId = selectedNode.Parameters.FirstOrDefault(parameter => parameter.Definition.Id == "interface")?.ValueText;
@@ -356,14 +389,21 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
 
     public async Task<WorkflowExecutionRun> RunSelectedFlowAsync(IProgress<NodeExecutionResult>? progress = null, FlowDocument? flowOverride = null)
     {
+        EnsureActive();
+        if (IsRunning) throw new InvalidOperationException("流程已经在运行。");
         if (Workspace is null || SelectedFlow is null) throw new InvalidOperationException("请先打开项目和流程。");
-        _runCancellation = new CancellationTokenSource(); Raise(nameof(IsRunning)); Raise(nameof(RunStateText));
+        using var cancellation = new CancellationTokenSource();
+        _runCancellation = cancellation; Raise(nameof(IsRunning)); Raise(nameof(RunStateText)); Raise(nameof(CanConfigureCamera));
         try
         {
-            var run = await _engine.RunAsync(flowOverride ?? SelectedFlow.Document, progress, _runCancellation.Token);
+            var document = flowOverride ?? SelectedFlow.Document;
+            var token = cancellation.Token;
+            _activeRunTask = Task.Run(() => _engine.RunAsync(document, progress, token));
+            var run = await _activeRunTask;
+            if (_shuttingDown) run.Dispose();
             return run;
         }
-        finally { _runCancellation.Dispose(); _runCancellation = null; Raise(nameof(IsRunning)); Raise(nameof(RunStateText)); }
+        finally { _activeRunTask = null; _runCancellation = null; Raise(nameof(IsRunning)); Raise(nameof(RunStateText)); Raise(nameof(CanConfigureCamera)); }
     }
 
     public void CancelRun() => _runCancellation?.Cancel();
@@ -378,10 +418,14 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
 
     private void OpenWorkspace(ProjectWorkspace workspace)
     {
+        EnsureActive();
+        if (IsRunning || _cameraOperations.Count > 0) throw new InvalidOperationException("请等待运行或相机操作结束后切换项目。");
         var flows = _projectStore.ListFlows(workspace);
         if (flows.Count == 0) throw new InvalidDataException("项目中没有流程文件。");
         LastRun?.Dispose();
         LastRun = null;
+        ExecutionResults.Clear();
+        DisconnectCamera();
         _imageSequenceCursors.Clear();
         var tabs = flows.Select(flow => new FlowTabViewModel(flow, _registry, _validator)).ToArray();
         Workspace = workspace; Flows.Clear(); foreach (var tab in tabs) Flows.Add(tab);
@@ -389,5 +433,61 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
         RefreshProjectTree(); ProjectStatus = $"已打开项目：{workspace.Project.Name}";
     }
 
-    public void Dispose() { LastRun?.Dispose(); _cameraManager.Dispose(); }
+    private void EnsureActive() => ObjectDisposedException.ThrowIf(_disposed || _shuttingDown, this);
+
+    private async Task<T> CameraOperationAsync<T>(Func<T> action)
+    {
+        var task = Task.Run(action);
+        _cameraOperations.Add(task);
+        Raise(nameof(CanConfigureCamera));
+        try { return await task; }
+        finally { _cameraOperations.Remove(task); Raise(nameof(CanConfigureCamera)); }
+    }
+
+    public async Task WaitForCameraOperationsAsync()
+    {
+        while (_cameraOperations.Count > 0)
+        {
+            try { await Task.WhenAll(_cameraOperations.ToArray()); }
+            catch { /* The initiating UI handler reports camera errors. */ }
+            // Allow operation owners to run their finally blocks and remove completed tasks.
+            await Task.Yield();
+        }
+    }
+
+    public async Task DisconnectCameraAsync()
+    {
+        await WaitForCameraOperationsAsync();
+        await CameraOperationAsync(() => { _cameraManager.Disconnect(); return true; });
+        CameraStatus = "未连接";
+        Raise(nameof(IsCameraConnected));
+    }
+
+    public async Task ShutdownAsync()
+    {
+        if (_disposed) return;
+        _shuttingDown = true;
+        CancelRun();
+        if (_activeRunTask is { } task)
+        {
+            try { (await task).Dispose(); }
+            catch { /* Run results and errors are handled by the execution owner. */ }
+        }
+        while (IsRunning) await Task.Delay(1);
+        await DisconnectCameraAsync();
+        Dispose();
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        if (IsRunning || _cameraOperations.Count > 0)
+            throw new InvalidOperationException("运行期间必须先调用 ShutdownAsync，等待资源使用者退出。");
+        _disposed = true;
+        LastRun?.Dispose();
+        LastRun = null;
+        ExecutionResults.Clear();
+        _imageSequenceCursors.Clear();
+        _cameraManager.Dispose();
+    }
 }

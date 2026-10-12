@@ -18,6 +18,7 @@ public partial class ImageViewerWindow : Window
     {
         InitializeComponent();
         _imagePath = Path.GetFullPath(imagePath);
+        Closed += (_, _) => ImageWindow.Dispose();
         Loaded += (_, _) =>
         {
             DisplayImage();

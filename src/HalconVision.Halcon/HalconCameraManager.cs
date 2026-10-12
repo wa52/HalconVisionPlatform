@@ -84,7 +84,7 @@ public sealed class HalconCameraManager : IDisposable
         finally { information?.Dispose(); values?.Dispose(); }
     }
 
-    public HImage ConnectAndGrabPreview(string interfaceId, string deviceId, string deviceParameter)
+    public HImage ConnectAndGrabPreview(string interfaceId, string deviceId, string deviceParameter, int grabTimeoutMilliseconds = 2000)
     {
         lock (_sync)
         {
@@ -96,7 +96,12 @@ public sealed class HalconCameraManager : IDisposable
                 _connectedDeviceId = deviceId;
             }
 
-            try { return _framegrabber.GrabImage(); }
+            try
+            {
+                // A lost frame/device must not leave a worker waiting indefinitely during shutdown.
+                _framegrabber.SetFramegrabberParam("grab_timeout", grabTimeoutMilliseconds);
+                return _framegrabber.GrabImage();
+            }
             catch
             {
                 DisconnectCore();

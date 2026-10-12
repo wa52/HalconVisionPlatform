@@ -24,7 +24,8 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
             CameraCapture, 1, "图像输入", "相机采集", "从已连接的 HALCON 采集接口单次抓取一帧图像。",
             [new PortDefinition("image", "Image", PortDirection.Output, "halcon.image")],
             [new NodeParameterDefinition("interface", "相机类别", "cameraInterface", true, JsonSerializer.SerializeToElement("DirectShow")),
-             new NodeParameterDefinition("device", "相机设备", "camera", true, JsonSerializer.SerializeToElement("0"))]);
+             new NodeParameterDefinition("device", "相机设备", "camera", true, JsonSerializer.SerializeToElement("0")),
+             new NodeParameterDefinition("grabTimeoutMs", "取图超时（毫秒）", "number", true, JsonSerializer.SerializeToElement(2000))]);
 
         yield return new NodeDefinition(
             Threshold, 1, "图像处理", "二值化", "对输入 HImage 执行 HALCON Threshold，输出 HRegion。",
@@ -129,6 +130,7 @@ public sealed class HalconImageReadExecutor : INodeExecutor
         {
             foreach (var imagePath in imagePaths)
             {
+                context.CancellationToken.ThrowIfCancellationRequested();
                 using var item = new HImage(imagePath);
                 if (image is null)
                 {
@@ -180,7 +182,9 @@ public sealed class HalconThresholdExecutor : INodeExecutor
         if (channelCount != 1 && channelCount != 3)
             throw new InvalidDataException($"二值化仅支持单通道灰度或三通道 RGB 图像，当前通道数：{channelCount}。");
 
-        var region = thresholdInput.Threshold(minimum, maximum);
+        HRegion? region = thresholdInput.Threshold(minimum, maximum);
+        try
+        {
         var count = region.CountObj();
         var dimensions = ReadImageDimensions(context, "image");
         context.Log(channelCount == 3
@@ -191,7 +195,10 @@ public sealed class HalconThresholdExecutor : INodeExecutor
             ["region"] = JsonSerializer.SerializeToElement(new { objectCount = count, minimum, maximum, width = dimensions.Width, height = dimensions.Height })
         };
         var runtime = new Dictionary<string, object?> { ["region"] = region };
+        region = null;
         return ValueTask.FromResult(new NodeExecutionOutput(serialized, runtime));
+        }
+        finally { region?.Dispose(); }
     }
 
     private static double ReadNumber(NodeInstance node, string key)
@@ -230,7 +237,9 @@ public sealed class HalconBlobAnalysisExecutor : INodeExecutor
             throw new InvalidDataException("Blob 面积范围无效：面积必须非负，且最大面积不能小于最小面积。");
 
         using var connected = region.Connection();
-        var filtered = connected.SelectShape("area", "and", minimumArea, maximumArea);
+        HRegion? filtered = connected.SelectShape("area", "and", minimumArea, maximumArea);
+        try
+        {
         var count = filtered.CountObj();
         var dimensions = HalconThresholdExecutor.ReadImageDimensions(context, "region");
         context.Log($"HALCON Connection + SelectShape(area)：筛选后 {count} 个连通域。");
@@ -240,7 +249,10 @@ public sealed class HalconBlobAnalysisExecutor : INodeExecutor
             ["count"] = JsonSerializer.SerializeToElement(count)
         };
         var runtime = new Dictionary<string, object?> { ["regions"] = filtered };
+        filtered = null;
         return ValueTask.FromResult(new NodeExecutionOutput(serialized, runtime));
+        }
+        finally { filtered?.Dispose(); }
     }
 
     private static double ReadNumber(NodeInstance node, string key)
