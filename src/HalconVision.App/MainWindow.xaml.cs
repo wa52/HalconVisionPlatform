@@ -42,6 +42,7 @@ public partial class MainWindow : Window
     private Point _lastPreviewPointer;
     private NodeParameterViewModel? _roiParameter;
     private bool _isDrawingRoi;
+    private bool _isDrawingReferenceLine;
     private Point _roiStart;
     private CancellationTokenSource? _continuousCancellation;
     private Task? _executionTask;
@@ -747,20 +748,35 @@ public partial class MainWindow : Window
             PreviewEmptyText.Visibility = Visibility.Collapsed;
             _roiParameter = parameter;
             _isDrawingRoi = true;
+            _isDrawingReferenceLine = parameter.IsLineDraw;
             RoiPreviewRectangle.Visibility = Visibility.Collapsed;
+            ReferenceLinePreview.Visibility = Visibility.Collapsed;
             RoiDrawingOverlay.Visibility = Visibility.Visible;
             RoiDrawingOverlay.Cursor = Cursors.Cross;
             RoiDrawingOverlay.Focusable = true;
             RoiDrawingOverlay.Focus();
-            _vm.Log("请在图像预览区拖动鼠标，绘制直线查找范围。");
+            _vm.Log(_isDrawingReferenceLine ? "请在图像预览区沿目标边缘拖动，绘制参考直线。" : "请在图像预览区拖动鼠标，绘制检测范围。");
         }
         catch (Exception ex) { ShowError("准备绘制检测范围失败", ex); }
     }
+
+    private void DrawReferenceLine_Click(object sender, RoutedEventArgs e) => DrawRoi_Click(sender, e);
 
     private void RoiOverlay_MouseDown(object sender, MouseButtonEventArgs e)
     {
         if (!_isDrawingRoi || e.ChangedButton != MouseButton.Left) return;
         _roiStart = e.GetPosition(RoiDrawingOverlay);
+        if (_isDrawingReferenceLine)
+        {
+            ReferenceLinePreview.X1 = _roiStart.X;
+            ReferenceLinePreview.Y1 = _roiStart.Y;
+            ReferenceLinePreview.X2 = _roiStart.X;
+            ReferenceLinePreview.Y2 = _roiStart.Y;
+            ReferenceLinePreview.Visibility = Visibility.Visible;
+            RoiDrawingOverlay.CaptureMouse();
+            e.Handled = true;
+            return;
+        }
         Canvas.SetLeft(RoiPreviewRectangle, _roiStart.X);
         Canvas.SetTop(RoiPreviewRectangle, _roiStart.Y);
         RoiPreviewRectangle.Width = 0;
@@ -772,8 +788,16 @@ public partial class MainWindow : Window
 
     private void RoiOverlay_MouseMove(object sender, MouseEventArgs e)
     {
-        if (!_isDrawingRoi || e.LeftButton != MouseButtonState.Pressed || RoiPreviewRectangle.Visibility != Visibility.Visible) return;
+        if (!_isDrawingRoi || e.LeftButton != MouseButtonState.Pressed) return;
         var point = e.GetPosition(RoiDrawingOverlay);
+        if (_isDrawingReferenceLine && ReferenceLinePreview.Visibility == Visibility.Visible)
+        {
+            ReferenceLinePreview.X2 = point.X;
+            ReferenceLinePreview.Y2 = point.Y;
+            e.Handled = true;
+            return;
+        }
+        if (RoiPreviewRectangle.Visibility != Visibility.Visible) return;
         Canvas.SetLeft(RoiPreviewRectangle, Math.Min(_roiStart.X, point.X));
         Canvas.SetTop(RoiPreviewRectangle, Math.Min(_roiStart.Y, point.Y));
         RoiPreviewRectangle.Width = Math.Abs(point.X - _roiStart.X);
@@ -786,9 +810,11 @@ public partial class MainWindow : Window
         if (!_isDrawingRoi || e.ChangedButton != MouseButton.Left || _roiParameter is null) return;
         RoiDrawingOverlay.ReleaseMouseCapture();
         var end = e.GetPosition(RoiDrawingOverlay);
-        if (Math.Abs(end.X - _roiStart.X) < 4 || Math.Abs(end.Y - _roiStart.Y) < 4)
+        var lineMode = _isDrawingReferenceLine;
+        if (lineMode ? Math.Sqrt(Math.Pow(end.X - _roiStart.X, 2) + Math.Pow(end.Y - _roiStart.Y, 2)) < 4 : Math.Abs(end.X - _roiStart.X) < 4 || Math.Abs(end.Y - _roiStart.Y) < 4)
         {
             RoiPreviewRectangle.Visibility = Visibility.Collapsed;
+            ReferenceLinePreview.Visibility = Visibility.Collapsed;
             return;
         }
 
@@ -802,7 +828,9 @@ public partial class MainWindow : Window
         _roiParameter.ValueText = string.Join(",", new[] { startRow, startColumn, endRow, endColumn }
             .Select(value => value.ToString("R", CultureInfo.InvariantCulture)));
         _roiParameter.Commit();
-        _vm.Log($"已设置直线查找范围：行 {Math.Min(startRow, endRow):F0}–{Math.Max(startRow, endRow):F0}，列 {Math.Min(startColumn, endColumn):F0}–{Math.Max(startColumn, endColumn):F0}。");
+        _vm.Log(lineMode
+            ? $"已设置参考直线：({startRow:F0},{startColumn:F0}) → ({endRow:F0},{endColumn:F0})。"
+            : $"已设置检测范围：行 {Math.Min(startRow, endRow):F0}–{Math.Max(startRow, endRow):F0}，列 {Math.Min(startColumn, endColumn):F0}–{Math.Max(startColumn, endColumn):F0}。");
         FinishRoiDrawing();
         e.Handled = true;
     }
@@ -810,10 +838,12 @@ public partial class MainWindow : Window
     private void FinishRoiDrawing()
     {
         _isDrawingRoi = false;
+        _isDrawingReferenceLine = false;
         _roiParameter = null;
         RoiDrawingOverlay.Visibility = Visibility.Collapsed;
         RoiDrawingOverlay.Cursor = Cursors.Arrow;
         RoiPreviewRectangle.Visibility = Visibility.Collapsed;
+        ReferenceLinePreview.Visibility = Visibility.Collapsed;
     }
 
     private void Preview_HMouseDown(object sender, HalconDotNet.HSmartWindowControlWPF.HMouseEventArgsWPF e) { }

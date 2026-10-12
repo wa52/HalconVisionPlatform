@@ -44,18 +44,31 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
              new NodeParameterDefinition("maximumArea", "最大面积", "number", true, JsonSerializer.SerializeToElement(1_000_000_000d))]);
 
         yield return new NodeDefinition(
-            StraightLineFind, 1, "特征检测", "直线查找", "在图像上绘制检测范围，设置直线方向与容差；使用 HALCON 亚像素边缘提取和直线分段，输出标注图像、XLD 线轮廓及数量。",
+            StraightLineFind, 1, "特征检测", "直线查找", "沿图像上的参考线布置 HALCON 2D Metrology 测量卡尺，定位边缘并拟合直线。",
             [new PortDefinition("image", "Image", PortDirection.Input, "halcon.image", Required: true),
+             new PortDefinition("line", "Line", PortDirection.Output, "halcon.line2d"),
+             new PortDefinition("angle", "Angle", PortDirection.Output, "number"),
+             new PortDefinition("length", "Length", PortDirection.Output, "number"),
+             new PortDefinition("edgePoints", "EdgePoints", PortDirection.Output, "halcon.point-set"),
+             new PortDefinition("score", "Score", PortDirection.Output, "number"),
+             new PortDefinition("overlay", "Overlay", PortDirection.Output, "halcon.geometry"),
+             new PortDefinition("status", "Status", PortDirection.Output, "inspection.result"),
+             new PortDefinition("preview", "预览图像", PortDirection.Output, "halcon.image"),
              new PortDefinition("resultImage", "ResultImage", PortDirection.Output, "halcon.image"),
              new PortDefinition("lines", "Lines", PortDirection.Output, "halcon.xld"),
              new PortDefinition("count", "Count", PortDirection.Output, "number")],
-            [new NodeParameterDefinition("roi", "检测范围", "roiDraw", true, JsonSerializer.SerializeToElement(string.Empty)),
-             new NodeParameterDefinition("directionDeg", "直线方向（度，逆时针）", "number", true, JsonSerializer.SerializeToElement(0d)),
-             new NodeParameterDefinition("directionToleranceDeg", "方向容差（度）", "number", true, JsonSerializer.SerializeToElement(15d)),
-             new NodeParameterDefinition("sigma", "平滑尺度 σ", "number", true, JsonSerializer.SerializeToElement(1.5d)),
-             new NodeParameterDefinition("low", "边缘低阈值", "number", true, JsonSerializer.SerializeToElement(3d)),
-             new NodeParameterDefinition("high", "边缘高阈值", "number", true, JsonSerializer.SerializeToElement(8d)),
-             new NodeParameterDefinition("minimumLength", "最短线段长度（像素）", "number", true, JsonSerializer.SerializeToElement(40d))]);
+            [new NodeParameterDefinition("referenceLine", "参考直线", "lineDraw", true, JsonSerializer.SerializeToElement(string.Empty)),
+             new NodeParameterDefinition("numMeasures", "测量卡尺数量", "number", true, JsonSerializer.SerializeToElement(30)),
+             new NodeParameterDefinition("measureLength1", "搜索半宽（像素）", "number", true, JsonSerializer.SerializeToElement(20d)),
+             new NodeParameterDefinition("measureLength2", "卡尺半长（像素）", "number", true, JsonSerializer.SerializeToElement(5d)),
+             new NodeParameterDefinition("measureSigma", "边缘平滑 σ", "number", true, JsonSerializer.SerializeToElement(1d)),
+             new NodeParameterDefinition("measureThreshold", "边缘阈值", "number", true, JsonSerializer.SerializeToElement(30d)),
+             new NodeParameterDefinition("measureTransition", "边缘极性", "edgeTransition", true, JsonSerializer.SerializeToElement("all")),
+             new NodeParameterDefinition("minScore", "最小拟合评分", "number", true, JsonSerializer.SerializeToElement(0.7d)),
+             new NodeParameterDefinition("showReferenceLine", "显示参考直线", "bool", true, JsonSerializer.SerializeToElement(true)),
+             new NodeParameterDefinition("showMeasureRegions", "显示测量卡尺", "bool", true, JsonSerializer.SerializeToElement(true)),
+             new NodeParameterDefinition("showEdgePoints", "显示检测边缘点", "bool", true, JsonSerializer.SerializeToElement(true)),
+             new NodeParameterDefinition("showFittedLine", "显示拟合直线", "bool", true, JsonSerializer.SerializeToElement(true))]);
     }
 }
 
@@ -280,7 +293,7 @@ public sealed class HalconBlobAnalysisExecutor : INodeExecutor
     }
 }
 
-/// <summary>Finds straight edge segments with HALCON subpixel edge extraction and XLD line segmentation.</summary>
+/// <summary>Finds a line with HALCON 2D metrology and returns typed geometry, diagnostics, and a rendered overlay.</summary>
 public sealed class HalconStraightLineFindExecutor : INodeExecutor
 {
     public string TypeId => HalconNodeProvider.StraightLineFind;
@@ -292,22 +305,26 @@ public sealed class HalconStraightLineFindExecutor : INodeExecutor
         if (context.RuntimeInputs is null || !context.RuntimeInputs.TryGetValue("image", out var input) || input is not HImage image)
             throw new InvalidDataException("输入端口 Image 未收到 HALCON HImage。请连接“读取图像”或“相机采集”节点。");
 
-        var sigma = ReadNumber(context.Node, "sigma");
-        var low = ReadNumber(context.Node, "low");
-        var high = ReadNumber(context.Node, "high");
-        var minimumLength = ReadOptionalNumber(context.Node, "minimumLength", 40d);
-        var directionDeg = ReadNumber(context.Node, "directionDeg");
-        var directionToleranceDeg = ReadNumber(context.Node, "directionToleranceDeg");
-        if (sigma <= 0) throw new InvalidDataException("平滑尺度 σ 必须大于 0。");
-        if (low < 0 || high <= 0 || low > high)
-            throw new InvalidDataException("边缘阈值无效：低阈值需非负，高阈值需大于 0 且不小于低阈值。");
-        var lowThreshold = (int)Math.Round(low);
-        var highThreshold = (int)Math.Round(high);
-        if (highThreshold <= 0 || lowThreshold > highThreshold)
-            throw new InvalidDataException("边缘阈值取整后无效，请设置有效的 Canny 低、高阈值。");
-        if (minimumLength < 3) throw new InvalidDataException("最短线段长度不能小于 3 像素。");
-        if (directionToleranceDeg <= 0 || directionToleranceDeg >= 90)
-            throw new InvalidDataException("方向容差必须大于 0 且小于 90 度。");
+        var numMeasures = ReadInteger(context.Node, "numMeasures", 30);
+        var hasExplicitReferenceLine = context.Node.Parameters.TryGetValue("referenceLine", out var configuredLine) &&
+            configuredLine.ValueKind == JsonValueKind.String && configuredLine.GetString()?.Split(',').Length == 4;
+        var usesLegacyRoi = !hasExplicitReferenceLine && context.Node.Parameters.ContainsKey("roi");
+        var measureLength1 = ReadNumber(context.Node, "measureLength1", hasExplicitReferenceLine ? 20d : LegacySearchHalfWidth(context.Node));
+        var measureLength2 = ReadNumber(context.Node, "measureLength2", 5d);
+        var sigma = ReadNumber(context.Node, "measureSigma", 1d);
+        var threshold = ReadNumber(context.Node, "measureThreshold", usesLegacyRoi ? 5d : 30d);
+        var minScore = ReadNumber(context.Node, "minScore", usesLegacyRoi ? 0.2d : 0.7d);
+        var transition = ReadString(context.Node, "measureTransition", "all").Trim().ToLowerInvariant();
+        var showReference = ReadBoolean(context.Node, "showReferenceLine", true);
+        var showMeasures = ReadBoolean(context.Node, "showMeasureRegions", true);
+        var showEdges = ReadBoolean(context.Node, "showEdgePoints", true);
+        var showFit = ReadBoolean(context.Node, "showFittedLine", true);
+        if (numMeasures is < 2 or > 1000) throw new InvalidDataException("测量卡尺数量必须在 2–1000 之间。");
+        if (measureLength1 <= 0 || measureLength2 <= 0) throw new InvalidDataException("搜索半宽和卡尺半长必须大于 0。");
+        if (sigma <= 0 || threshold <= 0) throw new InvalidDataException("边缘平滑 σ 和边缘阈值必须大于 0。");
+        if (minScore is < 0 or > 1) throw new InvalidDataException("最小拟合评分必须在 0–1 之间。");
+        if (transition is not ("all" or "positive" or "negative"))
+            throw new InvalidDataException("边缘极性仅支持 all、positive 或 negative。");
 
         using var channelCount = image.CountChannels();
         if (channelCount.I is not (1 or 3))
@@ -316,55 +333,91 @@ public sealed class HalconStraightLineFindExecutor : INodeExecutor
         using var gray = channelCount.I == 3 ? image.Rgb1ToGray() : null;
         var searchImage = gray ?? image;
         var dimensions = HalconThresholdExecutor.ReadImageDimensions(context, "image");
-        var roi = ReadRectangle(context.Node, dimensions.Width, dimensions.Height);
-        using var roiRegion = new HRegion();
-        roiRegion.GenRectangle1(roi.Row1, roi.Column1, roi.Row2, roi.Column2);
-        using var roiImage = searchImage.ReduceDomain(roiRegion);
-        HXLDCont? lines = null;
-        HImage? resultImage = null;
+        var reference = ReadReferenceLine(context.Node, dimensions.Width, dimensions.Height);
+        var geometryMeasures = CreateMeasureRegionPolygons(reference, numMeasures, measureLength1, measureLength2);
+        var edgePoints = new PointSet([]);
+        Line2D? fittedLine = null;
+        double? score = null;
+        HXLDCont? fitContour = null;
+        HImage? preview = null;
+        var status = new LineFindStatus(LineFindStatus.NotFound, "未找到满足参数的直线。");
         try
         {
-            using var edges = roiImage.EdgesSubPix("canny", sigma, lowThreshold, highThreshold);
-            using var segments = edges.SegmentContoursXld("lines", 5, 2, 2);
-            using var longSegments = segments.SelectContoursXld("contour_length", minimumLength, double.MaxValue, 0, 0);
-            var angle = NormalizeRadians(directionDeg * Math.PI / 180d);
-            using var forward = SelectAngleBand(longSegments, angle, directionToleranceDeg * Math.PI / 180d);
-            using var backward = SelectAngleBand(longSegments, NormalizeRadians(angle + Math.PI), directionToleranceDeg * Math.PI / 180d);
-            lines = forward.ConcatObj(backward);
-            var count = lines.CountObj();
-            using var regions = lines.GenRegionContourXld("margin");
-            // Draw detected contours in red. White on a gray source disappears on
-            // bright edges, making a successful detection look like no result.
-            using var redChannel = searchImage.PaintRegion(regions, 255d, "margin");
-            resultImage = redChannel.Compose3(searchImage, searchImage);
+            using var model = new HMetrologyModel();
+            model.SetMetrologyModelImageSize(dimensions.Width, dimensions.Height);
+            using var emptyParameterNames = new HTuple();
+            using var emptyParameterValues = new HTuple();
+            var index = model.AddMetrologyObjectLineMeasure(reference.RowBegin, reference.ColumnBegin,
+                reference.RowEnd, reference.ColumnEnd, measureLength1, measureLength2, sigma, threshold,
+                emptyParameterNames, emptyParameterValues);
+            using var objectIndex = new HTuple(index);
+            using var parameterNames = new HTuple(new[] { "num_measures", "measure_transition", "measure_select", "min_score" });
+            using var parameterValues = new HTuple(numMeasures).TupleConcat(transition).TupleConcat("all").TupleConcat(minScore);
+            model.SetMetrologyObjectParam(objectIndex, parameterNames, parameterValues);
+            context.Log("2D Metrology：测量对象已配置，开始拟合。");
+            model.ApplyMetrologyModel(searchImage);
+            context.Log("2D Metrology：拟合完成，读取结果。");
+
+            var instanceCount = model.GetMetrologyObjectNumInstances(index);
+            if (instanceCount > 0)
+            {
+                fittedLine = new Line2D(FirstResult(model, index, "row_begin"), FirstResult(model, index, "column_begin"),
+                    FirstResult(model, index, "row_end"), FirstResult(model, index, "column_end"));
+                using var scoreValues = model.GetMetrologyObjectResult(index, "all", new HTuple("result_type"), new HTuple("score"));
+                score = scoreValues.Length > 0 ? scoreValues[0].D : 0d;
+                using var usedRows = model.GetMetrologyObjectResult(index, "all", new HTuple("used_edges"), new HTuple("row"));
+                using var usedColumns = model.GetMetrologyObjectResult(index, "all", new HTuple("used_edges"), new HTuple("column"));
+                edgePoints = new PointSet(Enumerable.Range(0, Math.Min(usedRows.Length, usedColumns.Length))
+                    .Select(pointIndex => new Point2D(usedRows[pointIndex].D, usedColumns[pointIndex].D)).ToArray());
+                fitContour = model.GetMetrologyObjectResultContour(index, "all", 1.5);
+                status = new LineFindStatus(LineFindStatus.Found, $"已找到直线，使用 {edgePoints.Points.Count}/{numMeasures} 个测量卡尺。");
+            }
+
+            using var measures = model.GetMetrologyObjectMeasures(objectIndex, transition, out var measureRows, out var measureColumns);
+            measureRows.Dispose();
+            measureColumns.Dispose();
+            context.Log("2D Metrology：读取卡尺轮廓完成，开始绘制结果。");
+            using var referenceContour = CreateLineContour(reference);
+            using var edgeContour = CreatePointCrosses(edgePoints, 5d);
+            preview = RenderPreview(searchImage, referenceContour, measures, edgeContour, fitContour,
+                showReference, showMeasures, showEdges, showFit);
             context.CancellationToken.ThrowIfCancellationRequested();
-            context.Log($"HALCON EdgesSubPix + SegmentContoursXld：ROI [{roi.Row1:G},{roi.Column1:G}]-[{roi.Row2:G},{roi.Column2:G}]，方向 {directionDeg:G}° ± {directionToleranceDeg:G}°，最短 {minimumLength:G}px，查找到 {count} 条直线。");
+            var count = fittedLine is null ? 0 : 1;
+            context.Log($"HALCON 2D Metrology：卡尺 {numMeasures}，阈值 {threshold:G}，状态 {status.Code}，评分 {score?.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) ?? "—"}。");
+            var edgePointOutput = JsonSerializer.SerializeToElement(edgePoints);
+            var overlay = new GeometryOverlay(reference, fittedLine, geometryMeasures, edgePoints);
             var serialized = new Dictionary<string, JsonElement>
             {
-                ["resultImage"] = JsonSerializer.SerializeToElement(new { count, width = dimensions.Width, height = dimensions.Height }),
-                ["lines"] = JsonSerializer.SerializeToElement(new { count, sigma, low, high, minimumLength, width = dimensions.Width, height = dimensions.Height }),
+                ["line"] = SerializeNullable(fittedLine),
+                ["angle"] = SerializeNullable(fittedLine?.AngleDegrees),
+                ["length"] = SerializeNullable(fittedLine?.Length),
+                ["edgePoints"] = edgePointOutput,
+                ["score"] = SerializeNullable(score),
+                ["overlay"] = JsonSerializer.SerializeToElement(overlay),
+                ["status"] = JsonSerializer.SerializeToElement(status),
+                ["preview"] = JsonSerializer.SerializeToElement(new { count, width = dimensions.Width, height = dimensions.Height, channels = 3 }),
+                ["resultImage"] = JsonSerializer.SerializeToElement(new { count, width = dimensions.Width, height = dimensions.Height, channels = 3 }),
+                ["lines"] = JsonSerializer.SerializeToElement(new { count, width = dimensions.Width, height = dimensions.Height }),
                 ["count"] = JsonSerializer.SerializeToElement(count)
             };
-            var runtime = new Dictionary<string, object?> { ["resultImage"] = resultImage, ["lines"] = lines };
-            resultImage = null;
-            lines = null;
+            var runtime = new Dictionary<string, object?>
+            {
+                ["line"] = fittedLine, ["angle"] = fittedLine?.AngleDegrees, ["length"] = fittedLine?.Length,
+                ["edgePoints"] = edgePoints, ["score"] = score, ["overlay"] = overlay, ["status"] = status,
+                ["preview"] = preview, ["resultImage"] = preview, ["lines"] = fitContour, ["count"] = count
+            };
+            preview = null;
+            fitContour = null;
             return ValueTask.FromResult(new NodeExecutionOutput(serialized, runtime));
         }
         finally
         {
-            resultImage?.Dispose();
-            lines?.Dispose();
+            preview?.Dispose();
+            fitContour?.Dispose();
         }
     }
 
-    private static double ReadNumber(NodeInstance node, string key)
-    {
-        if (!node.Parameters.TryGetValue(key, out var value) || value.ValueKind != JsonValueKind.Number || !double.IsFinite(value.GetDouble()))
-            throw new InvalidDataException($"直线查找参数 {key} 必须是有限数值。");
-        return value.GetDouble();
-    }
-
-    private static double ReadOptionalNumber(NodeInstance node, string key, double fallback)
+    private static double ReadNumber(NodeInstance node, string key, double fallback)
     {
         if (!node.Parameters.TryGetValue(key, out var value)) return fallback;
         if (value.ValueKind != JsonValueKind.Number || !double.IsFinite(value.GetDouble()))
@@ -372,45 +425,172 @@ public sealed class HalconStraightLineFindExecutor : INodeExecutor
         return value.GetDouble();
     }
 
-    private static (double Row1, double Column1, double Row2, double Column2) ReadRectangle(NodeInstance node, int imageWidth, int imageHeight)
+    private static int ReadInteger(NodeInstance node, string key, int fallback)
     {
-        if (!node.Parameters.TryGetValue("roi", out var value) || value.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(value.GetString()))
-            throw new InvalidDataException("请先在节点属性中点击“绘制范围”，框选直线查找区域。");
-        var parts = value.GetString()!.Split(',');
+        var number = ReadNumber(node, key, fallback);
+        if (number != Math.Truncate(number)) throw new InvalidDataException($"直线查找参数 {key} 必须是整数。");
+        return checked((int)number);
+    }
+
+    private static string ReadString(NodeInstance node, string key, string fallback)
+    {
+        if (!node.Parameters.TryGetValue(key, out var value)) return fallback;
+        if (value.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(value.GetString()))
+            throw new InvalidDataException($"直线查找参数 {key} 不能为空。");
+        return value.GetString()!;
+    }
+
+    private static bool ReadBoolean(NodeInstance node, string key, bool fallback)
+    {
+        if (!node.Parameters.TryGetValue(key, out var value)) return fallback;
+        return value.ValueKind switch
+        {
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            _ => throw new InvalidDataException($"直线查找参数 {key} 必须是布尔值。")
+        };
+    }
+
+    private static Line2D ReadReferenceLine(NodeInstance node, int imageWidth, int imageHeight)
+    {
+        var raw = node.Parameters.TryGetValue("referenceLine", out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
+        var parts = raw?.Split(',');
+        if (parts is not { Length: 4 } && node.Parameters.TryGetValue("roi", out var oldValue) && oldValue.ValueKind == JsonValueKind.String)
+        {
+            var oldParts = oldValue.GetString()?.Split(',');
+            if (oldParts is { Length: 4 })
+            {
+                var old = ParseCoordinates(oldParts, "旧版检测范围");
+                var rowSpan = Math.Abs(old[2] - old[0]);
+                var columnSpan = Math.Abs(old[3] - old[1]);
+                var invariant = System.Globalization.CultureInfo.InvariantCulture;
+                parts = rowSpan >= columnSpan
+                    ? [old[0].ToString("R", invariant), ((old[1] + old[3]) / 2d).ToString("R", invariant), old[2].ToString("R", invariant), ((old[1] + old[3]) / 2d).ToString("R", invariant)]
+                    : [((old[0] + old[2]) / 2d).ToString("R", invariant), old[1].ToString("R", invariant), ((old[0] + old[2]) / 2d).ToString("R", invariant), old[3].ToString("R", invariant)];
+            }
+        }
+        if (parts is not { Length: 4 }) throw new InvalidDataException("请点击“绘制参考线”，沿要检测的直边拖动鼠标。");
+        var coordinates = ParseCoordinates(parts, "参考直线");
+        var line = new Line2D(Math.Clamp(coordinates[0], 0, imageHeight - 1), Math.Clamp(coordinates[1], 0, imageWidth - 1),
+            Math.Clamp(coordinates[2], 0, imageHeight - 1), Math.Clamp(coordinates[3], 0, imageWidth - 1));
+        if (line.Length < 3) throw new InvalidDataException("参考直线长度至少为 3 像素，请重新绘制。");
+        return line;
+    }
+
+    private static double LegacySearchHalfWidth(NodeInstance node)
+    {
+        if (!node.Parameters.TryGetValue("roi", out var value) || value.ValueKind != JsonValueKind.String) return 20d;
+        var parts = value.GetString()?.Split(',');
+        if (parts is not { Length: 4 }) return 20d;
+        var coordinates = ParseCoordinates(parts, "旧版检测范围");
+        var rowSpan = Math.Abs(coordinates[2] - coordinates[0]);
+        var columnSpan = Math.Abs(coordinates[3] - coordinates[1]);
+        var perpendicularSpan = rowSpan >= columnSpan ? columnSpan : rowSpan;
+        return Math.Clamp(perpendicularSpan / 2d, 1d, 500d);
+    }
+
+    private static double[] ParseCoordinates(string[] parts, string label)
+    {
         if (parts.Length != 4 || !parts.All(part => double.TryParse(part, System.Globalization.NumberStyles.Float,
                 System.Globalization.CultureInfo.InvariantCulture, out var coordinate) && double.IsFinite(coordinate)))
-            throw new InvalidDataException("检测范围无效，请重新绘制。");
-        var coordinates = parts.Select(part => double.Parse(part, System.Globalization.CultureInfo.InvariantCulture)).ToArray();
-        var row1 = Math.Clamp(Math.Min(coordinates[0], coordinates[2]), 0, imageHeight - 1);
-        var column1 = Math.Clamp(Math.Min(coordinates[1], coordinates[3]), 0, imageWidth - 1);
-        var row2 = Math.Clamp(Math.Max(coordinates[0], coordinates[2]), 0, imageHeight - 1);
-        var column2 = Math.Clamp(Math.Max(coordinates[1], coordinates[3]), 0, imageWidth - 1);
-        if (row2 - row1 < 2 || column2 - column1 < 2) throw new InvalidDataException("检测范围太小，请重新绘制。");
-        return (row1, column1, row2, column2);
+            throw new InvalidDataException($"{label}坐标无效，请重新绘制。");
+        return parts.Select(part => double.Parse(part, System.Globalization.CultureInfo.InvariantCulture)).ToArray();
     }
 
-    private static HXLDCont SelectAngleBand(HXLDCont contours, double center, double halfWidth)
+    private static double FirstResult(HMetrologyModel model, int index, string parameter)
     {
-        var minimum = center - halfWidth;
-        var maximum = center + halfWidth;
-        if (minimum < 0)
-        {
-            using var lower = contours.SelectContoursXld("direction", 0, maximum, 0, 0);
-            using var upper = contours.SelectContoursXld("direction", minimum + 2 * Math.PI, 2 * Math.PI, 0, 0);
-            return lower.ConcatObj(upper);
-        }
-        if (maximum >= 2 * Math.PI)
-        {
-            using var lower = contours.SelectContoursXld("direction", 0, maximum - 2 * Math.PI, 0, 0);
-            using var upper = contours.SelectContoursXld("direction", minimum, 2 * Math.PI, 0, 0);
-            return lower.ConcatObj(upper);
-        }
-        return contours.SelectContoursXld("direction", minimum, maximum, 0, 0);
+        using var name = new HTuple("result_type");
+        using var value = new HTuple(parameter);
+        using var result = model.GetMetrologyObjectResult(index, "all", name, value);
+        if (result.Length == 0) throw new InvalidDataException($"HALCON 没有返回拟合参数 {parameter}。");
+        return result[0].D;
     }
 
-    private static double NormalizeRadians(double value)
+    private static JsonElement SerializeNullable<T>(T? value) => value is null
+        ? JsonSerializer.SerializeToElement<object?>(null)
+        : JsonSerializer.SerializeToElement(value);
+
+    private static HXLDCont CreateLineContour(Line2D line)
     {
-        value %= 2 * Math.PI;
-        return value < 0 ? value + 2 * Math.PI : value;
+        var contour = new HXLDCont();
+        using var rows = new HTuple(new[] { line.RowBegin, line.RowEnd });
+        using var columns = new HTuple(new[] { line.ColumnBegin, line.ColumnEnd });
+        contour.GenContourPolygonXld(rows, columns);
+        return contour;
+    }
+
+    private static HXLDCont CreatePointCrosses(PointSet points, double size)
+    {
+        var contours = new HXLDCont();
+        if (points.Points.Count == 0) return contours;
+        using var rows = new HTuple(points.Points.Select(point => point.Row).ToArray());
+        using var columns = new HTuple(points.Points.Select(point => point.Column).ToArray());
+        contours.GenCrossContourXld(rows, columns, new HTuple(size), Math.PI / 4);
+        return contours;
+    }
+
+    private static IReadOnlyList<IReadOnlyList<Point2D>> CreateMeasureRegionPolygons(Line2D line, int count, double normalHalfLength, double tangentHalfLength)
+    {
+        var dRow = line.RowEnd - line.RowBegin;
+        var dColumn = line.ColumnEnd - line.ColumnBegin;
+        var length = Math.Sqrt(dRow * dRow + dColumn * dColumn);
+        var tangentRow = dRow / length; var tangentColumn = dColumn / length;
+        var normalRow = -tangentColumn; var normalColumn = tangentRow;
+        var result = new List<IReadOnlyList<Point2D>>(count);
+        for (var index = 0; index < count; index++)
+        {
+            var fraction = index / (double)(count - 1);
+            var centerRow = line.RowBegin + dRow * fraction;
+            var centerColumn = line.ColumnBegin + dColumn * fraction;
+            Point2D At(int normalSign, int tangentSign) => new(
+                centerRow + normalRow * normalHalfLength * normalSign + tangentRow * tangentHalfLength * tangentSign,
+                centerColumn + normalColumn * normalHalfLength * normalSign + tangentColumn * tangentHalfLength * tangentSign);
+            result.Add([At(-1, -1), At(-1, 1), At(1, 1), At(1, -1), At(-1, -1)]);
+        }
+        return result;
+    }
+
+    private static HImage RenderPreview(HImage gray, HXLDCont reference, HXLDCont measures, HXLDCont edges, HXLDCont? fitted,
+        bool showReference, bool showMeasures, bool showEdges, bool showFit)
+    {
+        HImage? red = gray.CopyImage(); HImage? green = gray.CopyImage(); HImage? blue = gray.CopyImage();
+        try
+        {
+            if (showReference)
+            {
+                red = PaintChannel(red, reference, 255d);
+                green = PaintChannel(green, reference, 220d);
+                blue = PaintChannel(blue, reference, 0d);
+            }
+            if (showMeasures)
+            {
+                red = PaintChannel(red, measures, 0d);
+                green = PaintChannel(green, measures, 80d);
+                blue = PaintChannel(blue, measures, 255d);
+            }
+            if (showEdges)
+            {
+                red = PaintChannel(red, edges, 0d);
+                green = PaintChannel(green, edges, 255d);
+                blue = PaintChannel(blue, edges, 0d);
+            }
+            if (showFit && fitted is not null)
+            {
+                red = PaintChannel(red, fitted, 255d);
+                green = PaintChannel(green, fitted, 0d);
+                blue = PaintChannel(blue, fitted, 0d);
+            }
+            return red.Compose3(green, blue);
+        }
+        finally { red?.Dispose(); green?.Dispose(); blue?.Dispose(); }
+    }
+
+    private static HImage PaintChannel(HImage channel, HXLDCont contours, double value)
+    {
+        if (!contours.IsInitialized() || contours.CountObj() == 0) return channel;
+        using var regions = contours.GenRegionContourXld("margin");
+        var painted = channel.PaintRegion(regions, value, "margin");
+        channel.Dispose();
+        return painted;
     }
 }

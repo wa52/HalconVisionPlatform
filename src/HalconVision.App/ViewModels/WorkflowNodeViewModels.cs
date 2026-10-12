@@ -47,6 +47,20 @@ public sealed class NodeParameterViewModel : ObservableModel
     public string DataType => Definition.DataType;
     public bool IsPath => string.Equals(DataType, "path", StringComparison.Ordinal);
     public bool IsRoiDraw => string.Equals(DataType, "roiDraw", StringComparison.Ordinal);
+    public bool IsLineDraw => string.Equals(DataType, "lineDraw", StringComparison.Ordinal);
+    public bool IsBoolean => string.Equals(DataType, "bool", StringComparison.Ordinal);
+    public bool IsTransition => string.Equals(DataType, "edgeTransition", StringComparison.Ordinal);
+    public IReadOnlyList<string> TransitionChoices { get; } = ["全部边缘", "暗到亮", "亮到暗"];
+    public string SelectedTransition
+    {
+        get => ValueText switch { "positive" => "暗到亮", "negative" => "亮到暗", _ => "全部边缘" };
+        set { ValueText = value switch { "暗到亮" => "positive", "亮到暗" => "negative", _ => "all" }; Commit(); }
+    }
+    public bool BooleanValue
+    {
+        get => bool.TryParse(ValueText, out var value) && value;
+        set { ValueText = value ? "true" : "false"; Commit(); }
+    }
     public bool IsCamera => DataType is "camera" or "cameraInterface";
     public string ValueText { get => _valueText; set => Set(ref _valueText, value); }
     public string? Error { get => _error; private set => Set(ref _error, value); }
@@ -57,7 +71,7 @@ public sealed class NodeParameterViewModel : ObservableModel
         {
             var element = Definition.DataType switch
             {
-                "string" or "path" or "camera" or "cameraInterface" or "roiDraw" => JsonSerializer.SerializeToElement(ValueText),
+                "string" or "path" or "camera" or "cameraInterface" or "roiDraw" or "lineDraw" or "edgeTransition" => JsonSerializer.SerializeToElement(ValueText),
                 "number" when double.TryParse(ValueText, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) && double.IsFinite(number) => JsonSerializer.SerializeToElement(number),
                 "bool" when bool.TryParse(ValueText, out var boolean) => JsonSerializer.SerializeToElement(boolean),
                 _ => throw new FormatException($"请输入有效的 {Definition.DataType} 值。")
