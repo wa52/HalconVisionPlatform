@@ -300,9 +300,9 @@ internal static class Program
         Assert(canvas.Children.OfType<System.Windows.Shapes.Polyline>().Count() == 2 &&
             canvas.Children.OfType<TextBlock>().Any(text => text.Text.Contains(source.DisplayName)) &&
             canvas.Children.OfType<TextBlock>().Any(text => text.Text.Contains(detector.DisplayName) && text.Text.Contains("找到直线")) &&
-            canvas.Children.OfType<TextBlock>().Any(text => text.Text.Contains(".score")) &&
-            canvas.Children.OfType<TextBlock>().Any(text => text.Text.Contains("line.RowBegin")),
-            "one image combines two nodes, vector search rectangle, fitted line, decisions and selected endpoint/score fields");
+            canvas.Children.OfType<TextBlock>().Any(text => text.Text.Contains("评分：")) &&
+            canvas.Children.OfType<TextBlock>().Any(text => text.Text.Contains("起点行坐标：")),
+            "one image combines nodes, rectangle, line, decisions and Chinese score/advanced coordinates");
         var beforeZoom = canvas.Children.OfType<System.Windows.Shapes.Polyline>().Last().Points[0];
         typeof(DetectionContentView).GetMethod("Zoom", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(imageContent, [1.5d]);
         Assert(canvas.Children.OfType<System.Windows.Shapes.Polyline>().Last().Points[0] != beforeZoom &&

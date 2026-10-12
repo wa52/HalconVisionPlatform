@@ -21,6 +21,7 @@ public sealed class DetectionContentView : Border, IDisposable
     private readonly HSmartWindowControlWPF _image = new();
     private readonly Canvas _overlayCanvas = new() { IsHitTestVisible = false, ClipToBounds = true };
     private readonly StackPanel _layerChoices = new();
+    private readonly HashSet<Guid> _expandedAdvanced = [];
     private readonly Expander _layerEditor = new() { Header = "叠加节点与显示字段（勾选）", Foreground = Brushes.LightGray, Margin = new Thickness(6) };
     private DetectionOverlayScene _scene = new();
     private readonly DataGrid _values = new() { AutoGenerateColumns = false, IsReadOnly = true, Background = new SolidColorBrush(Color.FromRgb(27, 39, 49)), Foreground = Brushes.LightGray, RowBackground = new SolidColorBrush(Color.FromRgb(27, 39, 49)) };
@@ -157,19 +158,37 @@ public sealed class DetectionContentView : Border, IDisposable
             _layerChoices.Children.Add(row);
             var fields = new WrapPanel { Margin = new Thickness(20, 0, 0, 3), IsEnabled = enabled };
             var result = run?.FlowId == flow?.Id ? run?.NodeResults.FirstOrDefault(item => item.NodeId == candidate.Id) : null;
-            var names = NodeOutputValue.From(result, candidate.Definition)
-                .Where(item => item.Name is not "检测结果" and not "运行状态" &&
-                    !item.FullValue.StartsWith('{') && !item.FullValue.StartsWith('['))
-                .Select(item => item.Name).Concat(layer.Fields ?? [])
-                .Concat(["score", "count", "angle", "length"]).Distinct();
+            var available = result is null ? candidate.OutputPorts.Select(port => port.Id).ToHashSet()
+                : result.Outputs.Keys.ToHashSet();
+            var names = DetectionOverlayScene.ImportantFields.Keys.Where(available.Contains);
             foreach (var name in names)
             {
-                var chosen = layer.Fields ?? ["score", "count", "angle", "length"];
-                var check = new CheckBox { Content = name, IsChecked = chosen.Contains(name), Foreground = Brushes.LightGray, Margin = new Thickness(6, 0, 6, 0) };
-                check.Checked += (_, _) => SetOverlay(layer with { Fields = chosen.Append(name).Distinct().ToList() });
-                check.Unchecked += (_, _) => SetOverlay(layer with { Fields = chosen.Where(field => field != name).ToList() }); fields.Children.Add(check);
+                AddField(fields, name, DetectionOverlayScene.ImportantFields[name]);
             }
             _layerChoices.Children.Add(fields);
+            var advanced = new WrapPanel { IsEnabled = enabled };
+            var outputNames = NodeOutputValue.From(result, candidate.Definition).Select(item => item.Name).ToHashSet();
+            foreach (var (name, label) in DetectionOverlayScene.AdvancedFields)
+                if (outputNames.Contains(name) || (result is null && candidate.OutputPorts.Any(port => port.Id == "line")))
+                    AddField(advanced, name, label);
+            if (advanced.Children.Count > 0)
+            {
+                var section = new Expander { Header = "高级数据（坐标）", Foreground = Brushes.LightGray,
+                    Margin = new Thickness(20, 0, 0, 4), Content = advanced, IsExpanded = _expandedAdvanced.Contains(candidate.Id) };
+                section.Expanded += (_, _) => _expandedAdvanced.Add(candidate.Id);
+                section.Collapsed += (_, _) => _expandedAdvanced.Remove(candidate.Id);
+                _layerChoices.Children.Add(section);
+            }
+
+            void AddField(WrapPanel host, string name, string label)
+            {
+                var chosen = (layer.Fields ?? DetectionOverlayScene.ImportantFields.Keys.ToList())
+                    .Where(field => DetectionOverlayScene.ImportantFields.ContainsKey(field) || DetectionOverlayScene.AdvancedFields.ContainsKey(field)).ToList();
+                var check = new CheckBox { Content = label, IsChecked = chosen.Contains(name), Foreground = Brushes.LightGray, Margin = new Thickness(6, 0, 6, 0) };
+                check.Checked += (_, _) => SetOverlay(layer with { Fields = chosen.Append(name).Distinct().ToList() });
+                check.Unchecked += (_, _) => SetOverlay(layer with { Fields = chosen.Where(field => field != name).ToList() });
+                host.Children.Add(check);
+            }
         }
     }
 

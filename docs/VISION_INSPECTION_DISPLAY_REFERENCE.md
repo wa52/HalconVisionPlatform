@@ -22,7 +22,7 @@
 
 ## HALCON 平台的实现
 
-DetectionContentView 选择底图端口，通过 DetectionOverlaySettings 多选节点，并分别控制图形、判定及具体数值字段。DetectionOverlayScene 将当前运行的结构化结果转换为托管图形和文本快照，一个 HSmartWindowControl 图像视口同时显示全部所选内容。
+DetectionContentView 选择底图端口，通过 DetectionOverlaySettings 多选节点，并分别控制图形、判定及重要数值字段。常用显示选项提供评分、角度（°）、长度（像素）、数量，按实际输出提供；“高级数据（坐标）”折叠区提供直线起终点行列坐标。图像元数据和重复内部字段隐藏，节点完整输出及计算端口不变。DetectionOverlayScene 将当前运行的结构化结果转换为托管图形和文本快照，一个 HSmartWindowControl 图像视口同时显示全部所选内容。
 
 默认使用读取图像/相机采集原图作为底图。旧版无 Overlays 的多内容布局在载入时转换为同图叠加配置；转换只修改内存，用户保存后写入项目。额外的参数表或独立图像内容仍可手动添加。
 

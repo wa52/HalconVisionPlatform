@@ -10,6 +10,15 @@ public sealed record DisplayCaption(string Text, string Color);
 /// <summary>Managed display snapshots only; never retains HALCON objects beyond this synchronous call.</summary>
 public sealed class DetectionOverlayScene
 {
+    public static IReadOnlyDictionary<string, string> ImportantFields { get; } = new Dictionary<string, string>
+    {
+        ["score"] = "评分", ["angle"] = "角度（°）", ["length"] = "长度（像素）", ["count"] = "数量"
+    };
+    public static IReadOnlyDictionary<string, string> AdvancedFields { get; } = new Dictionary<string, string>
+    {
+        ["line.RowBegin"] = "起点行坐标", ["line.ColumnBegin"] = "起点列坐标",
+        ["line.RowEnd"] = "终点行坐标", ["line.ColumnEnd"] = "终点列坐标"
+    };
     public List<DisplayGeometry> Geometry { get; } = [];
     public List<DisplayCaption> Captions { get; } = [];
 
@@ -26,8 +35,9 @@ public sealed class DetectionOverlayScene
             if (layer.ShowDecision) scene.Captions.Add(new($"{name}：{NodeResultSummary.Describe(result)}",
                 result.Status == NodeExecutionStatus.Success && !NodeResultSummary.Describe(result).StartsWith("未找到") ? "LimeGreen" : "Orange"));
             var rows = NodeOutputValue.From(result, node?.Definition);
-            foreach (var row in rows.Where(row => (layer.Fields ?? ["score", "count", "angle", "length"]).Contains(row.Name)))
-                scene.Captions.Add(new($"{name}.{row.Name} = {row.Value}", "White"));
+            foreach (var row in rows.Where(row => (ImportantFields.ContainsKey(row.Name) || AdvancedFields.ContainsKey(row.Name)) &&
+                (layer.Fields ?? ImportantFields.Keys.ToList()).Contains(row.Name)))
+                scene.Captions.Add(new($"{name} · {ImportantFields.GetValueOrDefault(row.Name) ?? AdvancedFields[row.Name]}：{row.Value}", "White"));
             if (!layer.ShowGeometry || run is null || run.RuntimeOutputs is null || !run.RuntimeOutputs.TryGetValue(layer.NodeId, out var runtime)) continue;
             if (!SharesImageSpace(flow, settings.NodeId, layer.NodeId) || !HasDimensions(result.Outputs, width, height))
             { scene.Captions.Add(new($"{name}：图像坐标来源或尺寸不匹配，未叠加图形", "Orange")); continue; }
