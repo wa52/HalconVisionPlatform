@@ -29,7 +29,8 @@ internal static class Program
     {
         _root = Path.GetFullPath(args.FirstOrDefault() ?? "artifacts/lifecycle-checks");
         Directory.CreateDirectory(_root);
-        var path = CreateFixture();
+        var externalProject = args.ElementAtOrDefault(1);
+        var path = externalProject is null ? CreateFixture() : Path.GetFullPath(externalProject);
         _app = new System.Windows.Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         _app.DispatcherUnhandledException += (_, e) => Fail(e.Exception);
         var timer = new DispatcherTimer(TimeSpan.FromMilliseconds(30), DispatcherPriority.Background, (_, _) =>
@@ -55,7 +56,8 @@ internal static class Program
                 await Task.Delay(100);
                 Interlocked.Exchange(ref _heartbeatAt, Environment.TickCount64);
                 _watchdogEnabled = true;
-                await CheckAsync(window, path);
+                if (externalProject is null) await CheckAsync(window, path);
+                else await CheckExternalProjectAsync(window, path);
                 _finished = true;
                 File.WriteAllLines(Path.Combine(_root, "result.txt"), Evidence);
                 foreach (var line in Evidence) Console.WriteLine(line);
@@ -65,6 +67,49 @@ internal static class Program
         };
         window.Show();
         _app.Run();
+    }
+
+    private static async Task CheckExternalProjectAsync(MainWindow window, string path)
+    {
+        var vm = (WorkflowWorkspaceViewModel)window.DataContext;
+        var flow = vm.SelectedFlow!;
+        var source = flow.Document.Nodes.Single(node => node.TypeId == HalconNodeProvider.ImageRead);
+        var detector = flow.Document.Nodes.Single(node => node.TypeId == HalconNodeProvider.StraightLineFind);
+        Assert(flow.Document.Edges.Any(edge => edge.FromNodeId == source.Id && edge.FromPortId == "image" &&
+            edge.ToNodeId == detector.Id && edge.ToPortId == "image"), "1900 image-read node is wired to straight-line-find");
+        var folder = source.Parameters["path"].GetString()!;
+        var firstImage = Directory.EnumerateFiles(folder).Where(file =>
+            new[] { ".bmp", ".png", ".jpg", ".jpeg", ".tif", ".tiff", ".jp2" }.Contains(Path.GetExtension(file), StringComparer.OrdinalIgnoreCase))
+            .OrderBy(file => file, StringComparer.OrdinalIgnoreCase).First();
+        using var image = new HImage(firstImage);
+        image.GetImageSize(out int width, out int height);
+        var detectorView = flow.Nodes.Single(node => node.Id == detector.Id);
+        var roiParameter = detectorView.Parameters.Single(parameter => parameter.IsRoiDraw);
+        flow.SelectNode(detector.Id, false);
+        typeof(MainWindow).GetMethod("DrawRoi_Click", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .Invoke(window, [new Button { Tag = roiParameter }, new RoutedEventArgs()]);
+        Assert(Field<Canvas>(window, "RoiDrawingOverlay").Visibility == Visibility.Visible,
+            "1900 draw-range action displays the source image and activates the ROI overlay");
+        typeof(MainWindow).GetMethod("FinishRoiDrawing", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(window, []);
+        roiParameter.ValueText = $"{height / 10},{width / 10},{height * 3 / 10},{width * 3 / 10}";
+        roiParameter.Commit();
+        Assert(roiParameter.Error is null, "1900 ROI editor commits drawn coordinates as a string parameter");
+        Invoke(window, "Run_Click");
+        await UntilAsync(() => ExecutionTask(window) is null, TimeSpan.FromMinutes(2));
+        var run = vm.LastRun ?? throw new InvalidOperationException("1900 run did not produce a result.");
+        Evidence.Add($"DETAIL: status={run.Status}; nodes={string.Join(" | ", run.NodeResults.Select(result => $"{result.Status}: {result.Error}"))}; errors={string.Join(" | ", run.Errors)}");
+        Assert(run.Status == WorkflowRunStatus.Success && run.NodeResults.Count == 2 &&
+            run.NodeResults.All(result => result.Status == NodeExecutionStatus.Success),
+            "1900 image read and line-find nodes both execute successfully");
+        var outputs = run.RuntimeOutputs![detector.Id];
+        Assert(outputs.TryGetValue("resultImage", out var resultValue) && resultValue is HImage resultImage && resultImage.IsInitialized(),
+            "1900 line-find returns an initialized annotated HImage");
+        Assert(outputs.TryGetValue("lines", out var linesValue) && linesValue is HXLDCont lines && lines.IsInitialized() && lines.CountObj() > 0,
+            "1900 line-find returns non-empty XLD contours");
+        Assert(Field<TextBlock>(window, "PreviewEmptyText").Visibility == Visibility.Collapsed && flow.SelectedNode?.Id == detector.Id,
+            "1900 final node result is selected and shown in the image preview");
+        var count = outputs["lines"] is HXLDCont contours ? contours.CountObj() : -1;
+        Evidence.Add($"DETAIL: 1900 source={Path.GetFileName(firstImage)}; size={width}x{height}; lines={count}; project not saved");
     }
 
     private static string CreateFixture()
@@ -254,9 +299,9 @@ internal static class Program
         using var area = region.AreaCenter(out HTuple row, out HTuple column);
         using (row) using (column) return area.D;
     }
-    private static async Task UntilAsync(Func<bool> condition)
+    private static async Task UntilAsync(Func<bool> condition, TimeSpan? timeout = null)
     {
-        var deadline = DateTime.UtcNow.AddSeconds(5);
+        var deadline = DateTime.UtcNow + (timeout ?? TimeSpan.FromSeconds(5));
         while (!condition()) { if (DateTime.UtcNow >= deadline) throw new TimeoutException("Lifecycle transition exceeded 5 seconds."); await Task.Delay(10); }
     }
     private static T Field<T>(object owner, string name) => (T)owner.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(owner)!;

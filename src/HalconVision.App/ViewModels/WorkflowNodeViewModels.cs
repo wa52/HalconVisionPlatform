@@ -57,7 +57,7 @@ public sealed class NodeParameterViewModel : ObservableModel
         {
             var element = Definition.DataType switch
             {
-                "string" or "path" or "camera" or "cameraInterface" => JsonSerializer.SerializeToElement(ValueText),
+                "string" or "path" or "camera" or "cameraInterface" or "roiDraw" => JsonSerializer.SerializeToElement(ValueText),
                 "number" when double.TryParse(ValueText, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) && double.IsFinite(number) => JsonSerializer.SerializeToElement(number),
                 "bool" when bool.TryParse(ValueText, out var boolean) => JsonSerializer.SerializeToElement(boolean),
                 _ => throw new FormatException($"请输入有效的 {Definition.DataType} 值。")
