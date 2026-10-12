@@ -94,6 +94,7 @@ internal static class Program
         roiParameter.ValueText = $"{height / 10},{width / 10},{height * 3 / 10},{width * 3 / 10}";
         roiParameter.Commit();
         Assert(roiParameter.Error is null, "1900 ROI editor commits drawn coordinates as a string parameter");
+        Assert(flow.ValidationIssues.Count == 0, "1900 flow validation refreshes after ROI coordinates are committed");
         Invoke(window, "Run_Click");
         await UntilAsync(() => ExecutionTask(window) is null, TimeSpan.FromMinutes(2));
         var run = vm.LastRun ?? throw new InvalidOperationException("1900 run did not produce a result.");

@@ -112,6 +112,7 @@ public sealed class FlowTabViewModel : ObservableModel
             }).ToList()
         };
         IsDirty = true;
+        Raise(nameof(ValidationIssues));
     }
 
     public int DeleteSelection()
