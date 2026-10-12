@@ -44,12 +44,15 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
              new NodeParameterDefinition("maximumArea", "最大面积", "number", true, JsonSerializer.SerializeToElement(1_000_000_000d))]);
 
         yield return new NodeDefinition(
-            StraightLineFind, 1, "特征检测", "直线查找", "使用 HALCON LinesGauss 查找图像中的亮线或暗线，输出标注图像、XLD 线轮廓及数量。",
+            StraightLineFind, 1, "特征检测", "直线查找", "在图像上绘制检测范围，设置直线方向与容差；HALCON LinesGauss 输出标注图像、XLD 线轮廓及数量。",
             [new PortDefinition("image", "Image", PortDirection.Input, "halcon.image", Required: true),
              new PortDefinition("resultImage", "ResultImage", PortDirection.Output, "halcon.image"),
              new PortDefinition("lines", "Lines", PortDirection.Output, "halcon.xld"),
              new PortDefinition("count", "Count", PortDirection.Output, "number")],
-            [new NodeParameterDefinition("sigma", "平滑尺度 σ", "number", true, JsonSerializer.SerializeToElement(1.5d)),
+            [new NodeParameterDefinition("roi", "检测范围", "roiDraw", true, JsonSerializer.SerializeToElement(string.Empty)),
+             new NodeParameterDefinition("directionDeg", "直线方向（度，逆时针）", "number", true, JsonSerializer.SerializeToElement(0d)),
+             new NodeParameterDefinition("directionToleranceDeg", "方向容差（度）", "number", true, JsonSerializer.SerializeToElement(15d)),
+             new NodeParameterDefinition("sigma", "平滑尺度 σ", "number", true, JsonSerializer.SerializeToElement(1.5d)),
              new NodeParameterDefinition("low", "低阈值", "number", true, JsonSerializer.SerializeToElement(3d)),
              new NodeParameterDefinition("high", "高阈值", "number", true, JsonSerializer.SerializeToElement(8d)),
              new NodeParameterDefinition("lightDark", "线条极性 (light/dark)", "string", true, JsonSerializer.SerializeToElement("light"))]);
@@ -292,9 +295,13 @@ public sealed class HalconStraightLineFindExecutor : INodeExecutor
         var sigma = ReadNumber(context.Node, "sigma");
         var low = ReadNumber(context.Node, "low");
         var high = ReadNumber(context.Node, "high");
+        var directionDeg = ReadNumber(context.Node, "directionDeg");
+        var directionToleranceDeg = ReadNumber(context.Node, "directionToleranceDeg");
         if (sigma <= 0) throw new InvalidDataException("平滑尺度 σ 必须大于 0。");
         if (low < 0 || high <= 0 || low > high)
             throw new InvalidDataException("直线查找阈值无效：低阈值需非负，高阈值需大于 0 且不小于低阈值。");
+        if (directionToleranceDeg <= 0 || directionToleranceDeg >= 90)
+            throw new InvalidDataException("方向容差必须大于 0 且小于 90 度。");
         var polarity = ReadString(context.Node, "lightDark").Trim().ToLowerInvariant();
         if (polarity is not ("light" or "dark")) throw new InvalidDataException("线条极性只支持 light 或 dark。");
 
@@ -304,17 +311,25 @@ public sealed class HalconStraightLineFindExecutor : INodeExecutor
 
         using var gray = channelCount.I == 3 ? image.Rgb1ToGray() : null;
         var searchImage = gray ?? image;
+        var dimensions = HalconThresholdExecutor.ReadImageDimensions(context, "image");
+        var roi = ReadRectangle(context.Node, dimensions.Width, dimensions.Height);
+        using var roiRegion = new HRegion();
+        roiRegion.GenRectangle1(roi.Row1, roi.Column1, roi.Row2, roi.Column2);
+        using var roiImage = searchImage.ReduceDomain(roiRegion);
         HXLDCont? lines = null;
         HImage? resultImage = null;
         try
         {
-            lines = searchImage.LinesGauss(sigma, low, high, polarity, "true", "bar-shaped", "true");
+            using var foundLines = roiImage.LinesGauss(sigma, low, high, polarity, "true", "bar-shaped", "true");
+            var angle = NormalizeRadians(directionDeg * Math.PI / 180d);
+            using var forward = SelectAngleBand(foundLines, angle, directionToleranceDeg * Math.PI / 180d);
+            using var backward = SelectAngleBand(foundLines, NormalizeRadians(angle + Math.PI), directionToleranceDeg * Math.PI / 180d);
+            lines = forward.ConcatObj(backward);
             var count = lines.CountObj();
             using var regions = lines.GenRegionContourXld("margin");
             resultImage = searchImage.PaintRegion(regions, 255d, "margin");
-            var dimensions = HalconThresholdExecutor.ReadImageDimensions(context, "image");
             context.CancellationToken.ThrowIfCancellationRequested();
-            context.Log($"HALCON LinesGauss({sigma:G}, {low:G}, {high:G}, {polarity})：查找到 {count} 条线。");
+            context.Log($"HALCON LinesGauss：ROI [{roi.Row1:G},{roi.Column1:G}]-[{roi.Row2:G},{roi.Column2:G}]，方向 {directionDeg:G}° ± {directionToleranceDeg:G}°，查找到 {count} 条线。");
             var serialized = new Dictionary<string, JsonElement>
             {
                 ["resultImage"] = JsonSerializer.SerializeToElement(new { count, width = dimensions.Width, height = dimensions.Height }),
@@ -345,5 +360,47 @@ public sealed class HalconStraightLineFindExecutor : INodeExecutor
         if (!node.Parameters.TryGetValue(key, out var value) || value.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(value.GetString()))
             throw new InvalidDataException($"直线查找参数 {key} 必须是非空字符串。");
         return value.GetString()!;
+    }
+
+    private static (double Row1, double Column1, double Row2, double Column2) ReadRectangle(NodeInstance node, int imageWidth, int imageHeight)
+    {
+        if (!node.Parameters.TryGetValue("roi", out var value) || value.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(value.GetString()))
+            throw new InvalidDataException("请先在节点属性中点击“绘制范围”，框选直线查找区域。");
+        var parts = value.GetString()!.Split(',');
+        if (parts.Length != 4 || !parts.All(part => double.TryParse(part, System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out var coordinate) && double.IsFinite(coordinate)))
+            throw new InvalidDataException("检测范围无效，请重新绘制。");
+        var coordinates = parts.Select(part => double.Parse(part, System.Globalization.CultureInfo.InvariantCulture)).ToArray();
+        var row1 = Math.Clamp(Math.Min(coordinates[0], coordinates[2]), 0, imageHeight - 1);
+        var column1 = Math.Clamp(Math.Min(coordinates[1], coordinates[3]), 0, imageWidth - 1);
+        var row2 = Math.Clamp(Math.Max(coordinates[0], coordinates[2]), 0, imageHeight - 1);
+        var column2 = Math.Clamp(Math.Max(coordinates[1], coordinates[3]), 0, imageWidth - 1);
+        if (row2 - row1 < 2 || column2 - column1 < 2) throw new InvalidDataException("检测范围太小，请重新绘制。");
+        return (row1, column1, row2, column2);
+    }
+
+    private static HXLDCont SelectAngleBand(HXLDCont contours, double center, double halfWidth)
+    {
+        var minimum = center - halfWidth;
+        var maximum = center + halfWidth;
+        if (minimum < 0)
+        {
+            using var lower = contours.SelectContoursXld("direction", 0, maximum, 0, 0);
+            using var upper = contours.SelectContoursXld("direction", minimum + 2 * Math.PI, 2 * Math.PI, 0, 0);
+            return lower.ConcatObj(upper);
+        }
+        if (maximum >= 2 * Math.PI)
+        {
+            using var lower = contours.SelectContoursXld("direction", 0, maximum - 2 * Math.PI, 0, 0);
+            using var upper = contours.SelectContoursXld("direction", minimum, 2 * Math.PI, 0, 0);
+            return lower.ConcatObj(upper);
+        }
+        return contours.SelectContoursXld("direction", minimum, maximum, 0, 0);
+    }
+
+    private static double NormalizeRadians(double value)
+    {
+        value %= 2 * Math.PI;
+        return value < 0 ? value + 2 * Math.PI : value;
     }
 }

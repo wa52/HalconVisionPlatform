@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -39,6 +40,9 @@ public partial class MainWindow : Window
     private int _previewImageHeight;
     private bool _panningPreview;
     private Point _lastPreviewPointer;
+    private NodeParameterViewModel? _roiParameter;
+    private bool _isDrawingRoi;
+    private Point _roiStart;
     private CancellationTokenSource? _continuousCancellation;
     private Task? _executionTask;
     private bool _closing;
@@ -650,13 +654,14 @@ public partial class MainWindow : Window
 
     private void PreviewHost_MouseWheel(object sender, MouseWheelEventArgs e)
     {
+        if (_isDrawingRoi) { e.Handled = true; return; }
         _imagePresenter.Zoom(PreviewWindow.HalconWindow, e.Delta > 0 ? 1.15 : 1 / 1.15);
         e.Handled = true;
     }
 
     private void PreviewHost_MouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (e.ChangedButton != MouseButton.Left) return;
+        if (_isDrawingRoi || e.ChangedButton != MouseButton.Left) return;
         _panningPreview = true;
         _lastPreviewPointer = e.GetPosition(PreviewHost);
         PreviewHost.CaptureMouse();
@@ -683,10 +688,139 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
+    private void DrawRoi_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: NodeParameterViewModel parameter } ||
+            _vm.SelectedFlow?.SelectedNode is not { TypeId: HalconNodeProvider.StraightLineFind } lineNode) return;
+        var flow = _vm.SelectedFlow;
+        var edge = flow.Document.Edges.FirstOrDefault(item => item.ToNodeId == lineNode.Id && item.ToPortId == "image");
+        var sourceNode = edge is null ? null : flow.Document.Nodes.FirstOrDefault(item => item.Id == edge.FromNodeId);
+        if (sourceNode is null)
+        {
+            MessageBox.Show(this, "请先将读取图像或相机采集节点连接到直线查找节点。", "绘制检测范围", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        try
+        {
+            var displayed = false;
+            if (_vm.LastRun is { } run && run.FlowId == flow.Id && run.RuntimeOutputs?.TryGetValue(sourceNode.Id, out var runtime) == true &&
+                runtime.TryGetValue("image", out var imageValue) && imageValue is HImage image)
+            {
+                if (image.CountObj() > 1)
+                {
+                    using var first = image.SelectObj(1);
+                    first.GetImageSize(out _previewImageWidth, out _previewImageHeight);
+                    _imagePresenter.Display(first, PreviewWindow.HalconWindow, _previewImageWidth, _previewImageHeight, PreviewHost.ActualWidth, PreviewHost.ActualHeight);
+                }
+                else
+                {
+                    image.GetImageSize(out _previewImageWidth, out _previewImageHeight);
+                    _imagePresenter.Display(image, PreviewWindow.HalconWindow, _previewImageWidth, _previewImageHeight, PreviewHost.ActualWidth, PreviewHost.ActualHeight);
+                }
+                displayed = true;
+            }
+            else if (sourceNode.TypeId == HalconNodeProvider.ImageRead && sourceNode.Parameters.TryGetValue("path", out var pathValue))
+            {
+                var path = pathValue.GetString();
+                if (!string.IsNullOrWhiteSpace(path))
+                {
+                    var imagePath = Directory.Exists(path) ? EnumerateImageFiles(path).FirstOrDefault() : path;
+                    if (!string.IsNullOrWhiteSpace(imagePath) && File.Exists(imagePath))
+                    {
+                        _previewImagePath = imagePath;
+                        var dimensions = _imagePresenter.Display(imagePath, PreviewWindow.HalconWindow);
+                        _previewImageWidth = dimensions.Width;
+                        _previewImageHeight = dimensions.Height;
+                        Dispatcher.BeginInvoke(new Action(() => ImageFit_Click(this, new RoutedEventArgs())));
+                        displayed = true;
+                    }
+                }
+            }
+
+            if (!displayed)
+            {
+                MessageBox.Show(this, "相机图像需先单次运行采集节点；读取图像节点请先设置有效的图像路径。", "绘制检测范围", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            PreviewEmptyText.Visibility = Visibility.Collapsed;
+            _roiParameter = parameter;
+            _isDrawingRoi = true;
+            RoiPreviewRectangle.Visibility = Visibility.Collapsed;
+            RoiDrawingOverlay.Visibility = Visibility.Visible;
+            RoiDrawingOverlay.Cursor = Cursors.Cross;
+            RoiDrawingOverlay.Focusable = true;
+            RoiDrawingOverlay.Focus();
+            _vm.Log("请在图像预览区拖动鼠标，绘制直线查找范围。");
+        }
+        catch (Exception ex) { ShowError("准备绘制检测范围失败", ex); }
+    }
+
+    private void RoiOverlay_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (!_isDrawingRoi || e.ChangedButton != MouseButton.Left) return;
+        _roiStart = e.GetPosition(RoiDrawingOverlay);
+        Canvas.SetLeft(RoiPreviewRectangle, _roiStart.X);
+        Canvas.SetTop(RoiPreviewRectangle, _roiStart.Y);
+        RoiPreviewRectangle.Width = 0;
+        RoiPreviewRectangle.Height = 0;
+        RoiPreviewRectangle.Visibility = Visibility.Visible;
+        RoiDrawingOverlay.CaptureMouse();
+        e.Handled = true;
+    }
+
+    private void RoiOverlay_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_isDrawingRoi || e.LeftButton != MouseButtonState.Pressed || RoiPreviewRectangle.Visibility != Visibility.Visible) return;
+        var point = e.GetPosition(RoiDrawingOverlay);
+        Canvas.SetLeft(RoiPreviewRectangle, Math.Min(_roiStart.X, point.X));
+        Canvas.SetTop(RoiPreviewRectangle, Math.Min(_roiStart.Y, point.Y));
+        RoiPreviewRectangle.Width = Math.Abs(point.X - _roiStart.X);
+        RoiPreviewRectangle.Height = Math.Abs(point.Y - _roiStart.Y);
+        e.Handled = true;
+    }
+
+    private void RoiOverlay_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!_isDrawingRoi || e.ChangedButton != MouseButton.Left || _roiParameter is null) return;
+        RoiDrawingOverlay.ReleaseMouseCapture();
+        var end = e.GetPosition(RoiDrawingOverlay);
+        if (Math.Abs(end.X - _roiStart.X) < 4 || Math.Abs(end.Y - _roiStart.Y) < 4)
+        {
+            RoiPreviewRectangle.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        PreviewWindow.HalconWindow.GetPart(out int row1, out int column1, out int row2, out int column2);
+        var rowSpan = row2 - row1 + 1d;
+        var columnSpan = column2 - column1 + 1d;
+        var startRow = row1 + _roiStart.Y / RoiDrawingOverlay.ActualHeight * rowSpan;
+        var startColumn = column1 + _roiStart.X / RoiDrawingOverlay.ActualWidth * columnSpan;
+        var endRow = row1 + end.Y / RoiDrawingOverlay.ActualHeight * rowSpan;
+        var endColumn = column1 + end.X / RoiDrawingOverlay.ActualWidth * columnSpan;
+        _roiParameter.ValueText = string.Join(",", new[] { startRow, startColumn, endRow, endColumn }
+            .Select(value => value.ToString("R", CultureInfo.InvariantCulture)));
+        _roiParameter.Commit();
+        _vm.Log($"已设置直线查找范围：行 {Math.Min(startRow, endRow):F0}–{Math.Max(startRow, endRow):F0}，列 {Math.Min(startColumn, endColumn):F0}–{Math.Max(startColumn, endColumn):F0}。");
+        FinishRoiDrawing();
+        e.Handled = true;
+    }
+
+    private void FinishRoiDrawing()
+    {
+        _isDrawingRoi = false;
+        _roiParameter = null;
+        RoiDrawingOverlay.Visibility = Visibility.Collapsed;
+        RoiDrawingOverlay.Cursor = Cursors.Arrow;
+        RoiPreviewRectangle.Visibility = Visibility.Collapsed;
+    }
+
     private void Preview_HMouseDown(object sender, HalconDotNet.HSmartWindowControlWPF.HMouseEventArgsWPF e) { }
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
     {
+        if (_isDrawingRoi && e.Key == Key.Escape) { FinishRoiDrawing(); e.Handled = true; return; }
         var isTextEditing = Keyboard.FocusedElement is TextBoxBase;
         if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
         {

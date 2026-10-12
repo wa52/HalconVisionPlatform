@@ -46,6 +46,7 @@ public sealed class NodeParameterViewModel : ObservableModel
     public string Name => Definition.Name;
     public string DataType => Definition.DataType;
     public bool IsPath => string.Equals(DataType, "path", StringComparison.Ordinal);
+    public bool IsRoiDraw => string.Equals(DataType, "roiDraw", StringComparison.Ordinal);
     public bool IsCamera => DataType is "camera" or "cameraInterface";
     public string ValueText { get => _valueText; set => Set(ref _valueText, value); }
     public string? Error { get => _error; private set => Set(ref _error, value); }
