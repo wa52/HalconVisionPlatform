@@ -3,6 +3,8 @@ using System.IO;
 using System.Reflection;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Threading;
 using HalconDotNet;
 using HalconVision.App;
@@ -95,6 +97,16 @@ internal static class Program
     {
         var vm = (WorkflowWorkspaceViewModel)window.DataContext;
         var flow = vm.SelectedFlow!;
+        Assert(vm.Workspace?.ProjectFilePath == path && flow.Nodes.Count == 2 && flow.Edges.Count == 1,
+            "startup project argument loads nodes and wiring without manual reopen");
+        var nodeCanvas = Descendants(window).OfType<ItemsControl>()
+            .Single(control => ReferenceEquals(control.ItemsSource, flow.Nodes));
+        Assert(nodeCanvas.Items.Count == 2 && nodeCanvas.ItemContainerGenerator.ContainerFromIndex(1) is not null,
+            "startup selected flow renders both node containers");
+        var resolve = typeof(App).GetMethod("ResolveProjectArgument", BindingFlags.NonPublic | BindingFlags.Static)!;
+        foreach (var arguments in new[] { new[] { path }, new[] { "--project", path },
+            new[] { "--project=" + path }, new[] { new Uri(path).AbsoluteUri } })
+            Assert((string?)resolve.Invoke(null, [arguments]) == path, "startup argument format: " + arguments[0]);
         flow.SelectNode(flow.Nodes[0].Id, false);
         flow.CopySelection(); flow.PasteSelection();
         Assert(flow.Nodes.Count == 3, "node copy/paste");
@@ -131,6 +143,9 @@ internal static class Program
         var stressStart = Stopwatch.StartNew();
         while (completed < 200)
         {
+            // A synthetic batch of button invocations must allow WPF to process
+            // its timer/render queue between clicks, as real user input does.
+            await Dispatcher.Yield(DispatcherPriority.Background);
             var previous = vm.LastRun!;
             var owned = Objects(previous);
             await RunOnceAsync(window);
@@ -207,6 +222,16 @@ internal static class Program
         await Task.WhenAll(scanning, shutdown);
         Assert(!scanningWorkspace.IsCameraConnected && Field<HashSet<Task>>(scanningWorkspace, "_cameraOperations").Count == 0,
             "shutdown waits for concurrent device scan");
+    }
+
+    private static IEnumerable<DependencyObject> Descendants(DependencyObject parent)
+    {
+        for (var index = 0; index < VisualTreeHelper.GetChildrenCount(parent); index++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, index);
+            yield return child;
+            foreach (var descendant in Descendants(child)) yield return descendant;
+        }
     }
 
     private static HFramegrabber AttachFileCamera(HalconCameraManager manager)

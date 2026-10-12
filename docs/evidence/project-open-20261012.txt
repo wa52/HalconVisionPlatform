@@ -1,0 +1,40 @@
+PASS: startup project argument loads nodes and wiring without manual reopen
+PASS: startup selected flow renders both node containers
+PASS: startup argument format: D:\AiProjects\HalconVisionPlatform\artifacts\startup-acceptance\检查项目.hvproj
+PASS: startup argument format: --project
+PASS: startup argument format: --project=D:\AiProjects\HalconVisionPlatform\artifacts\startup-acceptance\检查项目.hvproj
+PASS: startup argument format: file:///D:/AiProjects/HalconVisionPlatform/artifacts/startup-acceptance/%E6%A3%80%E6%9F%A5%E9%A1%B9%E7%9B%AE.hvproj
+PASS: node copy/paste
+PASS: delete selected pasted node
+PASS: undo delete
+PASS: redo delete
+PASS: node move
+PASS: canvas zoom
+PASS: reject duplicate wire
+PASS: delete node removes edges
+PASS: undo restores wiring
+PASS: project save/reopen
+PASS: unchanged parameter does not create unsaved changes
+PASS: single run threshold succeeds
+PASS: folder single run first image
+PASS: threshold black input produces zero foreground area
+PASS: folder single run next image
+PASS: threshold white input produces 64x64 foreground area
+PASS: previous HALCON outputs disposed on replacement
+PASS: 200 real HALCON runs release 400 previous image/region objects
+METRIC: repeated executions=200; released objects=400; elapsed=9716 ms
+PASS: prevent run reentry
+PASS: continuous dispatcher responsiveness
+PASS: stop drains execution task
+METRIC: heartbeat=58; stop=15 ms
+PASS: 10 repeated start/stop cycles
+PASS: bounded UI logs
+PASS: project switch releases old results
+PASS: camera-only continuous acquisition and threshold
+PASS: stop closes native acquisition handle
+PASS: close while running drains tasks and releases HALCON objects
+PASS: owned image viewer closes with workspace
+PASS: disposed workspace rejects reuse
+PASS: aliased runtime output disposed exactly once
+PASS: 3 workspace reopen/close cycles
+PASS: shutdown waits for concurrent device scan

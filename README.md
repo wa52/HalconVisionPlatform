@@ -22,6 +22,17 @@ dotnet run --project .\src\HalconVision.App\HalconVision.App.csproj
 
 选择“新建”后指定 `.hvproj` 文件路径即可得到空白项目。使用“打开”选择该文件，使用“保存”将所有流程写回项目文件。
 
+### 桌面入口与项目文件关联
+
+发布后统一安装到固定的 `artifacts/desktop` 目录，更新桌面快捷方式及 `.hvproj` 打开命令：
+
+```powershell
+dotnet publish src/HalconVision.App/HalconVision.App.csproj -c Release -m:1 -o artifacts/publish
+powershell -NoProfile -File tools/InstallDesktop.ps1 -PublishedDirectory artifacts/publish
+```
+
+双击项目文件会直接加载其中的默认流程、节点、连线和参数。安装脚本保留旧 `delete-shortcut` 发布目录的备份，并将旧入口转到固定安装目录，兼容资源管理器缓存的旧打开方式。后续发布继续使用同一安装目录。脚本不改写 Windows 的受保护默认应用选择；仍被其他应用占用时，在文件属性的“打开方式”中选择本平台。
+
 ## 当前边界
 
 图像读取目录按文件名顺序读取当前目录下支持的图像，不递归扫描子目录。项目中的图像路径保持为用户选择的本机路径。相机、PLC、HDevEngine、生产配方管理和检测追溯仍需后续开发。
