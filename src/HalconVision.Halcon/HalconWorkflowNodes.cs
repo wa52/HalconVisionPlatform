@@ -66,7 +66,6 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
              new NodeParameterDefinition("measureTransition", "边缘极性", "edgeTransition", true, JsonSerializer.SerializeToElement("all")),
              new NodeParameterDefinition("minScore", "最小拟合评分", "number", true, JsonSerializer.SerializeToElement(0.2d)),
              new NodeParameterDefinition("showSearchRegion", "显示矩形搜索范围", "bool", true, JsonSerializer.SerializeToElement(true)),
-             new NodeParameterDefinition("showReferenceLine", "显示参考中心线", "bool", true, JsonSerializer.SerializeToElement(false)),
              new NodeParameterDefinition("showMeasureRegions", "显示测量卡尺", "bool", true, JsonSerializer.SerializeToElement(false)),
              new NodeParameterDefinition("showEdgePoints", "显示检测边缘点", "bool", true, JsonSerializer.SerializeToElement(false)),
              new NodeParameterDefinition("showFittedLine", "显示拟合直线", "bool", true, JsonSerializer.SerializeToElement(true))]);
@@ -313,7 +312,7 @@ public sealed class HalconStraightLineFindExecutor : INodeExecutor
         var minScore = ReadNumber(context.Node, "minScore", 0.2d);
         var transition = ReadString(context.Node, "measureTransition", "all").Trim().ToLowerInvariant();
         var showSearchRegion = ReadBoolean(context.Node, "showSearchRegion", true);
-        var showReference = ReadBoolean(context.Node, "showReferenceLine", false);
+        var showReference = false; // A saved reference line is compatibility input, never a detected result.
         var showMeasures = ReadBoolean(context.Node, "showMeasureRegions", false);
         var showEdges = ReadBoolean(context.Node, "showEdgePoints", false);
         var showFit = ReadBoolean(context.Node, "showFittedLine", true);

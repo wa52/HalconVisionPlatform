@@ -1,12 +1,16 @@
 param(
-    [string]$PublishedDirectory = (Join-Path $PSScriptRoot '..\artifacts\lifecycle-verified')
+    [string]$PublishedDirectory = (Join-Path $PSScriptRoot '..\artifacts\lifecycle-verified'),
+    [string]$InstallDirectory = (Join-Path $PSScriptRoot '..\artifacts\desktop')
 )
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $artifactsRoot = Join-Path $repoRoot 'artifacts'
 $source = (Resolve-Path -LiteralPath $PublishedDirectory).Path
-$destination = Join-Path $artifactsRoot 'desktop'
+$destination = [IO.Path]::GetFullPath($InstallDirectory)
+if (-not $destination.StartsWith($artifactsRoot + '\', [StringComparison]::OrdinalIgnoreCase)) {
+    throw '安装目录必须位于本项目 artifacts 目录内。'
+}
 $executable = Join-Path $destination 'HalconVision.App.exe'
 foreach ($required in @('HalconVision.App.exe', 'HalconVision.App.dll', 'HalconVision.App.runtimeconfig.json')) {
     if (-not (Test-Path -LiteralPath (Join-Path $source $required))) { throw "发布目录缺少：$required" }
@@ -25,7 +29,16 @@ if (-not $legacy.StartsWith($artifactsRoot + '\', [StringComparison]::OrdinalIgn
 if (Test-Path -LiteralPath $legacy) {
     $item = Get-Item -LiteralPath $legacy
     if ($item.LinkType -eq 'Junction') {
-        if ($item.Target -notcontains $destination) { throw '旧入口已指向其他目录，请先检查。' }
+        if ($item.Target -notcontains $destination) {
+            foreach ($target in $item.Target) {
+                if (-not [IO.Path]::GetFullPath($target).StartsWith($artifactsRoot + '\', [StringComparison]::OrdinalIgnoreCase)) {
+                    throw '旧入口指向本项目以外目录，请先检查。'
+                }
+            }
+            # Delete only the junction itself, never its target or its contents.
+            [IO.Directory]::Delete($legacy)
+            New-Item -ItemType Junction -Path $legacy -Target $destination | Out-Null
+        }
     } else {
         $backup = Join-Path $artifactsRoot ('delete-shortcut-backup-' + [DateTime]::Now.ToString('yyyyMMdd-HHmmssfff'))
         if (-not $backup.StartsWith($artifactsRoot + '\', [StringComparison]::OrdinalIgnoreCase)) { throw '备份路径越界。' }

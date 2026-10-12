@@ -172,7 +172,7 @@ public sealed class FlowTabViewModel : ObservableModel
     public void ApplyNodeResult(NodeExecutionResult result)
     {
         var node = Nodes.FirstOrDefault(item => item.Id == result.NodeId);
-        if (node is not null) node.Status = result.Status.ToString().ToUpperInvariant();
+        if (node is not null) node.Status = NodeResultSummary.Describe(result);
     }
 
     private void PushUndo()

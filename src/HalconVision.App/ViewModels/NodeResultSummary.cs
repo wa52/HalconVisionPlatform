@@ -1,0 +1,35 @@
+using System.Globalization;
+using System.Text.Json;
+using System.Windows.Data;
+using System.Windows.Media;
+using HalconVision.Domain;
+
+namespace HalconVision.App;
+
+public sealed class NodeResultSummary : IValueConverter
+{
+    public static string Describe(NodeExecutionResult? result)
+    {
+        if (result is null) return "未运行 · 请运行所选节点所在流程";
+        if (result.Status != NodeExecutionStatus.Success)
+            return result.Status == NodeExecutionStatus.Failed ? $"运行错误：{result.Error}" : $"未完成：{result.Status}";
+        if (!result.Outputs.TryGetValue("status", out var status) || status.ValueKind != JsonValueKind.Object ||
+            !status.TryGetProperty("Code", out var code)) return "执行成功";
+        if (code.GetString() == LineFindStatus.NotFound)
+            return "未找到直线 · 请调整矩形范围、方向或边缘阈值";
+        if (code.GetString() != LineFindStatus.Found) return "检测状态未知";
+        string Number(string key, string format) => result.Outputs.TryGetValue(key, out var value) && value.ValueKind == JsonValueKind.Number && value.TryGetDouble(out var number)
+            ? number.ToString(format, CultureInfo.InvariantCulture) : "—";
+        return $"找到直线 · 红色线为拟合结果 · 评分 {Number("score", "F3")} · 长度 {Number("length", "F1")} px · 角度 {Number("angle", "F2")}°";
+    }
+
+    public static Brush Color(NodeExecutionResult? result)
+    {
+        var text = Describe(result);
+        return text.StartsWith("找到直线") ? Brushes.LightGreen
+            : text.StartsWith("未找到") || text.StartsWith("运行错误") ? Brushes.Orange : Brushes.LightGray;
+    }
+
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => Describe(value as NodeExecutionResult);
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
+}

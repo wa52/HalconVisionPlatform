@@ -143,6 +143,8 @@ internal static class Program
     private static async Task CheckExternalProjectAsync(MainWindow window, string path)
     {
         var vm = (WorkflowWorkspaceViewModel)window.DataContext;
+        Assert(window.FindName("DetectionSummary") is TextBlock,
+            "image panel has a visible detection-result summary");
         var flow = vm.SelectedFlow!;
         var source = flow.Document.Nodes.Single(node => node.TypeId == HalconNodeProvider.ImageRead);
         var detector = flow.Document.Nodes.Single(node => node.TypeId == HalconNodeProvider.StraightLineFind);
@@ -157,11 +159,18 @@ internal static class Program
         var detectorView = flow.Nodes.Single(node => node.Id == detector.Id);
         var lineParameter = detectorView.Parameters.Single(parameter => parameter.IsRoiDraw);
         flow.SelectNode(detector.Id, false);
+        window.UpdateLayout();
+        Assert(Descendants(window).OfType<Button>().Any(button => button.IsVisible && button.Content?.ToString() == "绘制矩形范围") &&
+            !Descendants(window).OfType<Button>().Any(button => button.Content?.ToString() == "绘制参考线"),
+            "line-find property editor offers only rectangle drawing, not reference-line drawing");
         typeof(MainWindow).GetMethod("DrawRoi_Click", BindingFlags.Instance | BindingFlags.NonPublic)!
             .Invoke(window, [new Button { Tag = lineParameter }, new RoutedEventArgs()]);
         Assert(Field<Canvas>(window, "RoiDrawingOverlay").Visibility == Visibility.Visible,
             "1900 draw-rectangle action displays the source image and activates the drawing overlay");
-        lineParameter.ValueText = detector.Parameters["roi"].GetString()!;
+        // Older saved projects can still contain only referenceLine. The test
+        // draws the known casing rectangle in memory without saving the project.
+        lineParameter.ValueText = detector.Parameters.TryGetValue("roi", out var roiValue)
+            ? roiValue.GetString()! : "417,1978,1575,2415";
         lineParameter.Commit();
         typeof(MainWindow).GetMethod("FinishRoiDrawing", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(window, []);
         Assert(Field<Canvas>(window, "RoiDrawingOverlay").Visibility == Visibility.Collapsed &&
@@ -169,6 +178,8 @@ internal static class Program
             "1900 drawing overlay is removed when drawing ends");
         Assert(lineParameter.Error is null, "1900 rectangle editor commits image coordinates as a string parameter");
         flow.SetParameter(source.Id, "path", JsonSerializer.SerializeToElement(firstImage));
+        flow.SetParameter(detector.Id, "measureThreshold", JsonSerializer.SerializeToElement(5d));
+        flow.SetParameter(detector.Id, "minScore", JsonSerializer.SerializeToElement(0.2d));
         var actualNode = flow.Document.Nodes.Single(node => node.Id == detector.Id);
         var imageMetadata = JsonSerializer.SerializeToElement(new { count = 1, width, height, channels = 3 });
         var directExecution = Task.Run(() => new HalconStraightLineFindExecutor().ExecuteAsync(new NodeExecutionContext(
@@ -178,7 +189,7 @@ internal static class Program
         Assert(directCompleted, "1900 direct 2D Metrology execution completes within 30 seconds");
         var directOutput = await directExecution;
         var directStatus = (LineFindStatus)directOutput.RuntimePorts!["status"]!;
-        Assert(directStatus.Code == LineFindStatus.Found, "1900 stored rectangle detects a line with the displayed default parameters");
+        Assert(directStatus.Code == LineFindStatus.Found, "1900 casing rectangle detects a line at threshold 5 and minimum score 0.2");
         Evidence.Add($"DETAIL: direct status={directStatus.Code}; line={directOutput.RuntimePorts["line"]}; edges={(directOutput.RuntimePorts["edgePoints"] as PointSet)?.Points.Count}");
         var directDisposed = new HashSet<object>(ReferenceEqualityComparer.Instance);
         foreach (var value in directOutput.RuntimePorts.Values)
@@ -230,9 +241,27 @@ internal static class Program
             "1900 legacy ROI migrates to a reference line and finds the real casing edge");
         Assert(Field<TextBlock>(window, "PreviewEmptyText").Visibility == Visibility.Collapsed && flow.SelectedNode?.Id == detector.Id,
             "1900 final node result is selected and shown in the image preview");
+        Assert(Field<TextBlock>(window, "DetectionSummary").Text.Contains("找到直线") &&
+            Field<TextBlock>(window, "DetectionSummary").Text.Contains("评分"),
+            "image panel visibly distinguishes a found line and displays its score");
+        SaveWindow(window, "found-ui.png");
         var count = outputs["lines"] is HXLDCont contours ? contours.CountObj() : -1;
         Evidence.Add($"DETAIL: 1900 source={Path.GetFileName(firstImage)}; size={width}x{height}; lines={count}; project not saved");
         var retainedObjects = Objects(run).ToArray();
+        Assert(NodeResultSummary.Describe(run.NodeResults.Single(result => result.NodeId == detector.Id)).StartsWith("找到直线"),
+            "result table displays FOUND instead of generic execution success");
+        var blankPath = Path.Combine(_root, "blank.png");
+        blank.WriteImage("png", 0, blankPath);
+        flow.SetParameter(source.Id, "path", JsonSerializer.SerializeToElement(blankPath));
+        flow.SetParameter(detector.Id, "roi", JsonSerializer.SerializeToElement("10,10,90,90"));
+        Invoke(window, "Run_Click");
+        await UntilAsync(() => ExecutionTask(window) is null);
+        Assert(Field<TextBlock>(window, "DetectionSummary").Text.StartsWith("未找到直线") &&
+            NodeResultSummary.Describe(vm.LastRun!.NodeResults.Last()).StartsWith("未找到直线"),
+            "blank-image run displays NOT_FOUND in both image panel and result table");
+        SaveWindow(window, "not-found-ui.png");
+        Assert(retainedObjects.All(value => !value.IsInitialized()), "rerun releases previous line-find images and contours");
+        retainedObjects = Objects(vm.LastRun!).ToArray();
         flow.MarkSaved(); // In-memory test edits are disposable; do not save the user's project.
         window.Close();
         await UntilAsync(() => !window.IsVisible);
@@ -394,6 +423,18 @@ internal static class Program
         await Task.WhenAll(scanning, shutdown);
         Assert(!scanningWorkspace.IsCameraConnected && Field<HashSet<Task>>(scanningWorkspace, "_cameraOperations").Count == 0,
             "shutdown waits for concurrent device scan");
+    }
+
+    private static void SaveWindow(Window window, string name)
+    {
+        window.UpdateLayout();
+        var bitmap = new System.Windows.Media.Imaging.RenderTargetBitmap((int)window.ActualWidth,
+            (int)window.ActualHeight, 96, 96, PixelFormats.Pbgra32);
+        bitmap.Render(window);
+        var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+        encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
+        using var file = File.Create(Path.Combine(_root, name));
+        encoder.Save(file);
     }
 
     private static IEnumerable<DependencyObject> Descendants(DependencyObject parent)
