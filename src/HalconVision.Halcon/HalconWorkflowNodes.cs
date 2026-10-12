@@ -66,6 +66,7 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
              new NodeParameterDefinition("measureTransition", "边缘极性", "edgeTransition", true, JsonSerializer.SerializeToElement("all")),
              new NodeParameterDefinition("minScore", "最小拟合评分", "number", true, JsonSerializer.SerializeToElement(0.2d)),
              new NodeParameterDefinition("showSearchRegion", "显示矩形搜索范围", "bool", true, JsonSerializer.SerializeToElement(true)),
+             new NodeParameterDefinition("showDiagnostics", "显示诊断图形（卡尺 / 边缘点）", "bool", true, JsonSerializer.SerializeToElement(false)),
              new NodeParameterDefinition("showMeasureRegions", "显示测量卡尺", "bool", true, JsonSerializer.SerializeToElement(false)),
              new NodeParameterDefinition("showEdgePoints", "显示检测边缘点", "bool", true, JsonSerializer.SerializeToElement(false)),
              new NodeParameterDefinition("showFittedLine", "显示拟合直线", "bool", true, JsonSerializer.SerializeToElement(true))]);
@@ -313,8 +314,9 @@ public sealed class HalconStraightLineFindExecutor : INodeExecutor
         var transition = ReadString(context.Node, "measureTransition", "all").Trim().ToLowerInvariant();
         var showSearchRegion = ReadBoolean(context.Node, "showSearchRegion", true);
         var showReference = false; // A saved reference line is compatibility input, never a detected result.
-        var showMeasures = ReadBoolean(context.Node, "showMeasureRegions", false);
-        var showEdges = ReadBoolean(context.Node, "showEdgePoints", false);
+        var showDiagnostics = ReadBoolean(context.Node, "showDiagnostics", false);
+        var showMeasures = showDiagnostics && ReadBoolean(context.Node, "showMeasureRegions", false);
+        var showEdges = showDiagnostics && ReadBoolean(context.Node, "showEdgePoints", false);
         var showFit = ReadBoolean(context.Node, "showFittedLine", true);
         if (numMeasures is < 2 or > 1000) throw new InvalidDataException("测量卡尺数量必须在 2–1000 之间。");
         if (configuredMeasureLength2 <= 0) throw new InvalidDataException("卡尺半长必须大于 0。");
@@ -597,6 +599,7 @@ public sealed class HalconStraightLineFindExecutor : INodeExecutor
         HImage? red = gray.CopyImage(); HImage? green = gray.CopyImage(); HImage? blue = gray.CopyImage();
         gray.GetImageSize(out int previewWidth, out int previewHeight);
         var rectangleRadius = Math.Max(2.5d, Math.Min(previewWidth, previewHeight) * 0.003d);
+        var fittedRadius = Math.Max(2.5d, Math.Min(previewWidth, previewHeight) * 0.004d);
         try
         {
             if (showReference)
@@ -626,9 +629,9 @@ public sealed class HalconStraightLineFindExecutor : INodeExecutor
             }
             if (showFit && fitted is not null)
             {
-                red = PaintChannel(red, fitted, 255d, 2.5d);
-                green = PaintChannel(green, fitted, 0d, 2.5d);
-                blue = PaintChannel(blue, fitted, 0d, 2.5d);
+                red = PaintChannel(red, fitted, 255d, fittedRadius);
+                green = PaintChannel(green, fitted, 0d, fittedRadius);
+                blue = PaintChannel(blue, fitted, 0d, fittedRadius);
             }
             return red.Compose3(green, blue);
         }

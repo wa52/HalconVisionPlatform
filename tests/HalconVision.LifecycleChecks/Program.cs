@@ -110,6 +110,9 @@ internal static class Program
             var preview = (HImage)result.RuntimePorts["preview"]!;
             using var red = preview.AccessChannel(1);
             using var green = preview.AccessChannel(2);
+            using var diagnosticBlue = preview.AccessChannel(3);
+            using var diagnosticPixel = diagnosticBlue.GetGrayval(45, 100);
+            Assert(diagnosticPixel.D == 0, "legacy caliper overlays stay hidden until diagnostic display is explicitly enabled");
             using var borderRed = red.GetGrayval(40, 100);
             using var borderGreen = green.GetGrayval(40, 100);
             Assert(borderRed.D == 255 && borderGreen.D == 220, "search rectangle boundary is painted in yellow");
@@ -130,6 +133,7 @@ internal static class Program
         using var horizontalImage = blank.PaintRegion(horizontalBright, 255d, "fill");
         parameters["roi"] = JsonSerializer.SerializeToElement("90,40,150,210");
         parameters["lineOrientation"] = JsonSerializer.SerializeToElement("horizontal");
+        parameters["showDiagnostics"] = JsonSerializer.SerializeToElement(true);
         var horizontalResult = new HalconStraightLineFindExecutor().ExecuteAsync(new NodeExecutionContext(node,
             new Dictionary<string, JsonElement> { ["image"] = JsonSerializer.SerializeToElement(new { width = 256, height = 256, count = 1 }) },
             CancellationToken.None, _ => { }, new Dictionary<string, object?> { ["image"] = horizontalImage })).Result;
@@ -140,6 +144,9 @@ internal static class Program
             Assert(line is not null && Math.Abs(Math.Min(line.ColumnBegin, line.ColumnEnd) - 40) < 0.01 &&
                 Math.Abs(Math.Max(line.ColumnBegin, line.ColumnEnd) - 210) < 0.01,
                 "fitted horizontal line extends to both sides of the search rectangle");
+            using var diagnosticBlue = ((HImage)horizontalResult.RuntimePorts!["preview"]!).AccessChannel(3);
+            using var diagnosticPixel = diagnosticBlue.GetGrayval(100, 45);
+            Assert(diagnosticPixel.D == 255, "explicit diagnostic display still exposes measurement calipers");
         }
         finally
         {
@@ -239,6 +246,13 @@ internal static class Program
             Assert(fittedContour.CountObj() == 1 && fittedRows.Length == 2, "1900 output is exactly one fitted straight line");
         var searchOverlay = (GeometryOverlay)outputs["overlay"]!;
         var fittedLine = (Line2D)outputs["line"]!;
+        using (var fitRed = ((HImage)resultValue!).AccessChannel(1))
+        using (var fitGreen = ((HImage)resultValue!).AccessChannel(2))
+        using (var redPixel = fitRed.GetGrayval((int)Math.Round((fittedLine.RowBegin + fittedLine.RowEnd) / 2),
+            (int)Math.Round((fittedLine.ColumnBegin + fittedLine.ColumnEnd) / 2) + 5))
+        using (var greenPixel = fitGreen.GetGrayval((int)Math.Round((fittedLine.RowBegin + fittedLine.RowEnd) / 2),
+            (int)Math.Round((fittedLine.ColumnBegin + fittedLine.ColumnEnd) / 2) + 5))
+            Assert(redPixel.D == 255 && greenPixel.D == 0, "1900 full-length red line has visible thickness even in the reduced image panel");
         Assert(searchOverlay.SearchRegion is { } frame &&
             Math.Abs(Math.Min(fittedLine.RowBegin, fittedLine.RowEnd) - frame.RowBegin) < 0.01 &&
             Math.Abs(Math.Max(fittedLine.RowBegin, fittedLine.RowEnd) - frame.RowEnd) < 0.01,
@@ -246,9 +260,9 @@ internal static class Program
         using (var borderRed = ((HImage)resultValue!).AccessChannel(1))
         using (var borderGreen = ((HImage)resultValue!).AccessChannel(2))
         using (var redPixel = borderRed.GetGrayval((int)Math.Round(searchOverlay.SearchRegion!.RowBegin) + 4,
-            (int)Math.Round((searchOverlay.SearchRegion.ColumnBegin + searchOverlay.SearchRegion.ColumnEnd) / 2)))
+            (int)Math.Round((3 * searchOverlay.SearchRegion.ColumnBegin + searchOverlay.SearchRegion.ColumnEnd) / 4)))
         using (var greenPixel = borderGreen.GetGrayval((int)Math.Round(searchOverlay.SearchRegion.RowBegin) + 4,
-            (int)Math.Round((searchOverlay.SearchRegion.ColumnBegin + searchOverlay.SearchRegion.ColumnEnd) / 2)))
+            (int)Math.Round((3 * searchOverlay.SearchRegion.ColumnBegin + searchOverlay.SearchRegion.ColumnEnd) / 4)))
             Assert(redPixel.D == 255 && greenPixel.D == 220, "1900 rectangle border stays thick and yellow above caliper overlays");
         Assert(searchOverlay.SearchRegion is not null && searchOverlay.EdgePoints.Points.All(point =>
             point.Row >= searchOverlay.SearchRegion.RowBegin && point.Row <= searchOverlay.SearchRegion.RowEnd &&
@@ -266,6 +280,7 @@ internal static class Program
             Field<TextBlock>(window, "DetectionSummary").Text.Contains("评分"),
             "image panel visibly distinguishes a found line and displays its score");
         SaveWindow(window, "found-ui.png");
+        SavePreview(window);
         var count = outputs["lines"] is HXLDCont contours ? contours.CountObj() : -1;
         Evidence.Add($"DETAIL: 1900 source={Path.GetFileName(firstImage)}; size={width}x{height}; lines={count}; project not saved");
         var retainedObjects = Objects(run).ToArray();
@@ -455,6 +470,21 @@ internal static class Program
         var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
         encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
         using var file = File.Create(Path.Combine(_root, name));
+        encoder.Save(file);
+    }
+
+    private static void SavePreview(Window window)
+    {
+        var panel = (FrameworkElement)VisualTreeHelper.GetParent(Field<Grid>(window, "PreviewHost"));
+        var visual = new DrawingVisual();
+        using (var context = visual.RenderOpen())
+            context.DrawRectangle(new VisualBrush(panel), null, new Rect(0, 0, panel.ActualWidth, panel.ActualHeight));
+        var bitmap = new System.Windows.Media.Imaging.RenderTargetBitmap((int)panel.ActualWidth,
+            (int)panel.ActualHeight, 96, 96, PixelFormats.Pbgra32);
+        bitmap.Render(visual);
+        var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+        encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
+        using var file = File.Create(Path.Combine(_root, "found-preview.png"));
         encoder.Save(file);
     }
 
