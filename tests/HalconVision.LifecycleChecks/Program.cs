@@ -93,6 +93,7 @@ internal static class Program
         parameters["roi"] = JsonSerializer.SerializeToElement("40,90,210,150");
         parameters["lineOrientation"] = JsonSerializer.SerializeToElement("vertical");
         parameters["measureThreshold"] = JsonSerializer.SerializeToElement(10d);
+        parameters["showMeasureRegions"] = JsonSerializer.SerializeToElement(true);
         var node = new NodeInstance { TypeId = HalconNodeProvider.StraightLineFind, Parameters = parameters };
         var result = new HalconStraightLineFindExecutor().ExecuteAsync(new NodeExecutionContext(node,
             new Dictionary<string, JsonElement> { ["image"] = JsonSerializer.SerializeToElement(new { width = 256, height = 256, count = 1 }) },
@@ -109,6 +110,11 @@ internal static class Program
             var preview = (HImage)result.RuntimePorts["preview"]!;
             using var red = preview.AccessChannel(1);
             using var green = preview.AccessChannel(2);
+            using var borderRed = red.GetGrayval(40, 100);
+            using var borderGreen = green.GetGrayval(40, 100);
+            Assert(borderRed.D == 255 && borderGreen.D == 220, "search rectangle boundary is painted in yellow");
+            Assert(line is not null && Math.Abs(line.RowBegin - 40) < 0.01 && Math.Abs(line.RowEnd - 210) < 0.01,
+                "fitted vertical line extends to both ends of the search rectangle");
             using var redValue = red.GetGrayval(125, 118);
             using var greenValue = green.GetGrayval(125, 118);
             Assert(redValue.D == 255 && greenValue.D == 0, "final red fitted line is visibly thick rather than a one-pixel contour");
@@ -131,6 +137,9 @@ internal static class Program
         {
             var line = horizontalResult.RuntimePorts!["line"] as Line2D;
             Assert(line is not null && Math.Abs(line.RowBegin - 120) < 2 && Math.Abs(line.RowEnd - 120) < 2, "horizontal direction detects a horizontal line inside the rectangle");
+            Assert(line is not null && Math.Abs(Math.Min(line.ColumnBegin, line.ColumnEnd) - 40) < 0.01 &&
+                Math.Abs(Math.Max(line.ColumnBegin, line.ColumnEnd) - 210) < 0.01,
+                "fitted horizontal line extends to both sides of the search rectangle");
         }
         finally
         {
@@ -229,6 +238,18 @@ internal static class Program
         using (fittedRows) using (fittedColumns)
             Assert(fittedContour.CountObj() == 1 && fittedRows.Length == 2, "1900 output is exactly one fitted straight line");
         var searchOverlay = (GeometryOverlay)outputs["overlay"]!;
+        var fittedLine = (Line2D)outputs["line"]!;
+        Assert(searchOverlay.SearchRegion is { } frame &&
+            Math.Abs(Math.Min(fittedLine.RowBegin, fittedLine.RowEnd) - frame.RowBegin) < 0.01 &&
+            Math.Abs(Math.Max(fittedLine.RowBegin, fittedLine.RowEnd) - frame.RowEnd) < 0.01,
+            "1900 fitted line spans the complete rectangle height");
+        using (var borderRed = ((HImage)resultValue!).AccessChannel(1))
+        using (var borderGreen = ((HImage)resultValue!).AccessChannel(2))
+        using (var redPixel = borderRed.GetGrayval((int)Math.Round(searchOverlay.SearchRegion!.RowBegin) + 4,
+            (int)Math.Round((searchOverlay.SearchRegion.ColumnBegin + searchOverlay.SearchRegion.ColumnEnd) / 2)))
+        using (var greenPixel = borderGreen.GetGrayval((int)Math.Round(searchOverlay.SearchRegion.RowBegin) + 4,
+            (int)Math.Round((searchOverlay.SearchRegion.ColumnBegin + searchOverlay.SearchRegion.ColumnEnd) / 2)))
+            Assert(redPixel.D == 255 && greenPixel.D == 220, "1900 rectangle border stays thick and yellow above caliper overlays");
         Assert(searchOverlay.SearchRegion is not null && searchOverlay.EdgePoints.Points.All(point =>
             point.Row >= searchOverlay.SearchRegion.RowBegin && point.Row <= searchOverlay.SearchRegion.RowEnd &&
             point.Column >= searchOverlay.SearchRegion.ColumnBegin && point.Column <= searchOverlay.SearchRegion.ColumnEnd),

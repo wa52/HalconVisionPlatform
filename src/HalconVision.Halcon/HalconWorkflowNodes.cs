@@ -496,7 +496,9 @@ public sealed class HalconStraightLineFindExecutor : INodeExecutor
 
     private static Line2D ClipLine(Line2D line, Rectangle2D rectangle)
     {
-        var begin = 0d; var end = 1d;
+        // Intersect the infinite fitted line with the ROI rather than clipping
+        // only HALCON's shorter segment between accepted measurement samples.
+        var begin = double.NegativeInfinity; var end = double.PositiveInfinity;
         void ClipAxis(double start, double delta, double minimum, double maximum)
         {
             if (Math.Abs(delta) < 1e-12)
@@ -508,9 +510,12 @@ public sealed class HalconStraightLineFindExecutor : INodeExecutor
             begin = Math.Max(begin, Math.Min(a, b)); end = Math.Min(end, Math.Max(a, b));
         }
         var dRow = line.RowEnd - line.RowBegin; var dColumn = line.ColumnEnd - line.ColumnBegin;
+        if (Math.Abs(dRow) < 1e-12 && Math.Abs(dColumn) < 1e-12)
+            throw new InvalidDataException("拟合直线长度为零，无法延伸到矩形边界。");
         ClipAxis(line.RowBegin, dRow, rectangle.RowBegin, rectangle.RowEnd);
         ClipAxis(line.ColumnBegin, dColumn, rectangle.ColumnBegin, rectangle.ColumnEnd);
-        if (begin >= end) throw new InvalidDataException("拟合直线与矩形搜索范围没有有效交集。");
+        if (!double.IsFinite(begin) || !double.IsFinite(end) || begin >= end)
+            throw new InvalidDataException("拟合直线与矩形搜索范围没有有效交集。");
         return new Line2D(line.RowBegin + begin * dRow, line.ColumnBegin + begin * dColumn,
             line.RowBegin + end * dRow, line.ColumnBegin + end * dColumn);
     }
@@ -590,14 +595,10 @@ public sealed class HalconStraightLineFindExecutor : INodeExecutor
         bool showReference, bool showMeasures, bool showEdges, bool showFit, HXLDCont searchRegion, bool showSearchRegion)
     {
         HImage? red = gray.CopyImage(); HImage? green = gray.CopyImage(); HImage? blue = gray.CopyImage();
+        gray.GetImageSize(out int previewWidth, out int previewHeight);
+        var rectangleRadius = Math.Max(2.5d, Math.Min(previewWidth, previewHeight) * 0.003d);
         try
         {
-            if (showSearchRegion)
-            {
-                red = PaintChannel(red, searchRegion, 255d, 1.5d);
-                green = PaintChannel(green, searchRegion, 220d, 1.5d);
-                blue = PaintChannel(blue, searchRegion, 0d, 1.5d);
-            }
             if (showReference)
             {
                 red = PaintChannel(red, reference, 255d);
@@ -615,6 +616,13 @@ public sealed class HalconStraightLineFindExecutor : INodeExecutor
                 red = PaintChannel(red, edges, 0d);
                 green = PaintChannel(green, edges, 255d);
                 blue = PaintChannel(blue, edges, 0d);
+            }
+            // Keep the ROI visible above optional measurement/edge overlays.
+            if (showSearchRegion)
+            {
+                red = PaintChannel(red, searchRegion, 255d, rectangleRadius);
+                green = PaintChannel(green, searchRegion, 220d, rectangleRadius);
+                blue = PaintChannel(blue, searchRegion, 0d, rectangleRadius);
             }
             if (showFit && fitted is not null)
             {
