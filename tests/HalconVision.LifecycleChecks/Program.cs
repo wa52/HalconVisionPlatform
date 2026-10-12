@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Rectangle = System.Windows.Shapes.Rectangle;
 using HalconDotNet;
 using HalconVision.App;
 using HalconVision.Domain;
@@ -91,8 +92,9 @@ internal static class Program
         Assert(Field<Canvas>(window, "RoiDrawingOverlay").Visibility == Visibility.Visible,
             "1900 draw-range action displays the source image and activates the ROI overlay");
         typeof(MainWindow).GetMethod("FinishRoiDrawing", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(window, []);
-        roiParameter.ValueText = $"{height / 10},{width / 10},{height * 3 / 10},{width * 3 / 10}";
-        roiParameter.Commit();
+        Assert(Field<Canvas>(window, "RoiDrawingOverlay").Visibility == Visibility.Collapsed &&
+            Field<Rectangle>(window, "RoiPreviewRectangle").Visibility == Visibility.Collapsed,
+            "1900 ROI drawing rectangle is removed when drawing ends");
         Assert(roiParameter.Error is null, "1900 ROI editor commits drawn coordinates as a string parameter");
         Assert(flow.ValidationIssues.Count == 0, "1900 flow validation refreshes after ROI coordinates are committed");
         Invoke(window, "Run_Click");
@@ -105,6 +107,9 @@ internal static class Program
         var outputs = run.RuntimeOutputs![detector.Id];
         Assert(outputs.TryGetValue("resultImage", out var resultValue) && resultValue is HImage resultImage && resultImage.IsInitialized(),
             "1900 line-find returns an initialized annotated HImage");
+        using (var channels = ((HImage)resultValue!).CountChannels())
+            Assert(channels.I == 3, "1900 annotated result is RGB so detected lines remain visible on bright grayscale edges");
+        ((HImage)resultValue!).WriteImage("png", 0, Path.Combine(_root, "1900-line-result.png"));
         Assert(outputs.TryGetValue("lines", out var linesValue) && linesValue is HXLDCont lines && lines.IsInitialized() && lines.CountObj() > 0,
             "1900 line-find returns non-empty XLD contours");
         Assert(Field<TextBlock>(window, "PreviewEmptyText").Visibility == Visibility.Collapsed && flow.SelectedNode?.Id == detector.Id,

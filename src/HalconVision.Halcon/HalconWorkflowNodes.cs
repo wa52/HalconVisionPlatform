@@ -44,7 +44,7 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
              new NodeParameterDefinition("maximumArea", "最大面积", "number", true, JsonSerializer.SerializeToElement(1_000_000_000d))]);
 
         yield return new NodeDefinition(
-            StraightLineFind, 1, "特征检测", "直线查找", "在图像上绘制检测范围，设置直线方向与容差；HALCON LinesGauss 输出标注图像、XLD 线轮廓及数量。",
+            StraightLineFind, 1, "特征检测", "直线查找", "在图像上绘制检测范围，设置直线方向与容差；使用 HALCON 亚像素边缘提取和直线分段，输出标注图像、XLD 线轮廓及数量。",
             [new PortDefinition("image", "Image", PortDirection.Input, "halcon.image", Required: true),
              new PortDefinition("resultImage", "ResultImage", PortDirection.Output, "halcon.image"),
              new PortDefinition("lines", "Lines", PortDirection.Output, "halcon.xld"),
@@ -53,9 +53,9 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
              new NodeParameterDefinition("directionDeg", "直线方向（度，逆时针）", "number", true, JsonSerializer.SerializeToElement(0d)),
              new NodeParameterDefinition("directionToleranceDeg", "方向容差（度）", "number", true, JsonSerializer.SerializeToElement(15d)),
              new NodeParameterDefinition("sigma", "平滑尺度 σ", "number", true, JsonSerializer.SerializeToElement(1.5d)),
-             new NodeParameterDefinition("low", "低阈值", "number", true, JsonSerializer.SerializeToElement(3d)),
-             new NodeParameterDefinition("high", "高阈值", "number", true, JsonSerializer.SerializeToElement(8d)),
-             new NodeParameterDefinition("lightDark", "线条极性 (light/dark)", "string", true, JsonSerializer.SerializeToElement("light"))]);
+             new NodeParameterDefinition("low", "边缘低阈值", "number", true, JsonSerializer.SerializeToElement(3d)),
+             new NodeParameterDefinition("high", "边缘高阈值", "number", true, JsonSerializer.SerializeToElement(8d)),
+             new NodeParameterDefinition("minimumLength", "最短线段长度（像素）", "number", true, JsonSerializer.SerializeToElement(40d))]);
     }
 }
 
@@ -280,7 +280,7 @@ public sealed class HalconBlobAnalysisExecutor : INodeExecutor
     }
 }
 
-/// <summary>Finds bright/dark line features with HALCON LinesGauss and returns a preview image plus XLD contours.</summary>
+/// <summary>Finds straight edge segments with HALCON subpixel edge extraction and XLD line segmentation.</summary>
 public sealed class HalconStraightLineFindExecutor : INodeExecutor
 {
     public string TypeId => HalconNodeProvider.StraightLineFind;
@@ -295,15 +295,19 @@ public sealed class HalconStraightLineFindExecutor : INodeExecutor
         var sigma = ReadNumber(context.Node, "sigma");
         var low = ReadNumber(context.Node, "low");
         var high = ReadNumber(context.Node, "high");
+        var minimumLength = ReadOptionalNumber(context.Node, "minimumLength", 40d);
         var directionDeg = ReadNumber(context.Node, "directionDeg");
         var directionToleranceDeg = ReadNumber(context.Node, "directionToleranceDeg");
         if (sigma <= 0) throw new InvalidDataException("平滑尺度 σ 必须大于 0。");
         if (low < 0 || high <= 0 || low > high)
-            throw new InvalidDataException("直线查找阈值无效：低阈值需非负，高阈值需大于 0 且不小于低阈值。");
+            throw new InvalidDataException("边缘阈值无效：低阈值需非负，高阈值需大于 0 且不小于低阈值。");
+        var lowThreshold = (int)Math.Round(low);
+        var highThreshold = (int)Math.Round(high);
+        if (highThreshold <= 0 || lowThreshold > highThreshold)
+            throw new InvalidDataException("边缘阈值取整后无效，请设置有效的 Canny 低、高阈值。");
+        if (minimumLength < 3) throw new InvalidDataException("最短线段长度不能小于 3 像素。");
         if (directionToleranceDeg <= 0 || directionToleranceDeg >= 90)
             throw new InvalidDataException("方向容差必须大于 0 且小于 90 度。");
-        var polarity = ReadString(context.Node, "lightDark").Trim().ToLowerInvariant();
-        if (polarity is not ("light" or "dark")) throw new InvalidDataException("线条极性只支持 light 或 dark。");
 
         using var channelCount = image.CountChannels();
         if (channelCount.I is not (1 or 3))
@@ -320,20 +324,25 @@ public sealed class HalconStraightLineFindExecutor : INodeExecutor
         HImage? resultImage = null;
         try
         {
-            using var foundLines = roiImage.LinesGauss(sigma, low, high, polarity, "true", "bar-shaped", "true");
+            using var edges = roiImage.EdgesSubPix("canny", sigma, lowThreshold, highThreshold);
+            using var segments = edges.SegmentContoursXld("lines", 5, 2, 2);
+            using var longSegments = segments.SelectContoursXld("contour_length", minimumLength, double.MaxValue, 0, 0);
             var angle = NormalizeRadians(directionDeg * Math.PI / 180d);
-            using var forward = SelectAngleBand(foundLines, angle, directionToleranceDeg * Math.PI / 180d);
-            using var backward = SelectAngleBand(foundLines, NormalizeRadians(angle + Math.PI), directionToleranceDeg * Math.PI / 180d);
+            using var forward = SelectAngleBand(longSegments, angle, directionToleranceDeg * Math.PI / 180d);
+            using var backward = SelectAngleBand(longSegments, NormalizeRadians(angle + Math.PI), directionToleranceDeg * Math.PI / 180d);
             lines = forward.ConcatObj(backward);
             var count = lines.CountObj();
             using var regions = lines.GenRegionContourXld("margin");
-            resultImage = searchImage.PaintRegion(regions, 255d, "margin");
+            // Draw detected contours in red. White on a gray source disappears on
+            // bright edges, making a successful detection look like no result.
+            using var redChannel = searchImage.PaintRegion(regions, 255d, "margin");
+            resultImage = redChannel.Compose3(searchImage, searchImage);
             context.CancellationToken.ThrowIfCancellationRequested();
-            context.Log($"HALCON LinesGauss：ROI [{roi.Row1:G},{roi.Column1:G}]-[{roi.Row2:G},{roi.Column2:G}]，方向 {directionDeg:G}° ± {directionToleranceDeg:G}°，查找到 {count} 条线。");
+            context.Log($"HALCON EdgesSubPix + SegmentContoursXld：ROI [{roi.Row1:G},{roi.Column1:G}]-[{roi.Row2:G},{roi.Column2:G}]，方向 {directionDeg:G}° ± {directionToleranceDeg:G}°，最短 {minimumLength:G}px，查找到 {count} 条直线。");
             var serialized = new Dictionary<string, JsonElement>
             {
                 ["resultImage"] = JsonSerializer.SerializeToElement(new { count, width = dimensions.Width, height = dimensions.Height }),
-                ["lines"] = JsonSerializer.SerializeToElement(new { count, sigma, low, high, lightDark = polarity, width = dimensions.Width, height = dimensions.Height }),
+                ["lines"] = JsonSerializer.SerializeToElement(new { count, sigma, low, high, minimumLength, width = dimensions.Width, height = dimensions.Height }),
                 ["count"] = JsonSerializer.SerializeToElement(count)
             };
             var runtime = new Dictionary<string, object?> { ["resultImage"] = resultImage, ["lines"] = lines };
@@ -355,11 +364,12 @@ public sealed class HalconStraightLineFindExecutor : INodeExecutor
         return value.GetDouble();
     }
 
-    private static string ReadString(NodeInstance node, string key)
+    private static double ReadOptionalNumber(NodeInstance node, string key, double fallback)
     {
-        if (!node.Parameters.TryGetValue(key, out var value) || value.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(value.GetString()))
-            throw new InvalidDataException($"直线查找参数 {key} 必须是非空字符串。");
-        return value.GetString()!;
+        if (!node.Parameters.TryGetValue(key, out var value)) return fallback;
+        if (value.ValueKind != JsonValueKind.Number || !double.IsFinite(value.GetDouble()))
+            throw new InvalidDataException($"直线查找参数 {key} 必须是有限数值。");
+        return value.GetDouble();
     }
 
     private static (double Row1, double Column1, double Row2, double Column2) ReadRectangle(NodeInstance node, int imageWidth, int imageHeight)
