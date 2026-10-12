@@ -289,34 +289,40 @@ internal static class Program
         window.UpdateLayout();
         var dashboard = Field<DetectionDashboard>(window, "DetectionDashboard");
         await Task.Delay(100);
-        Assert(dashboard.IsVisible && Field<Grid>(window, "RuntimePanel").Visibility == Visibility.Collapsed && dashboard.Tiles.Count == 4,
-            "detection workspace combines four independently sourced panels instead of a single-node view");
-        Assert(dashboard.Tiles.Select(tile => tile.Settings.NodeId).Distinct().Count() == 2,
+        Assert(dashboard.IsVisible && Field<Grid>(window, "RuntimePanel").Visibility == Visibility.Collapsed && dashboard.Tiles.Count == 1 && dashboard.Tiles.Single().Contents.Count == 4,
+            "one panel combines four content items from different nodes");
+        Assert(dashboard.Tiles.Single().Contents.Select(content => content.Settings.NodeId).Distinct().Count() == 2,
             "source-image and line-node panels coexist in the detection workspace");
-        var parameterTile = dashboard.Tiles.First(tile => tile.Settings.View == "输出参数");
+        var compositePanel = dashboard.Tiles.Single();
+        var parameterTile = compositePanel.Contents.First(content => content.Settings.View == "输出参数");
         var combos = Descendants(parameterTile).OfType<ComboBox>().ToArray();
         combos[2].SelectedItem = "score";
         Assert(parameterTile.Settings.OutputField == "score" && Descendants(parameterTile).OfType<DataGrid>().Single().ItemsSource.Cast<NodeOutputValue>().All(row => row.Name == "score"),
             "one panel independently selects only the score output from its node");
+        compositePanel.AddContent();
+        Assert(dashboard.Tiles.Count == 1 && compositePanel.Contents.Count == 5,
+            "adding content retains one panel and all independent node sources");
+        compositePanel.RemoveContent(compositePanel.Contents.Last());
+        Assert(compositePanel.Contents.Count == 4, "removing content does not remove its parent panel or sibling contents");
         dashboard.AddPanel();
-        Assert(dashboard.Tiles.Count == 5, "additional panels can be added without replacing existing panels");
+        Assert(dashboard.Tiles.Count == 2, "additional panels can be added without replacing existing panels");
         dashboard.RemovePanel(dashboard.Tiles.Last());
-        Assert(dashboard.Tiles.Count == 4, "removing a panel preserves all other panel configurations");
+        Assert(dashboard.Tiles.Count == 1, "removing a panel preserves all other panel configurations");
         var roundTrip = JsonSerializer.Deserialize<FlowDocument>(JsonSerializer.Serialize(flow.Document))!;
-        Assert(roundTrip.DetectionPanels.Count == 4 && roundTrip.DetectionPanels.Any(panel => panel.OutputField == "score"),
+        Assert(roundTrip.DetectionPanels.Count == 1 && roundTrip.DetectionPanels.Single().Contents!.Any(content => content.OutputField == "score"),
             "combined display sources and field selection survive project serialization");
         var store = new ProjectStore();
         var savedWorkspace = store.CreateProject(Path.Combine(_root, $"combined-layout-{Guid.NewGuid():N}.hvproj"), "组合布局回归");
         store.SaveProject(savedWorkspace, [flow.Document]);
         var reloaded = store.OpenProject(savedWorkspace.ProjectFilePath).Project.Flows.Single();
-        Assert(reloaded.DetectionPanels.SequenceEqual(flow.Document.DetectionPanels),
+        Assert(JsonSerializer.Serialize(reloaded.DetectionPanels) == JsonSerializer.Serialize(flow.Document.DetectionPanels),
             "project save and reopen restores every combined-panel source, view and field");
         SaveWindow(window, "combined-detection-ui.png");
         mode.IsChecked = false;
         Assert(dashboard.Visibility == Visibility.Collapsed && Field<Grid>(window, "RuntimePanel").Visibility == Visibility.Visible,
             "leaving combined detection mode restores the editing workspace");
         mode.IsChecked = true;
-        Assert(dashboard.Tiles.Count == 4 && dashboard.Tiles.Any(tile => tile.Settings.OutputField == "score"),
+        Assert(dashboard.Tiles.Count == 1 && dashboard.Tiles.Single().Contents.Any(content => content.Settings.OutputField == "score"),
             "reentering detection mode retains the configured panel combination");
         mode.IsChecked = false;
         var count = outputs["lines"] is HXLDCont contours ? contours.CountObj() : -1;

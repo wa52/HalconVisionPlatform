@@ -25,7 +25,9 @@ public sealed record FlowDocument
     public List<DetectionPanelSettings> DetectionPanels { get; init; } = [];
 }
 
-public sealed record DetectionPanelSettings(Guid Id, Guid NodeId, string View = "图像", string OutputField = "全部");
+public sealed record DetectionPanelSettings(Guid Id, Guid NodeId, string View = "图像", string OutputField = "全部",
+    List<DetectionContentSettings>? Contents = null);
+public sealed record DetectionContentSettings(Guid Id, Guid NodeId, string View = "图像", string OutputField = "全部");
 
 public sealed record NodeInstance
 {

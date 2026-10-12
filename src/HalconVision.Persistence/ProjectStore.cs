@@ -20,6 +20,15 @@ public sealed class ProjectStore
         Converters = { new JsonStringEnumConverter() }
     };
 
+    private static DetectionPanelSettings? RemapDetectionPanel(DetectionPanelSettings panel, IReadOnlyDictionary<Guid, Guid> ids)
+    {
+        if (panel.Contents is null)
+            return ids.TryGetValue(panel.NodeId, out var nodeId) ? panel with { Id = Guid.NewGuid(), NodeId = nodeId } : null;
+        var contents = panel.Contents.Where(content => ids.ContainsKey(content.NodeId))
+            .Select(content => content with { Id = Guid.NewGuid(), NodeId = ids[content.NodeId] }).ToList();
+        return panel with { Id = Guid.NewGuid(), NodeId = contents.FirstOrDefault()?.NodeId ?? Guid.Empty, Contents = contents };
+    }
+
     public ProjectWorkspace CreateProject(string projectFilePath, string name)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(projectFilePath);
@@ -91,7 +100,7 @@ public sealed class ProjectStore
         };
         var idMap = source.Nodes.Zip(copy.Nodes).ToDictionary(pair => pair.First.Id, pair => pair.Second.Id);
         copy = copy with { Edges = source.Edges.Select(edge => edge with { Id = Guid.NewGuid(), FromNodeId = idMap[edge.FromNodeId], ToNodeId = idMap[edge.ToNodeId] }).ToList(),
-            DetectionPanels = source.DetectionPanels.Where(panel => idMap.ContainsKey(panel.NodeId)).Select(panel => panel with { Id = Guid.NewGuid(), NodeId = idMap[panel.NodeId] }).ToList() };
+            DetectionPanels = source.DetectionPanels.Select(panel => RemapDetectionPanel(panel, idMap)).OfType<DetectionPanelSettings>().ToList() };
         return copy;
     }
 
@@ -120,7 +129,7 @@ public sealed class ProjectStore
             Id = Guid.NewGuid(),
             Name = newName ?? $"{imported.Name} 副本",
             Nodes = imported.Nodes.Select(node => node with { Id = nodeIds[node.Id] }).ToList(),
-            DetectionPanels = imported.DetectionPanels.Where(panel => nodeIds.ContainsKey(panel.NodeId)).Select(panel => panel with { Id = Guid.NewGuid(), NodeId = nodeIds[panel.NodeId] }).ToList(),
+            DetectionPanels = imported.DetectionPanels.Select(panel => RemapDetectionPanel(panel, nodeIds)).OfType<DetectionPanelSettings>().ToList(),
             Edges = imported.Edges.Select(edge => edge with { Id = Guid.NewGuid(), FromNodeId = nodeIds[edge.FromNodeId], ToNodeId = nodeIds[edge.ToNodeId] }).ToList(),
             AssetReferences = [.. imported.AssetReferences]
         };

@@ -22,7 +22,7 @@ public sealed class DetectionDashboard : DockPanel, IDisposable
         SetDock(toolbar, Dock.Top); Children.Add(toolbar);
         var add = new Button { Content = "添加面板", Padding = new Thickness(12, 5, 12, 5) };
         add.Click += (_, _) => AddPanel(); toolbar.Children.Add(add);
-        toolbar.Children.Add(new TextBlock { Text = "每个面板独立选择节点、图像 / 输出参数 / 检测结果，以及输出字段；拖动分隔条调整大小", Foreground = Brushes.LightGray, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0) });
+        toolbar.Children.Add(new TextBlock { Text = "在面板内点击“添加内容”，每项可绑定不同节点、图像、参数或结果；拖动分隔条调整大小", Foreground = Brushes.LightGray, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0) });
         Children.Add(_grid);
     }
 
@@ -44,10 +44,9 @@ public sealed class DetectionDashboard : DockPanel, IDisposable
         if (_disposed || _flow is null || _tiles.Count != 0 || _flow.Nodes.Count == 0) return;
         var source = _flow.Nodes.FirstOrDefault(node => node.TypeId is "halcon.image-read" or "halcon.camera-capture") ?? _flow.Nodes.First();
         var result = _flow.SelectedNode ?? _flow.Nodes.Last();
-        AddTile(new(Guid.NewGuid(), source.Id));
-        AddTile(new(Guid.NewGuid(), result.Id, "图像"));
-        AddTile(new(Guid.NewGuid(), result.Id, "输出参数"));
-        AddTile(new(Guid.NewGuid(), result.Id, "检测结果"));
+        AddTile(new(Guid.NewGuid(), source.Id, Contents:
+            [new(Guid.NewGuid(), source.Id), new(Guid.NewGuid(), result.Id),
+             new(Guid.NewGuid(), result.Id, "输出参数"), new(Guid.NewGuid(), result.Id, "检测结果")]));
         Layout(); Save();
     }
 
@@ -99,8 +98,11 @@ public sealed class DetectionDashboard : DockPanel, IDisposable
             Grid.SetColumnSpan(tile, index == _tiles.Count - 1 && _tiles.Count % 2 == 1 ? 3 : 1);
             _grid.Children.Add(tile);
         }
-        var vertical = new GridSplitter { Width = 6, HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Stretch, Background = Brushes.SlateGray, ResizeDirection = GridResizeDirection.Columns };
-        Grid.SetColumn(vertical, 1); Grid.SetRowSpan(vertical, count * 2 - 1); _grid.Children.Add(vertical);
+        if (_tiles.Count >= 2)
+        {
+            var vertical = new GridSplitter { Width = 6, HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Stretch, Background = Brushes.SlateGray, ResizeDirection = GridResizeDirection.Columns };
+            Grid.SetColumn(vertical, 1); Grid.SetRowSpan(vertical, _tiles.Count / 2 * 2 - 1); _grid.Children.Add(vertical);
+        }
     }
 
     public void Dispose() { if (_disposed) return; _disposed = true; foreach (var tile in _tiles) tile.Dispose(); _tiles.Clear(); _grid.Children.Clear(); }
