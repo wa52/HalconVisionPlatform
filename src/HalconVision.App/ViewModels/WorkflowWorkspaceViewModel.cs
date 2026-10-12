@@ -42,7 +42,8 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
             new HalconImageReadExecutor(),
             new HalconCameraCaptureExecutor(_cameraManager),
             new HalconThresholdExecutor(),
-            new HalconBlobAnalysisExecutor()
+            new HalconBlobAnalysisExecutor(),
+            new HalconStraightLineFindExecutor()
         ]);
         _registry = registry;
         _validator = new WorkflowGraphValidator(_registry);
