@@ -287,33 +287,38 @@ internal static class Program
         var mode = Field<System.Windows.Controls.Primitives.ToggleButton>(window, "DetectionModeToggle");
         mode.IsChecked = true;
         window.UpdateLayout();
-        Assert(Grid.GetRowSpan(Field<Grid>(window, "RuntimePanel")) == 3 &&
-            Field<Border>(window, "RuntimeResultsPanel").Visibility == Visibility.Collapsed,
-            "detection mode expands the image workspace and hides editing and results panels");
-        SaveWindow(window, "detection-image-ui.png");
-        var viewChoice = Field<ComboBox>(window, "DetectionViewSelector");
-        viewChoice.SelectedIndex = 1;
-        window.UpdateLayout();
-        await Task.Delay(50);
-        Assert(Field<Border>(window, "RuntimeImagePanel").Visibility == Visibility.Collapsed &&
-            Field<TabControl>(window, "RuntimeTabs").SelectedIndex == 1,
-            "detection mode switches to selected-node output parameters");
-        Assert(Field<DataGrid>(window, "NodeOutputsGrid").Columns[0].ActualWidth >= 180 &&
-            Field<DataGrid>(window, "NodeOutputsGrid").Columns[2].ActualWidth >= 280,
-            "output field names and values remain readable after switching display modes");
-        SaveWindow(window, "detection-outputs-ui.png");
-        viewChoice.SelectedIndex = 2;
-        Assert(Field<TabControl>(window, "RuntimeTabs").SelectedIndex == 0,
-            "detection mode switches to detection results");
-        Field<ComboBox>(window, "DisplayNodeSelector").SelectedItem = flow.Nodes.Single(node => node.Id == source.Id);
-        Assert(flow.SelectedNode?.Id == source.Id && Field<DataGrid>(window, "NodeOutputsGrid").ItemsSource.Cast<NodeOutputValue>().All(row => row.Name != "line.RowBegin"),
-            "node selector replaces output data without retaining the previous node values");
-        Field<ComboBox>(window, "DisplayNodeSelector").SelectedItem = flow.Nodes.Single(node => node.Id == detector.Id);
+        var dashboard = Field<DetectionDashboard>(window, "DetectionDashboard");
+        await Task.Delay(100);
+        Assert(dashboard.IsVisible && Field<Grid>(window, "RuntimePanel").Visibility == Visibility.Collapsed && dashboard.Tiles.Count == 4,
+            "detection workspace combines four independently sourced panels instead of a single-node view");
+        Assert(dashboard.Tiles.Select(tile => tile.Settings.NodeId).Distinct().Count() == 2,
+            "source-image and line-node panels coexist in the detection workspace");
+        var parameterTile = dashboard.Tiles.First(tile => tile.Settings.View == "输出参数");
+        var combos = Descendants(parameterTile).OfType<ComboBox>().ToArray();
+        combos[2].SelectedItem = "score";
+        Assert(parameterTile.Settings.OutputField == "score" && Descendants(parameterTile).OfType<DataGrid>().Single().ItemsSource.Cast<NodeOutputValue>().All(row => row.Name == "score"),
+            "one panel independently selects only the score output from its node");
+        dashboard.AddPanel();
+        Assert(dashboard.Tiles.Count == 5, "additional panels can be added without replacing existing panels");
+        dashboard.RemovePanel(dashboard.Tiles.Last());
+        Assert(dashboard.Tiles.Count == 4, "removing a panel preserves all other panel configurations");
+        var roundTrip = JsonSerializer.Deserialize<FlowDocument>(JsonSerializer.Serialize(flow.Document))!;
+        Assert(roundTrip.DetectionPanels.Count == 4 && roundTrip.DetectionPanels.Any(panel => panel.OutputField == "score"),
+            "combined display sources and field selection survive project serialization");
+        var store = new ProjectStore();
+        var savedWorkspace = store.CreateProject(Path.Combine(_root, $"combined-layout-{Guid.NewGuid():N}.hvproj"), "组合布局回归");
+        store.SaveProject(savedWorkspace, [flow.Document]);
+        var reloaded = store.OpenProject(savedWorkspace.ProjectFilePath).Project.Flows.Single();
+        Assert(reloaded.DetectionPanels.SequenceEqual(flow.Document.DetectionPanels),
+            "project save and reopen restores every combined-panel source, view and field");
+        SaveWindow(window, "combined-detection-ui.png");
         mode.IsChecked = false;
-        Assert(Grid.GetRowSpan(Field<Grid>(window, "RuntimePanel")) == 1 &&
-            Field<Border>(window, "RuntimeImagePanel").Visibility == Visibility.Visible &&
-            Field<Border>(window, "RuntimeResultsPanel").Visibility == Visibility.Visible,
-            "leaving detection mode restores the editing layout");
+        Assert(dashboard.Visibility == Visibility.Collapsed && Field<Grid>(window, "RuntimePanel").Visibility == Visibility.Visible,
+            "leaving combined detection mode restores the editing workspace");
+        mode.IsChecked = true;
+        Assert(dashboard.Tiles.Count == 4 && dashboard.Tiles.Any(tile => tile.Settings.OutputField == "score"),
+            "reentering detection mode retains the configured panel combination");
+        mode.IsChecked = false;
         var count = outputs["lines"] is HXLDCont contours ? contours.CountObj() : -1;
         Evidence.Add($"DETAIL: 1900 source={Path.GetFileName(firstImage)}; size={width}x{height}; lines={count}; project not saved");
         var retainedObjects = Objects(run).ToArray();

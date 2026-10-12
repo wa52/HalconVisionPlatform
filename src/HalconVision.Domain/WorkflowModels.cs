@@ -22,7 +22,10 @@ public sealed record FlowDocument
     public List<FlowEdge> Edges { get; init; } = [];
     public Dictionary<string, JsonElement> Variables { get; init; } = [];
     public List<string> AssetReferences { get; init; } = [];
+    public List<DetectionPanelSettings> DetectionPanels { get; init; } = [];
 }
+
+public sealed record DetectionPanelSettings(Guid Id, Guid NodeId, string View = "图像", string OutputField = "全部");
 
 public sealed record NodeInstance
 {

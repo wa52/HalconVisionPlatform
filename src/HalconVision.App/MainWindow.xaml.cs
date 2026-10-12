@@ -38,38 +38,17 @@ public partial class MainWindow : Window
         if (enabled)
         {
             foreach (UIElement child in WorkspaceGrid.Children)
-                if (child != RuntimePanel) { _editorVisibility[child] = child.Visibility; child.Visibility = Visibility.Collapsed; }
-            Grid.SetRow(RuntimePanel, 0); Grid.SetRowSpan(RuntimePanel, 3);
-            Grid.SetColumn(RuntimePanel, 0); Grid.SetColumnSpan(RuntimePanel, 5);
+                if (child != DetectionDashboard) { _editorVisibility[child] = child.Visibility; child.Visibility = Visibility.Collapsed; }
+            DetectionDashboard.Visibility = Visibility.Visible;
+            DetectionDashboard.SetSource(_vm.SelectedFlow, () => _vm.LastRun);
+            DetectionDashboard.EnsureInitialPanels();
         }
         else
         {
             foreach (var (child, visibility) in _editorVisibility) child.Visibility = visibility;
             _editorVisibility.Clear();
-            Grid.SetRow(RuntimePanel, 2); Grid.SetRowSpan(RuntimePanel, 1);
-            Grid.SetColumn(RuntimePanel, 2); Grid.SetColumnSpan(RuntimePanel, 1);
+            DetectionDashboard.Visibility = Visibility.Collapsed;
         }
-        DetectionViewSelector.Visibility = enabled ? Visibility.Visible : Visibility.Collapsed;
-        ApplyDetectionView();
-    }
-
-    private void DetectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (RuntimeImagePanel is not null) ApplyDetectionView();
-    }
-
-    private void ApplyDetectionView()
-    {
-        var imageView = !_detectionMode || DetectionViewSelector.SelectedIndex == 0;
-        RuntimeImagePanel.Visibility = imageView ? Visibility.Visible : Visibility.Collapsed;
-        RuntimeResultsPanel.Visibility = !_detectionMode || !imageView ? Visibility.Visible : Visibility.Collapsed;
-        RuntimeSplitter.Visibility = _detectionMode ? Visibility.Collapsed : Visibility.Visible;
-        Grid.SetColumnSpan(RuntimeImagePanel, _detectionMode ? 3 : 1);
-        Grid.SetColumn(RuntimeResultsPanel, _detectionMode ? 0 : 2);
-        Grid.SetColumnSpan(RuntimeResultsPanel, _detectionMode ? 3 : 1);
-        if (_detectionMode && !imageView)
-            RuntimeTabs.SelectedIndex = DetectionViewSelector.SelectedIndex == 1 ? 1 : 0;
-        Dispatcher.BeginInvoke(new Action(() => { if (!_closing && imageView) ImageFit_Click(this, new RoutedEventArgs()); }));
     }
 
     private void DisplayNode_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -609,6 +588,7 @@ public partial class MainWindow : Window
 
     private void DisplaySelectedNodePreview()
     {
+        DetectionDashboard.SetSource(_vm.SelectedFlow, () => _vm.LastRun);
         var node = _vm.SelectedFlow?.SelectedNode;
         var run = _vm.LastRun;
         var selectedResult = run is not null && run.FlowId == _vm.SelectedFlow?.Id
@@ -945,6 +925,7 @@ public partial class MainWindow : Window
         if (!ConfirmSaveBeforeSwitch()) { e.Cancel = true; return; }
         _closing = true;
         await StopExecutionAsync();
+        DetectionDashboard.Dispose();
         await _vm.ShutdownAsync();
         ClearPreview();
         PreviewWindow.Dispose();

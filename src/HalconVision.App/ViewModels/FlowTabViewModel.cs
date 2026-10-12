@@ -163,6 +163,13 @@ public sealed class FlowTabViewModel : ObservableModel
 
     public void MarkSaved() => IsDirty = false;
 
+    public void SetDetectionPanels(IEnumerable<DetectionPanelSettings> panels)
+    {
+        _document = _document with { DetectionPanels = panels.ToList() };
+        IsDirty = true;
+        Raise(nameof(Document));
+    }
+
     public void SetAssetReferences(IReadOnlyList<string> references)
     {
         PushUndo(); _document = _document with { AssetReferences = [.. references] }; IsDirty = true;
