@@ -281,6 +281,39 @@ internal static class Program
             "image panel visibly distinguishes a found line and displays its score");
         SaveWindow(window, "found-ui.png");
         SavePreview(window);
+        var outputRows = Field<DataGrid>(window, "NodeOutputsGrid").ItemsSource.Cast<NodeOutputValue>().ToArray();
+        Assert(outputRows.Any(row => row.Name == "line.RowBegin") && outputRows.Any(row => row.Name == "score" && row.Value != "无结果"),
+            "selected line node exposes real endpoint coordinates and score in its output table");
+        var mode = Field<System.Windows.Controls.Primitives.ToggleButton>(window, "DetectionModeToggle");
+        mode.IsChecked = true;
+        window.UpdateLayout();
+        Assert(Grid.GetRowSpan(Field<Grid>(window, "RuntimePanel")) == 3 &&
+            Field<Border>(window, "RuntimeResultsPanel").Visibility == Visibility.Collapsed,
+            "detection mode expands the image workspace and hides editing and results panels");
+        SaveWindow(window, "detection-image-ui.png");
+        var viewChoice = Field<ComboBox>(window, "DetectionViewSelector");
+        viewChoice.SelectedIndex = 1;
+        window.UpdateLayout();
+        await Task.Delay(50);
+        Assert(Field<Border>(window, "RuntimeImagePanel").Visibility == Visibility.Collapsed &&
+            Field<TabControl>(window, "RuntimeTabs").SelectedIndex == 1,
+            "detection mode switches to selected-node output parameters");
+        Assert(Field<DataGrid>(window, "NodeOutputsGrid").Columns[0].ActualWidth >= 180 &&
+            Field<DataGrid>(window, "NodeOutputsGrid").Columns[2].ActualWidth >= 280,
+            "output field names and values remain readable after switching display modes");
+        SaveWindow(window, "detection-outputs-ui.png");
+        viewChoice.SelectedIndex = 2;
+        Assert(Field<TabControl>(window, "RuntimeTabs").SelectedIndex == 0,
+            "detection mode switches to detection results");
+        Field<ComboBox>(window, "DisplayNodeSelector").SelectedItem = flow.Nodes.Single(node => node.Id == source.Id);
+        Assert(flow.SelectedNode?.Id == source.Id && Field<DataGrid>(window, "NodeOutputsGrid").ItemsSource.Cast<NodeOutputValue>().All(row => row.Name != "line.RowBegin"),
+            "node selector replaces output data without retaining the previous node values");
+        Field<ComboBox>(window, "DisplayNodeSelector").SelectedItem = flow.Nodes.Single(node => node.Id == detector.Id);
+        mode.IsChecked = false;
+        Assert(Grid.GetRowSpan(Field<Grid>(window, "RuntimePanel")) == 1 &&
+            Field<Border>(window, "RuntimeImagePanel").Visibility == Visibility.Visible &&
+            Field<Border>(window, "RuntimeResultsPanel").Visibility == Visibility.Visible,
+            "leaving detection mode restores the editing layout");
         var count = outputs["lines"] is HXLDCont contours ? contours.CountObj() : -1;
         Evidence.Add($"DETAIL: 1900 source={Path.GetFileName(firstImage)}; size={width}x{height}; lines={count}; project not saved");
         var retainedObjects = Objects(run).ToArray();

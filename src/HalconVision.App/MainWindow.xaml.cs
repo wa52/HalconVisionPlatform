@@ -21,6 +21,63 @@ namespace HalconVision.App;
 public partial class MainWindow : Window
 {
     private readonly WorkflowWorkspaceViewModel _vm = new();
+    private bool _detectionMode;
+    private readonly Dictionary<UIElement, Visibility> _editorVisibility = [];
+
+    private void DetectionMode_Changed(object sender, RoutedEventArgs e)
+    {
+        if (RuntimePanel is null) return;
+        SetDetectionMode(DetectionModeToggle.IsChecked == true);
+    }
+
+    private void SetDetectionMode(bool enabled)
+    {
+        if (_detectionMode == enabled) return;
+        FinishRoiDrawing();
+        _detectionMode = enabled;
+        if (enabled)
+        {
+            foreach (UIElement child in WorkspaceGrid.Children)
+                if (child != RuntimePanel) { _editorVisibility[child] = child.Visibility; child.Visibility = Visibility.Collapsed; }
+            Grid.SetRow(RuntimePanel, 0); Grid.SetRowSpan(RuntimePanel, 3);
+            Grid.SetColumn(RuntimePanel, 0); Grid.SetColumnSpan(RuntimePanel, 5);
+        }
+        else
+        {
+            foreach (var (child, visibility) in _editorVisibility) child.Visibility = visibility;
+            _editorVisibility.Clear();
+            Grid.SetRow(RuntimePanel, 2); Grid.SetRowSpan(RuntimePanel, 1);
+            Grid.SetColumn(RuntimePanel, 2); Grid.SetColumnSpan(RuntimePanel, 1);
+        }
+        DetectionViewSelector.Visibility = enabled ? Visibility.Visible : Visibility.Collapsed;
+        ApplyDetectionView();
+    }
+
+    private void DetectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (RuntimeImagePanel is not null) ApplyDetectionView();
+    }
+
+    private void ApplyDetectionView()
+    {
+        var imageView = !_detectionMode || DetectionViewSelector.SelectedIndex == 0;
+        RuntimeImagePanel.Visibility = imageView ? Visibility.Visible : Visibility.Collapsed;
+        RuntimeResultsPanel.Visibility = !_detectionMode || !imageView ? Visibility.Visible : Visibility.Collapsed;
+        RuntimeSplitter.Visibility = _detectionMode ? Visibility.Collapsed : Visibility.Visible;
+        Grid.SetColumnSpan(RuntimeImagePanel, _detectionMode ? 3 : 1);
+        Grid.SetColumn(RuntimeResultsPanel, _detectionMode ? 0 : 2);
+        Grid.SetColumnSpan(RuntimeResultsPanel, _detectionMode ? 3 : 1);
+        if (_detectionMode && !imageView)
+            RuntimeTabs.SelectedIndex = DetectionViewSelector.SelectedIndex == 1 ? 1 : 0;
+        Dispatcher.BeginInvoke(new Action(() => { if (!_closing && imageView) ImageFit_Click(this, new RoutedEventArgs()); }));
+    }
+
+    private void DisplayNode_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (DisplayNodeSelector.SelectedItem is FlowNodeViewModel node && _vm.SelectedFlow is { } flow)
+            flow.SelectNode(node.Id, false);
+        if (PreviewWindow is not null && NodeOutputsGrid is not null) DisplaySelectedNodePreview();
+    }
     private NodePortViewModel? _pendingOutput;
     private ButtonBase? _connectionCapture;
     private Canvas? _connectionCanvas;
@@ -446,7 +503,7 @@ public partial class MainWindow : Window
             _vm.SetExecutionRun(run);
             _vm.Log($"流程执行结束：{run.Status}，耗时 {(run.EndedAtUtc - run.StartedAtUtc).TotalMilliseconds:F1} ms。");
             if (run.Status == WorkflowRunStatus.Success) DisplayLastSuccessfulNode(flow);
-            else _vm.ReturnImageToSequence(imagePath);
+            else { _vm.ReturnImageToSequence(imagePath); DisplaySelectedNodePreview(); }
             if (run.Errors.Count > 0) MessageBox.Show(this, string.Join(Environment.NewLine, run.Errors), "流程执行错误", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         catch (Exception ex) { ShowError("流程执行失败", ex); }
@@ -517,6 +574,7 @@ public partial class MainWindow : Window
                     continue;
                 }
                 _vm.ReturnImageToSequence(imagePath);
+                DisplaySelectedNodePreview();
                 if (run.Status != WorkflowRunStatus.Cancelled && run.Errors.Count > 0)
                     MessageBox.Show(this, string.Join(Environment.NewLine, run.Errors), "连续运行错误", MessageBoxButton.OK, MessageBoxImage.Warning);
                 break;
@@ -542,6 +600,7 @@ public partial class MainWindow : Window
 
     private void DisplayLastSuccessfulNode(FlowTabViewModel flow)
     {
+        if (_detectionMode && flow.SelectedNode is not null) { DisplaySelectedNodePreview(); return; }
         var nodeResult = _vm.LastRun?.NodeResults.LastOrDefault(result => result.Status == NodeExecutionStatus.Success);
         if (nodeResult is null) return;
         flow.SelectNode(nodeResult.NodeId, false);
@@ -554,6 +613,8 @@ public partial class MainWindow : Window
         var run = _vm.LastRun;
         var selectedResult = run is not null && run.FlowId == _vm.SelectedFlow?.Id
             ? run.NodeResults.FirstOrDefault(result => result.NodeId == node?.Id) : null;
+        NodeOutputsGrid.ItemsSource = NodeOutputValue.From(selectedResult, node?.Definition);
+        NodeOutputsGrid.SelectedIndex = 0;
         DetectionSummary.Text = NodeResultSummary.Describe(selectedResult);
         DetectionSummary.Foreground = NodeResultSummary.Color(selectedResult);
         if (node is null || run is null || run.FlowId != _vm.SelectedFlow?.Id || run.RuntimeOutputs is null ||
@@ -830,7 +891,13 @@ public partial class MainWindow : Window
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
     {
         if (_isDrawingRoi && e.Key == Key.Escape) { FinishRoiDrawing(); e.Handled = true; return; }
-        var isTextEditing = Keyboard.FocusedElement is TextBoxBase;
+        if (_detectionMode)
+        {
+            if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control) && e.Key == Key.S) { Save_Click(sender, e); e.Handled = true; }
+            return;
+        }
+        var isTextEditing = Keyboard.FocusedElement is TextBoxBase ||
+            Keyboard.FocusedElement is DependencyObject focused && FindParent<DataGrid>(focused) is not null;
         if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
         {
             if (e.Key == Key.S) { Save_Click(sender, e); e.Handled = true; }
@@ -859,6 +926,7 @@ public partial class MainWindow : Window
 
     private void ClearPreview()
     {
+        NodeOutputsGrid.ItemsSource = NodeOutputValue.From(null, null);
         DetectionSummary.Text = "未运行 · 选择节点查看结果";
         DetectionSummary.Foreground = Brushes.LightGray;
         PreviewWindow.HalconWindow.ClearWindow();
