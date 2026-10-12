@@ -39,7 +39,7 @@ public sealed class DetectionTile : Border, IDisposable
         add.Click += (_, _) => AddContent(); header.Children.Add(add);
         var remove = new Button { Content = "删除面板", Margin = new Thickness(8, 0, 0, 0), Padding = new Thickness(10, 4, 10, 4) };
         remove.Click += (_, _) => RemoveRequested?.Invoke(this); header.Children.Add(remove);
-        header.Children.Add(new TextBlock { Text = "同一个面板内，每项内容可选不同节点和字段", Foreground = Brushes.LightGray, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0) });
+        header.Children.Add(new TextBlock { Text = "图像内可叠加多个节点；添加内容可补充独立参数表", Foreground = Brushes.LightGray, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0) });
         root.Children.Add(_grid);
         foreach (var content in settings.Contents ?? [new(Guid.NewGuid(), settings.NodeId, settings.View, settings.OutputField)]) AddView(content);
         Layout();

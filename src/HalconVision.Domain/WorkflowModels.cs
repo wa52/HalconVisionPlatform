@@ -27,7 +27,10 @@ public sealed record FlowDocument
 
 public sealed record DetectionPanelSettings(Guid Id, Guid NodeId, string View = "图像", string OutputField = "全部",
     List<DetectionContentSettings>? Contents = null);
-public sealed record DetectionContentSettings(Guid Id, Guid NodeId, string View = "图像", string OutputField = "全部");
+public sealed record DetectionContentSettings(Guid Id, Guid NodeId, string View = "图像", string OutputField = "全部",
+    List<DetectionOverlaySettings>? Overlays = null);
+public sealed record DetectionOverlaySettings(Guid NodeId, bool ShowGeometry = true, bool ShowDecision = true,
+    List<string>? Fields = null);
 
 public sealed record NodeInstance
 {

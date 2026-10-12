@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
@@ -289,41 +289,84 @@ internal static class Program
         window.UpdateLayout();
         var dashboard = Field<DetectionDashboard>(window, "DetectionDashboard");
         await Task.Delay(100);
-        Assert(dashboard.IsVisible && Field<Grid>(window, "RuntimePanel").Visibility == Visibility.Collapsed && dashboard.Tiles.Count == 1 && dashboard.Tiles.Single().Contents.Count == 4,
-            "one panel combines four content items from different nodes");
-        Assert(dashboard.Tiles.Single().Contents.Select(content => content.Settings.NodeId).Distinct().Count() == 2,
-            "source-image and line-node panels coexist in the detection workspace");
+        Assert(dashboard.IsVisible && Field<Grid>(window, "RuntimePanel").Visibility == Visibility.Collapsed && dashboard.Tiles.Count == 1 && dashboard.Tiles.Single().Contents.Count == 1,
+            "default detection layout contains exactly one base-image viewport");
         var compositePanel = dashboard.Tiles.Single();
-        var parameterTile = compositePanel.Contents.First(content => content.Settings.View == "输出参数");
-        var combos = Descendants(parameterTile).OfType<ComboBox>().ToArray();
-        combos[2].SelectedItem = "score";
-        Assert(parameterTile.Settings.OutputField == "score" && Descendants(parameterTile).OfType<DataGrid>().Single().ItemsSource.Cast<NodeOutputValue>().All(row => row.Name == "score"),
-            "one panel independently selects only the score output from its node");
+        var imageContent = compositePanel.Contents.Single();
+        Assert(imageContent.Settings.NodeId == source.Id, "base image uses the original reader rather than burned-in line preview");
+        imageContent.SetOverlay(new(source.Id, ShowGeometry: false, Fields: []));
+        imageContent.SetOverlay(new(detector.Id, Fields: ["score", "line.RowBegin"]));
+        var canvas = Field<Canvas>(imageContent, "_overlayCanvas");
+        Assert(canvas.Children.OfType<System.Windows.Shapes.Polyline>().Count() == 2 &&
+            canvas.Children.OfType<TextBlock>().Any(text => text.Text.Contains(source.DisplayName)) &&
+            canvas.Children.OfType<TextBlock>().Any(text => text.Text.Contains(detector.DisplayName) && text.Text.Contains("找到直线")) &&
+            canvas.Children.OfType<TextBlock>().Any(text => text.Text.Contains(".score")) &&
+            canvas.Children.OfType<TextBlock>().Any(text => text.Text.Contains("line.RowBegin")),
+            "one image combines two nodes, vector search rectangle, fitted line, decisions and selected endpoint/score fields");
+        var beforeZoom = canvas.Children.OfType<System.Windows.Shapes.Polyline>().Last().Points[0];
+        typeof(DetectionContentView).GetMethod("Zoom", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(imageContent, [1.5d]);
+        Assert(canvas.Children.OfType<System.Windows.Shapes.Polyline>().Last().Points[0] != beforeZoom &&
+            canvas.Children.OfType<System.Windows.Shapes.Polyline>().Last().StrokeThickness == 2.5 &&
+            canvas.Children.OfType<TextBlock>().All(text => text.FontSize == 12),
+            "zoom maps all overlays with the image while preserving readable stroke and text sizes");
+        var zoomedPoint = canvas.Children.OfType<System.Windows.Shapes.Polyline>().Last().Points[0];
+        imageContent.Refresh();
+        Assert(canvas.Children.OfType<System.Windows.Shapes.Polyline>().Last().Points[0] == zoomedPoint,
+            "refresh retains the configured overlay scene");
+        var overlayWindow = Field<HSmartWindowControlWPF>(imageContent, "_image").HalconWindow;
+        var imageHost = Field<Grid>(imageContent, "_imageHost");
+        new HalconImagePresenter().Pan(overlayWindow, 30, 20, imageHost.ActualWidth, imageHost.ActualHeight);
+        typeof(DetectionContentView).GetMethod("RenderOverlays", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(imageContent, null);
+        Assert(canvas.Children.OfType<System.Windows.Shapes.Polyline>().Last().Points[0] != zoomedPoint,
+            "pan moves overlay coordinates with the common HALCON image part");
+        imageContent.SetOverlay(new(detector.Id), false);
+        Assert(!canvas.Children.OfType<System.Windows.Shapes.Polyline>().Any() &&
+            !canvas.Children.OfType<TextBlock>().Any(text => text.Text.Contains(detector.DisplayName)),
+            "unchecking a node removes only its graphics and captions from the common image");
+        imageContent.SetOverlay(new(detector.Id, ShowGeometry: false, ShowDecision: false, Fields: ["score"]));
+        Assert(!canvas.Children.OfType<System.Windows.Shapes.Polyline>().Any() &&
+            canvas.Children.OfType<TextBlock>().Count(text => text.Text.Contains(detector.DisplayName)) == 1,
+            "geometry, decision and individual numeric fields can be enabled independently");
+        imageContent.SetOverlay(new(detector.Id, Fields: ["score", "line.RowBegin"]));
+        var mismatch = DetectionOverlayScene.Create(flow, run, imageContent.Settings, width + 1, height);
+        Assert(mismatch.Geometry.Count == 0 && mismatch.Captions.Any(text => text.Text.Contains("不匹配")),
+            "mismatched image dimensions reject overlay coordinates with a diagnostic caption");
+        var missing = DetectionOverlayScene.Create(flow, run,
+            imageContent.Settings with { Overlays = [new(Guid.NewGuid())] }, width, height);
+        Assert(missing.Geometry.Count == 0 && missing.Captions.Any(text => text.Text.Contains("未运行")),
+            "deleted or unexecuted nodes do not create stale graphics");
         compositePanel.AddContent();
-        Assert(dashboard.Tiles.Count == 1 && compositePanel.Contents.Count == 5,
-            "adding content retains one panel and all independent node sources");
+        Assert(dashboard.Tiles.Count == 1 && compositePanel.Contents.Count == 2,
+            "legacy extra content views remain available alongside overlay composition");
         compositePanel.RemoveContent(compositePanel.Contents.Last());
-        Assert(compositePanel.Contents.Count == 4, "removing content does not remove its parent panel or sibling contents");
-        dashboard.AddPanel();
-        Assert(dashboard.Tiles.Count == 2, "additional panels can be added without replacing existing panels");
-        dashboard.RemovePanel(dashboard.Tiles.Last());
-        Assert(dashboard.Tiles.Count == 1, "removing a panel preserves all other panel configurations");
+        dashboard.AddPanel(); dashboard.RemovePanel(dashboard.Tiles.Last());
+        Assert(dashboard.Tiles.Count == 1 && compositePanel.Contents.Count == 1,
+            "removing other content or panels preserves the common-image configuration");
         var roundTrip = JsonSerializer.Deserialize<FlowDocument>(JsonSerializer.Serialize(flow.Document))!;
-        Assert(roundTrip.DetectionPanels.Count == 1 && roundTrip.DetectionPanels.Single().Contents!.Any(content => content.OutputField == "score"),
-            "combined display sources and field selection survive project serialization");
+        Assert(roundTrip.DetectionPanels.Single().Contents!.Single().Overlays!.Count == 2 &&
+            roundTrip.DetectionPanels.Single().Contents!.Single().Overlays!.Single(layer => layer.NodeId == detector.Id).Fields!.Contains("line.RowBegin"),
+            "multiple overlay node IDs and selected fields survive serialization");
         var store = new ProjectStore();
         var savedWorkspace = store.CreateProject(Path.Combine(_root, $"combined-layout-{Guid.NewGuid():N}.hvproj"), "组合布局回归");
         store.SaveProject(savedWorkspace, [flow.Document]);
         var reloaded = store.OpenProject(savedWorkspace.ProjectFilePath).Project.Flows.Single();
         Assert(JsonSerializer.Serialize(reloaded.DetectionPanels) == JsonSerializer.Serialize(flow.Document.DetectionPanels),
-            "project save and reopen restores every combined-panel source, view and field");
+            "project save and reopen restores all base images, overlay nodes and field switches");
+        var copied = store.CopyFlow(savedWorkspace, flow.Document, "复制显示配置");
+        Assert(copied.DetectionPanels.Single().Contents!.Single().Overlays!.All(layer =>
+            copied.Nodes.Any(node => node.Id == layer.NodeId) && flow.Document.Nodes.All(node => node.Id != layer.NodeId)),
+            "copying a flow remaps overlay references to its new node IDs");
         SaveWindow(window, "combined-detection-ui.png");
+        Field<Expander>(imageContent, "_layerEditor").IsExpanded = true;
+        window.UpdateLayout();
+        SaveWindow(window, "layer-settings-ui.png");
+        Field<Expander>(imageContent, "_layerEditor").IsExpanded = false;
         mode.IsChecked = false;
         Assert(dashboard.Visibility == Visibility.Collapsed && Field<Grid>(window, "RuntimePanel").Visibility == Visibility.Visible,
-            "leaving combined detection mode restores the editing workspace");
+            "leaving detection mode restores the editing workspace");
         mode.IsChecked = true;
-        Assert(dashboard.Tiles.Count == 1 && dashboard.Tiles.Single().Contents.Any(content => content.Settings.OutputField == "score"),
-            "reentering detection mode retains the configured panel combination");
+        Assert(dashboard.Tiles.Single().Contents.Single().Settings.Overlays!.Count == 2,
+            "reentering detection mode retains both nodes on the same image");
         mode.IsChecked = false;
         var count = outputs["lines"] is HXLDCont contours ? contours.CountObj() : -1;
         Evidence.Add($"DETAIL: 1900 source={Path.GetFileName(firstImage)}; size={width}x{height}; lines={count}; project not saved");
@@ -339,6 +382,13 @@ internal static class Program
         Assert(Field<TextBlock>(window, "DetectionSummary").Text.StartsWith("未找到直线") &&
             NodeResultSummary.Describe(vm.LastRun!.NodeResults.Last()).StartsWith("未找到直线"),
             "blank-image run displays NOT_FOUND in both image panel and result table");
+        mode.IsChecked = true;
+        window.UpdateLayout();
+        Assert(!Field<Canvas>(dashboard.Tiles.Single().Contents.Single(), "_overlayCanvas").Children
+            .OfType<System.Windows.Shapes.Polyline>().Any(shape => shape.Stroke == Brushes.Red ||
+                shape.Stroke.ToString() == Brushes.Red.ToString()),
+            "NOT_FOUND replaces the previous overlay scene and removes the old red fitted line");
+        mode.IsChecked = false;
         SaveWindow(window, "not-found-ui.png");
         Assert(retainedObjects.All(value => !value.IsInitialized()), "rerun releases previous line-find images and contours");
         retainedObjects = Objects(vm.LastRun!).ToArray();
@@ -381,7 +431,7 @@ internal static class Program
         Assert(vm.Workspace?.ProjectFilePath == path && flow.Nodes.Count == 2 && flow.Edges.Count == 1,
             "startup project argument loads nodes and wiring without manual reopen");
         var nodeCanvas = Descendants(window).OfType<ItemsControl>()
-            .Single(control => ReferenceEquals(control.ItemsSource, flow.Nodes));
+            .Single(control => control is not ComboBox && ReferenceEquals(control.ItemsSource, flow.Nodes));
         Assert(nodeCanvas.Items.Count == 2 && nodeCanvas.ItemContainerGenerator.ContainerFromIndex(1) is not null,
             "startup selected flow renders both node containers");
         var resolve = typeof(App).GetMethod("ResolveProjectArgument", BindingFlags.NonPublic | BindingFlags.Static)!;
@@ -438,6 +488,13 @@ internal static class Program
         Assert(released == 400, "200 real HALCON runs release 400 previous image/region objects");
         Evidence.Add($"METRIC: repeated executions={completed}; released objects={released}; elapsed={stressStart.ElapsedMilliseconds} ms");
 
+        var detectionMode = Field<System.Windows.Controls.Primitives.ToggleButton>(window, "DetectionModeToggle");
+        detectionMode.IsChecked = true;
+        window.UpdateLayout();
+        await Task.Delay(100);
+        var liveDashboard = Field<DetectionDashboard>(window, "DetectionDashboard");
+        var liveView = liveDashboard.Tiles.Single().Contents.Single();
+        liveView.SetOverlay(new(thresholdId, Fields: []));
         var heartbeatBefore = _ticks;
         Invoke(window, "ContinuousRun_Click");
         var execution = ExecutionTask(window);
@@ -445,6 +502,8 @@ internal static class Program
         Assert(ReferenceEquals(execution, ExecutionTask(window)), "prevent run reentry");
         await Task.Delay(2000);
         Assert(_ticks - heartbeatBefore >= 20, "continuous dispatcher responsiveness");
+        Assert(liveDashboard.IsVisible && Field<Canvas>(liveView, "_overlayCanvas").Children.OfType<TextBlock>()
+            .Any(text => text.Text.Contains("执行成功")), "continuous detection refreshes node overlays in the visible common-image viewport");
         var startStop = Stopwatch.StartNew();
         Invoke(window, "CancelRun_Click"); await UntilAsync(() => ExecutionTask(window) is null);
         Assert(!vm.IsRunning && !vm.IsContinuousRunning, "stop drains execution task");

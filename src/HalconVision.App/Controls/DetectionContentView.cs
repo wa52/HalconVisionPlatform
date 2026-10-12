@@ -19,11 +19,17 @@ public sealed class DetectionContentView : Border, IDisposable
     private readonly TextBlock _empty = new() { Foreground = Brushes.LightGray, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
     private readonly Grid _imageHost = new() { Background = Brushes.Black };
     private readonly HSmartWindowControlWPF _image = new();
+    private readonly Canvas _overlayCanvas = new() { IsHitTestVisible = false, ClipToBounds = true };
+    private readonly StackPanel _layerChoices = new();
+    private readonly Expander _layerEditor = new() { Header = "叠加节点与显示字段（勾选）", Foreground = Brushes.LightGray, Margin = new Thickness(6) };
+    private DetectionOverlayScene _scene = new();
     private readonly DataGrid _values = new() { AutoGenerateColumns = false, IsReadOnly = true, Background = new SolidColorBrush(Color.FromRgb(27, 39, 49)), Foreground = Brushes.LightGray, RowBackground = new SolidColorBrush(Color.FromRgb(27, 39, 49)) };
     private readonly HalconImagePresenter _presenter = new();
     private bool _updating, _disposed, _panning;
     private Point _pointer;
     private int _width, _height;
+    private Guid _lastSource;
+    private string _lastPort = "";
     public DetectionContentSettings Settings { get; private set; }
     public event Action<DetectionContentView>? Changed;
     public event Action<DetectionContentView>? RemoveRequested;
@@ -42,15 +48,19 @@ public sealed class DetectionContentView : Border, IDisposable
         AddButton("移除内容", () => RemoveRequested?.Invoke(this));
         DockPanel.SetDock(_summary, Dock.Top); root.Children.Add(_summary);
         var content = new Grid(); root.Children.Add(content);
-        content.Children.Add(_imageHost); _imageHost.Children.Add(_image); _imageHost.Children.Add(_empty); content.Children.Add(_values);
+        content.Children.Add(_imageHost); _imageHost.Children.Add(_image); _imageHost.Children.Add(_overlayCanvas); _imageHost.Children.Add(_empty); content.Children.Add(_values);
+        _layerEditor.Content = new ScrollViewer { Content = _layerChoices, MaxHeight = 190, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+        DockPanel.SetDock(_layerEditor, Dock.Top); root.Children.Insert(1, _layerEditor);
         _values.Columns.Add(new DataGridTextColumn { Header = "字段", Binding = new System.Windows.Data.Binding("Name"), Width = new DataGridLength(180) });
         _values.Columns.Add(new DataGridTextColumn { Header = "当前值", Binding = new System.Windows.Data.Binding("Value"), Width = new DataGridLength(1, DataGridLengthUnitType.Star), MinWidth = 160 });
         _node.SelectionChanged += (_, _) => Configure(true); _view.SelectionChanged += (_, _) => Configure(true); _field.SelectionChanged += (_, _) => Configure();
         Loaded += (_, _) => Refresh();
+        _image.Loaded += (_, _) => Dispatcher.BeginInvoke(new Action(Refresh), System.Windows.Threading.DispatcherPriority.Loaded);
         SizeChanged += (_, _) => { if (IsLoaded && _width > 0 && _imageHost.IsVisible) Fit(); };
+        _imageHost.SizeChanged += (_, _) => { if (IsLoaded && _width > 0 && _imageHost.IsVisible) Fit(); };
         _imageHost.PreviewMouseWheel += (_, e) => { Zoom(e.Delta > 0 ? 1.15 : 1 / 1.15); e.Handled = true; };
         _imageHost.PreviewMouseLeftButtonDown += (_, e) => { _panning = true; _pointer = e.GetPosition(_imageHost); _imageHost.CaptureMouse(); };
-        _imageHost.PreviewMouseMove += (_, e) => { if (!_panning || e.LeftButton != MouseButtonState.Pressed) return; var point = e.GetPosition(_imageHost); var delta = point - _pointer; _presenter.Pan(_image.HalconWindow, delta.X, delta.Y, _imageHost.ActualWidth, _imageHost.ActualHeight); _pointer = point; };
+        _imageHost.PreviewMouseMove += (_, e) => { if (!_panning || e.LeftButton != MouseButtonState.Pressed) return; var point = e.GetPosition(_imageHost); var delta = point - _pointer; _presenter.Pan(_image.HalconWindow, delta.X, delta.Y, _imageHost.ActualWidth, _imageHost.ActualHeight); _pointer = point; RenderOverlays(); };
         _imageHost.PreviewMouseLeftButtonUp += (_, _) => { _panning = false; _imageHost.ReleaseMouseCapture(); };
         Refresh();
 
@@ -84,11 +94,16 @@ public sealed class DetectionContentView : Border, IDisposable
         _summary.Foreground = NodeResultSummary.Color(result);
         var imageView = Settings.View == "图像";
         _imageHost.Visibility = imageView ? Visibility.Visible : Visibility.Collapsed;
+        _layerEditor.Visibility = imageView ? Visibility.Visible : Visibility.Collapsed;
+        BuildLayerChoices(flow, run);
         _values.Visibility = imageView ? Visibility.Collapsed : Visibility.Visible;
         _values.ItemsSource = Settings.OutputField != "全部" ? rows.Where(row => row.Name == Settings.OutputField || row.Name.StartsWith(Settings.OutputField + "."))
             : Settings.View == "检测结果" ? rows.Where(row => row.Name is "检测结果" or "score" or "count" or "angle" or "length" || row.Name.StartsWith("status.")) : rows;
-        if (!imageView || !IsLoaded || !IsVisible) return;
-        _image.HalconWindow.ClearWindow(); _width = _height = 0;
+        if (!imageView || !IsLoaded || !IsVisible || _image.HalconWindow is null) return;
+        var oldWidth = _width; var oldHeight = _height;
+        var preservePart = oldWidth > 0 && _lastSource == Settings.NodeId && _lastPort == Settings.OutputField;
+        _image.HalconWindow.GetPart(out int oldRow1, out int oldCol1, out int oldRow2, out int oldCol2);
+        _image.HalconWindow.ClearWindow(); _overlayCanvas.Children.Clear(); _scene = new(); _width = _height = 0;
         if (run is null || run.FlowId != flow?.Id || run.RuntimeOutputs is null || !run.RuntimeOutputs.TryGetValue(Settings.NodeId, out var runtime))
         { _empty.Text = "此节点尚无本次运行图像"; _empty.Visibility = Visibility.Visible; return; }
         var iconic = Settings.OutputField == "全部" ? runtime.Values.OfType<HObject>().FirstOrDefault() : runtime.GetValueOrDefault(Settings.OutputField) as HObject;
@@ -107,11 +122,79 @@ public sealed class DetectionContentView : Border, IDisposable
                 _presenter.Display(iconic, _image.HalconWindow, _width, _height, _imageHost.ActualWidth, _imageHost.ActualHeight);
             }
             _empty.Visibility = Visibility.Collapsed;
+            if (preservePart && oldWidth == _width && oldHeight == _height)
+                _image.HalconWindow.SetPart(oldRow1, oldCol1, oldRow2, oldCol2);
+            _lastSource = Settings.NodeId; _lastPort = Settings.OutputField;
+            if (flow is not null) _scene = DetectionOverlayScene.Create(flow, run, Settings, _width, _height);
+            RenderOverlays();
         }
         catch (Exception ex) { _empty.Text = $"图像显示失败：{ex.Message}"; _empty.Visibility = Visibility.Visible; }
     }
 
-    private void Zoom(double factor) { if (!_disposed && _width > 0) _presenter.Zoom(_image.HalconWindow, factor); }
-    private void Fit() { if (!_disposed && _width > 0) _presenter.Fit(_image.HalconWindow, _width, _height, _imageHost.ActualWidth, _imageHost.ActualHeight); }
+    public void SetOverlay(DetectionOverlaySettings layer, bool enabled = true)
+    {
+        if (_disposed) return;
+        var layers = (Settings.Overlays ?? []).Where(item => item.NodeId != layer.NodeId).ToList();
+        if (enabled) layers.Add(layer);
+        Settings = Settings with { Overlays = layers }; Changed?.Invoke(this); Refresh();
+    }
+
+    private void BuildLayerChoices(FlowTabViewModel? flow, WorkflowExecutionRun? run)
+    {
+        _layerChoices.Children.Clear();
+        foreach (var candidate in flow?.Nodes ?? [])
+        {
+            var layer = Settings.Overlays?.FirstOrDefault(item => item.NodeId == candidate.Id);
+            var enabled = layer is not null;
+            layer ??= new(candidate.Id);
+            var row = new WrapPanel { Margin = new Thickness(3) };
+            var select = new CheckBox { Content = candidate.DisplayName, IsChecked = enabled, Width = 150, Foreground = Brushes.White };
+            select.Checked += (_, _) => SetOverlay(layer); select.Unchecked += (_, _) => SetOverlay(layer, false); row.Children.Add(select);
+            var geometry = new CheckBox { Content = "图形", IsChecked = layer.ShowGeometry, IsEnabled = enabled, Foreground = Brushes.Gold, Margin = new Thickness(8, 0, 8, 0) };
+            geometry.Checked += (_, _) => SetOverlay(layer with { ShowGeometry = true }); geometry.Unchecked += (_, _) => SetOverlay(layer with { ShowGeometry = false }); row.Children.Add(geometry);
+            var decision = new CheckBox { Content = "判定", IsChecked = layer.ShowDecision, IsEnabled = enabled, Foreground = Brushes.LightGreen };
+            decision.Checked += (_, _) => SetOverlay(layer with { ShowDecision = true }); decision.Unchecked += (_, _) => SetOverlay(layer with { ShowDecision = false }); row.Children.Add(decision);
+            _layerChoices.Children.Add(row);
+            var fields = new WrapPanel { Margin = new Thickness(20, 0, 0, 3), IsEnabled = enabled };
+            var result = run?.FlowId == flow?.Id ? run?.NodeResults.FirstOrDefault(item => item.NodeId == candidate.Id) : null;
+            var names = NodeOutputValue.From(result, candidate.Definition)
+                .Where(item => item.Name is not "检测结果" and not "运行状态" &&
+                    !item.FullValue.StartsWith('{') && !item.FullValue.StartsWith('['))
+                .Select(item => item.Name).Concat(layer.Fields ?? [])
+                .Concat(["score", "count", "angle", "length"]).Distinct();
+            foreach (var name in names)
+            {
+                var chosen = layer.Fields ?? ["score", "count", "angle", "length"];
+                var check = new CheckBox { Content = name, IsChecked = chosen.Contains(name), Foreground = Brushes.LightGray, Margin = new Thickness(6, 0, 6, 0) };
+                check.Checked += (_, _) => SetOverlay(layer with { Fields = chosen.Append(name).Distinct().ToList() });
+                check.Unchecked += (_, _) => SetOverlay(layer with { Fields = chosen.Where(field => field != name).ToList() }); fields.Children.Add(check);
+            }
+            _layerChoices.Children.Add(fields);
+        }
+    }
+
+    private void RenderOverlays()
+    {
+        _overlayCanvas.Children.Clear();
+        if (_disposed || _width <= 0 || _imageHost.ActualWidth <= 0 || _imageHost.ActualHeight <= 0) return;
+        _image.HalconWindow.GetPart(out int row1, out int col1, out int row2, out int col2);
+        Point Position(Point2D point) => new((point.Column - col1 + 0.5) * _imageHost.ActualWidth / (col2 - col1 + 1d),
+            (point.Row - row1 + 0.5) * _imageHost.ActualHeight / (row2 - row1 + 1d));
+        foreach (var shape in _scene.Geometry)
+            _overlayCanvas.Children.Add(new System.Windows.Shapes.Polyline { Points = new PointCollection(shape.Points.Select(Position)),
+                Stroke = (Brush)new BrushConverter().ConvertFromString(shape.Color)!, StrokeThickness = shape.Color == "Red" ? 2.5 : 1.5, IsHitTestVisible = false });
+        var top = 8d;
+        foreach (var caption in _scene.Captions)
+        {
+            var text = new TextBlock { Text = caption.Text, Foreground = (Brush)new BrushConverter().ConvertFromString(caption.Color)!,
+                Background = new SolidColorBrush(Color.FromArgb(185, 10, 20, 28)), FontSize = 12, Padding = new Thickness(4, 2, 4, 2), TextWrapping = TextWrapping.Wrap,
+                MaxWidth = Math.Max(20, _imageHost.ActualWidth - 16), IsHitTestVisible = false };
+            text.Measure(new Size(text.MaxWidth, double.PositiveInfinity));
+            Canvas.SetLeft(text, 8); Canvas.SetTop(text, top); top += text.DesiredSize.Height + 3; _overlayCanvas.Children.Add(text);
+        }
+    }
+
+    private void Zoom(double factor) { if (!_disposed && _width > 0) { _presenter.Zoom(_image.HalconWindow, factor); RenderOverlays(); } }
+    private void Fit() { if (!_disposed && _width > 0) { _presenter.Fit(_image.HalconWindow, _width, _height, _imageHost.ActualWidth, _imageHost.ActualHeight); RenderOverlays(); } }
     public void Dispose() { if (_disposed) return; _disposed = true; _imageHost.ReleaseMouseCapture(); _image.Dispose(); }
 }

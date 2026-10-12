@@ -25,7 +25,8 @@ public sealed class ProjectStore
         if (panel.Contents is null)
             return ids.TryGetValue(panel.NodeId, out var nodeId) ? panel with { Id = Guid.NewGuid(), NodeId = nodeId } : null;
         var contents = panel.Contents.Where(content => ids.ContainsKey(content.NodeId))
-            .Select(content => content with { Id = Guid.NewGuid(), NodeId = ids[content.NodeId] }).ToList();
+            .Select(content => content with { Id = Guid.NewGuid(), NodeId = ids[content.NodeId],
+                Overlays = content.Overlays?.Where(layer => ids.ContainsKey(layer.NodeId)).Select(layer => layer with { NodeId = ids[layer.NodeId] }).ToList() }).ToList();
         return panel with { Id = Guid.NewGuid(), NodeId = contents.FirstOrDefault()?.NodeId ?? Guid.Empty, Contents = contents };
     }
 
