@@ -110,7 +110,7 @@ public sealed class WorkflowGraphValidator(INodeRegistry registry)
     private static bool MatchesDataType(JsonElement value, string type) => type switch
     {
         "any" => true,
-        "string" or "path" or "camera" or "cameraInterface" or "roiDraw" or "lineDraw" or "edgeTransition" => value.ValueKind == JsonValueKind.String,
+        "string" or "path" or "camera" or "cameraInterface" or "roiDraw" or "lineDraw" or "edgeTransition" or "lineOrientation" => value.ValueKind == JsonValueKind.String,
         "number" => value.ValueKind == JsonValueKind.Number,
         "bool" => value.ValueKind is JsonValueKind.True or JsonValueKind.False,
         "object" => value.ValueKind == JsonValueKind.Object,

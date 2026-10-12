@@ -10,12 +10,14 @@ public sealed record Line2D(double RowBegin, double ColumnBegin, double RowEnd, 
 public sealed record Point2D(double Row, double Column);
 
 public sealed record PointSet(IReadOnlyList<Point2D> Points);
+public sealed record Rectangle2D(double RowBegin, double ColumnBegin, double RowEnd, double ColumnEnd);
 
 public sealed record GeometryOverlay(
     Line2D ReferenceLine,
     Line2D? FittedLine,
     IReadOnlyList<IReadOnlyList<Point2D>> MeasureRegions,
-    PointSet EdgePoints);
+    PointSet EdgePoints,
+    Rectangle2D? SearchRegion = null);
 
 public sealed record LineFindStatus(string Code, string Message)
 {

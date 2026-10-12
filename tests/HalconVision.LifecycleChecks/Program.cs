@@ -29,6 +29,15 @@ internal static class Program
     [STAThread]
     private static void Main(string[] args)
     {
+        if (args.FirstOrDefault() == "--rectangle-line-check")
+        {
+            _root = Path.GetFullPath(args.ElementAtOrDefault(1) ?? "artifacts/rectangle-line-check");
+            Directory.CreateDirectory(_root);
+            try { CheckRectangleLine(); File.WriteAllLines(Path.Combine(_root, "result.txt"), Evidence); }
+            catch (Exception ex) { Console.WriteLine(ex); Environment.ExitCode = 1; }
+            foreach (var line in Evidence) Console.WriteLine(line);
+            return;
+        }
         _root = Path.GetFullPath(args.FirstOrDefault() ?? "artifacts/lifecycle-checks");
         Directory.CreateDirectory(_root);
         var externalProject = args.ElementAtOrDefault(1);
@@ -71,6 +80,66 @@ internal static class Program
         _app.Run();
     }
 
+    private static void CheckRectangleLine()
+    {
+        var definition = new HalconNodeProvider().GetDefinitions().Single(item => item.TypeId == HalconNodeProvider.StraightLineFind);
+        Assert(definition.Parameters.Any(item => item.Id == "roi" && item.DataType == "roiDraw"), "line node exposes a drawable rectangle search region");
+        using var blank = new HImage(); blank.GenImageConst("byte", 256, 256);
+        using var bright = new HRegion(); bright.GenRectangle1(0d, 120d, 255d, 255d);
+        using var outsideEdge = new HRegion(); outsideEdge.GenRectangle1(0d, 30d, 255d, 50d);
+        using var brightWithDistractor = bright.Union2(outsideEdge);
+        using var stepImage = blank.PaintRegion(brightWithDistractor, 255d, "fill");
+        var parameters = definition.Parameters.ToDictionary(item => item.Id, item => item.DefaultValue!.Value);
+        parameters["roi"] = JsonSerializer.SerializeToElement("40,90,210,150");
+        parameters["lineOrientation"] = JsonSerializer.SerializeToElement("vertical");
+        parameters["measureThreshold"] = JsonSerializer.SerializeToElement(10d);
+        var node = new NodeInstance { TypeId = HalconNodeProvider.StraightLineFind, Parameters = parameters };
+        var result = new HalconStraightLineFindExecutor().ExecuteAsync(new NodeExecutionContext(node,
+            new Dictionary<string, JsonElement> { ["image"] = JsonSerializer.SerializeToElement(new { width = 256, height = 256, count = 1 }) },
+            CancellationToken.None, _ => { }, new Dictionary<string, object?> { ["image"] = stepImage })).Result;
+        try
+        {
+            var line = result.RuntimePorts!["line"] as Line2D;
+            Assert(line is not null && Math.Abs(line.ColumnBegin - 120) < 2 && Math.Abs(line.ColumnEnd - 120) < 2, "rectangle detects the real vertical edge");
+            Assert(((PointSet)result.RuntimePorts["edgePoints"]!).Points.All(point => point.Row >= 40 && point.Row <= 210 && point.Column >= 90 && point.Column <= 150),
+                "strong distractor edges outside the rectangle do not enter the fit");
+            var contour = (HXLDCont)result.RuntimePorts["lines"]!;
+            contour.GetContourXld(out HTuple rows, out HTuple columns);
+            using (rows) using (columns) Assert(rows.Length == 2 && contour.CountObj() == 1, "fitted output is exactly one straight segment with two endpoints");
+            var preview = (HImage)result.RuntimePorts["preview"]!;
+            using var red = preview.AccessChannel(1);
+            using var green = preview.AccessChannel(2);
+            using var redValue = red.GetGrayval(125, 118);
+            using var greenValue = green.GetGrayval(125, 118);
+            Assert(redValue.D == 255 && greenValue.D == 0, "final red fitted line is visibly thick rather than a one-pixel contour");
+            preview.WriteImage("png", 0, Path.Combine(_root, "rectangle-line.png"));
+        }
+        finally
+        {
+            var released = new HashSet<object>(ReferenceEqualityComparer.Instance);
+            foreach (var value in result.RuntimePorts!.Values)
+                if (value is IDisposable disposable && released.Add(value)) disposable.Dispose();
+        }
+        using var horizontalBright = new HRegion(); horizontalBright.GenRectangle1(120d, 0d, 255d, 255d);
+        using var horizontalImage = blank.PaintRegion(horizontalBright, 255d, "fill");
+        parameters["roi"] = JsonSerializer.SerializeToElement("90,40,150,210");
+        parameters["lineOrientation"] = JsonSerializer.SerializeToElement("horizontal");
+        var horizontalResult = new HalconStraightLineFindExecutor().ExecuteAsync(new NodeExecutionContext(node,
+            new Dictionary<string, JsonElement> { ["image"] = JsonSerializer.SerializeToElement(new { width = 256, height = 256, count = 1 }) },
+            CancellationToken.None, _ => { }, new Dictionary<string, object?> { ["image"] = horizontalImage })).Result;
+        try
+        {
+            var line = horizontalResult.RuntimePorts!["line"] as Line2D;
+            Assert(line is not null && Math.Abs(line.RowBegin - 120) < 2 && Math.Abs(line.RowEnd - 120) < 2, "horizontal direction detects a horizontal line inside the rectangle");
+        }
+        finally
+        {
+            var released = new HashSet<object>(ReferenceEqualityComparer.Instance);
+            foreach (var value in horizontalResult.RuntimePorts!.Values)
+                if (value is IDisposable disposable && released.Add(value)) disposable.Dispose();
+        }
+    }
+
     private static async Task CheckExternalProjectAsync(MainWindow window, string path)
     {
         var vm = (WorkflowWorkspaceViewModel)window.DataContext;
@@ -86,20 +155,19 @@ internal static class Program
         using var image = new HImage(firstImage);
         image.GetImageSize(out int width, out int height);
         var detectorView = flow.Nodes.Single(node => node.Id == detector.Id);
-        var lineParameter = detectorView.Parameters.Single(parameter => parameter.IsLineDraw);
+        var lineParameter = detectorView.Parameters.Single(parameter => parameter.IsRoiDraw);
         flow.SelectNode(detector.Id, false);
-        typeof(MainWindow).GetMethod("DrawReferenceLine_Click", BindingFlags.Instance | BindingFlags.NonPublic)!
+        typeof(MainWindow).GetMethod("DrawRoi_Click", BindingFlags.Instance | BindingFlags.NonPublic)!
             .Invoke(window, [new Button { Tag = lineParameter }, new RoutedEventArgs()]);
         Assert(Field<Canvas>(window, "RoiDrawingOverlay").Visibility == Visibility.Visible,
-            "1900 reference-line action displays the source image and activates the drawing overlay");
-        lineParameter.ValueText = "417,2196,1575,2196";
+            "1900 draw-rectangle action displays the source image and activates the drawing overlay");
+        lineParameter.ValueText = detector.Parameters["roi"].GetString()!;
         lineParameter.Commit();
         typeof(MainWindow).GetMethod("FinishRoiDrawing", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(window, []);
         Assert(Field<Canvas>(window, "RoiDrawingOverlay").Visibility == Visibility.Collapsed &&
             Field<Rectangle>(window, "RoiPreviewRectangle").Visibility == Visibility.Collapsed,
-            "1900 reference-line overlay is removed when drawing ends");
-        Assert(lineParameter.Error is null, "1900 reference-line editor commits image coordinates as a string parameter");
-        flow.SetParameter(detector.Id, "referenceLine", JsonSerializer.SerializeToElement(string.Empty));
+            "1900 drawing overlay is removed when drawing ends");
+        Assert(lineParameter.Error is null, "1900 rectangle editor commits image coordinates as a string parameter");
         flow.SetParameter(source.Id, "path", JsonSerializer.SerializeToElement(firstImage));
         var actualNode = flow.Document.Nodes.Single(node => node.Id == detector.Id);
         var imageMetadata = JsonSerializer.SerializeToElement(new { count = 1, width, height, channels = 3 });
@@ -110,6 +178,7 @@ internal static class Program
         Assert(directCompleted, "1900 direct 2D Metrology execution completes within 30 seconds");
         var directOutput = await directExecution;
         var directStatus = (LineFindStatus)directOutput.RuntimePorts!["status"]!;
+        Assert(directStatus.Code == LineFindStatus.Found, "1900 stored rectangle detects a line with the displayed default parameters");
         Evidence.Add($"DETAIL: direct status={directStatus.Code}; line={directOutput.RuntimePorts["line"]}; edges={(directOutput.RuntimePorts["edgePoints"] as PointSet)?.Points.Count}");
         var directDisposed = new HashSet<object>(ReferenceEqualityComparer.Instance);
         foreach (var value in directOutput.RuntimePorts.Values)
@@ -117,7 +186,7 @@ internal static class Program
         using var blank = new HImage();
         blank.GenImageConst("byte", 100, 100);
         var noLineNode = actualNode with { Parameters = new Dictionary<string, JsonElement>
-            { ["referenceLine"] = JsonSerializer.SerializeToElement("50,10,50,90") } };
+            { ["roi"] = JsonSerializer.SerializeToElement("10,10,90,90"), ["lineOrientation"] = JsonSerializer.SerializeToElement("horizontal") } };
         var noLineOutput = await Task.Run(() => new HalconStraightLineFindExecutor().ExecuteAsync(new NodeExecutionContext(
             noLineNode, new Dictionary<string, JsonElement> { ["image"] = JsonSerializer.SerializeToElement(new { count = 1, width = 100, height = 100, channels = 1 }) },
             CancellationToken.None, _ => { }, new Dictionary<string, object?> { ["image"] = blank })).AsTask());
@@ -126,8 +195,6 @@ internal static class Program
         var noLineDisposed = new HashSet<object>(ReferenceEqualityComparer.Instance);
         foreach (var value in noLineOutput.RuntimePorts.Values)
             if (value is IDisposable disposable && noLineDisposed.Add(value)) disposable.Dispose();
-        flow.SetParameter(detector.Id, "referenceLine", JsonSerializer.SerializeToElement("417,2196,1575,2196"));
-        flow.SetParameter(detector.Id, "measureLength1", JsonSerializer.SerializeToElement(220d));
         flow.SetParameter(detector.Id, "measureThreshold", JsonSerializer.SerializeToElement(5d));
         flow.SetParameter(detector.Id, "minScore", JsonSerializer.SerializeToElement(0.2d));
         Assert(flow.ValidationIssues.Count == 0, "1900 flow validation refreshes after ROI coordinates are committed");
@@ -146,6 +213,15 @@ internal static class Program
         ((HImage)resultValue!).WriteImage("png", 0, Path.Combine(_root, "1900-line-result.png"));
         Assert(outputs.TryGetValue("lines", out var linesValue) && linesValue is HXLDCont lines && lines.IsInitialized() && lines.CountObj() > 0,
             "1900 2D Metrology line-find returns non-empty fitted-line XLD contours");
+        var fittedContour = (HXLDCont)outputs["lines"]!;
+        fittedContour.GetContourXld(out HTuple fittedRows, out HTuple fittedColumns);
+        using (fittedRows) using (fittedColumns)
+            Assert(fittedContour.CountObj() == 1 && fittedRows.Length == 2, "1900 output is exactly one fitted straight line");
+        var searchOverlay = (GeometryOverlay)outputs["overlay"]!;
+        Assert(searchOverlay.SearchRegion is not null && searchOverlay.EdgePoints.Points.All(point =>
+            point.Row >= searchOverlay.SearchRegion.RowBegin && point.Row <= searchOverlay.SearchRegion.RowEnd &&
+            point.Column >= searchOverlay.SearchRegion.ColumnBegin && point.Column <= searchOverlay.SearchRegion.ColumnEnd),
+            "1900 fitted edge samples are restricted to the drawn rectangle");
         Assert(outputs.TryGetValue("status", out var statusValue) && statusValue is LineFindStatus { Code: LineFindStatus.Found },
             "1900 2D Metrology emits structured FOUND status");
         Assert(outputs.TryGetValue("edgePoints", out var pointsValue) && pointsValue is PointSet { Points.Count: > 0 },
@@ -156,8 +232,10 @@ internal static class Program
             "1900 final node result is selected and shown in the image preview");
         var count = outputs["lines"] is HXLDCont contours ? contours.CountObj() : -1;
         Evidence.Add($"DETAIL: 1900 source={Path.GetFileName(firstImage)}; size={width}x{height}; lines={count}; project not saved");
-        var retainedObjects = Objects(run);
-        vm.Dispose();
+        var retainedObjects = Objects(run).ToArray();
+        flow.MarkSaved(); // In-memory test edits are disposable; do not save the user's project.
+        window.Close();
+        await UntilAsync(() => !window.IsVisible);
         Assert(retainedObjects.All(value => !value.IsInitialized()), "workspace shutdown releases retained HALCON images and contours");
     }
 
