@@ -1,42 +1,61 @@
 # HalconVisionPlatform
 
-HALCON 24.11 x64 / .NET 8 WPF 节点式视觉工作台。当前目标是先完成流程编辑、项目保存和 HALCON 图像数据通路；相机、PLC、HDevEngine 和产线验收尚未接入。
+基于 HALCON 24.11 x64、.NET 8 和 WPF 的节点式视觉检测工作台。
 
-## 当前能力
+## 当前功能
 
-- 新建 `.hvproj` 单文件项目。空白项目立即包含一个空的“主流程”；流程和项目元数据保存在同一个项目文件中，不额外创建项目目录、流程目录或运行记录目录。
-- 打开 `.hvproj` 项目文件，保存当前流程到该文件。旧版 `project.json` 项目仍可打开。
-- 可扩展节点注册、节点画布、端口连线、属性编辑、撤销/重做、流程校验和顺序执行。
-- HALCON 节点库包含读取图像、二值化、Blob 分析和直线查找。图像读取支持单张图像或一个文件夹中的图像序列；二值化使用 HALCON `Threshold`，RGB 输入先转换为灰度；Blob 分析使用 `Connection`、`SelectShape` 和 `CountObj`。直线查找可在图像预览上拖拽绘制检测矩形，并配置逆时针方向角、角度容差、平滑尺度和阈值；执行时使用 `LinesGauss` 限定区域及方向筛选，输出标注图像、XLD 轮廓和数量。
-- 主图像窗和独立图像窗都支持适应窗口、按钮缩放、滚轮缩放，以及按住鼠标左键拖动平移。
-- HALCON `HImage` / `HRegion` 仅在流程运行期间传递，不写入项目文件。
+- **项目**：新建空白 `.hvproj` 单文件项目，支持多个流程、保存和重新打开；双击关联的项目文件直接加载默认流程、节点、连线和参数。兼容旧版项目格式。
+- **流程编辑**：节点库、紧凑节点、端口拖动连线、节点移动、复制、Delete 删除、撤销/重做、缩放、平移、流程校验和依赖顺序执行。
+- **图像读取**：单张图片或文件夹序列；文件夹按文件名顺序读取，每次单次运行切换下一张。目录不递归扫描。
+- **二值化与 Blob**：HALCON Threshold；RGB 图像先灰度转换。Blob 使用 Connection、SelectShape 和 CountObj。
+- **直线查找**：在图像上绘制矩形搜索范围，配置方向、测量卡尺和边缘参数，通过 HALCON 2D Metrology 寻边并拟合直线。显示搜索矩形和延伸到矩形边界的拟合线，输出坐标、角度、长度、评分及 FOUND/NOT_FOUND 状态。
+- **相机采集**：选择本机可用的 HALCON 采集接口、扫描设备、连接/断开、连接预览。DirectShow 用于 Windows 摄像头；采集节点每次执行取一帧。
+- **运行控制**：单次运行、连续运行和停止；连续执行支持文件夹回放及相机流程，防止重复启动。
+- **图像交互**：适应窗口、缩放按钮、滚轮缩放和拖动平移；可查看节点输出图像。
+- **检测模式**：选择一张底图，在同一视口组合多个节点的图形、判定和数值。常用字段为评分、角度、长度、数量；“高级数据（坐标）”折叠区提供直线起终点坐标。完整节点输出仍可供后续计算使用。
+- **配置与资源**：底图、叠加节点和字段选择随项目保存；复制/导入流程重映射节点引用。HALCON 运行对象不写入项目文件，重跑、项目切换和关闭时集中释放。
 
-## 构建与运行
+## 使用方式
 
-要求 Windows x64、.NET 8 SDK、HALCON 24.11 x64 Runtime，以及由本机环境提供的 HALCON 运行配置。HALCON 包版本为 `24111.0.0`。
+1. 新建或打开 `.hvproj` 项目，从节点库添加读取图像或相机采集节点。
+2. 连接二值化、Blob 或直线查找节点，在属性区配置参数；直线查找先绘制矩形。
+3. 点击“单次运行”检查链路，使用“连续运行”和“停止”控制循环。
+4. 进入“检测模式”，选择底图，展开“叠加节点与显示字段”，勾选多个节点及所需数据。
+5. 保存项目。显示选择与算法参数一同保存在项目文件内。
+
+## 构建与部署
+
+要求 Windows x64、.NET 8 SDK 和本机 HALCON 24.11 x64 运行环境。MVTec 包版本为 `24111.0.0`。
 
 ```powershell
-dotnet build .\HalconVisionPlatform.sln
-dotnet run --project .\src\HalconVision.App\HalconVision.App.csproj
+dotnet build src/HalconVision.App/HalconVision.App.csproj -c Release
+dotnet run --project src/HalconVision.App/HalconVision.App.csproj
 ```
 
-选择“新建”后指定 `.hvproj` 文件路径即可得到空白项目。使用“打开”选择该文件，使用“保存”将所有流程写回项目文件。
-
-### 桌面入口与项目文件关联
-
-发布后统一安装到固定的 `artifacts/desktop` 目录，更新桌面快捷方式及 `.hvproj` 打开命令：
+发布并更新桌面快捷方式及 `.hvproj` 文件关联：
 
 ```powershell
 dotnet publish src/HalconVision.App/HalconVision.App.csproj -c Release -m:1 -o artifacts/publish
 powershell -NoProfile -File tools/InstallDesktop.ps1 -PublishedDirectory artifacts/publish
 ```
 
-双击项目文件会直接加载其中的默认流程、节点、连线和参数。安装脚本保留旧 `delete-shortcut` 发布目录的备份，并将旧入口转到固定安装目录，兼容资源管理器缓存的旧打开方式。后续发布继续使用同一安装目录。脚本不改写 Windows 的受保护默认应用选择；仍被其他应用占用时，在文件属性的“打开方式”中选择本平台。
+脚本默认安装到 `artifacts/desktop`；也可显式指定项目 artifacts 下的安装目录。更新后关闭旧版本，再通过快捷方式或项目文件启动。脚本不覆盖 Windows 受保护的默认应用选择；必要时在“打开方式”中手动选择本平台。
 
-## 当前边界
+## 验证与边界
 
-图像读取目录按文件名顺序读取当前目录下支持的图像，不递归扫描子目录。项目中的图像路径保持为用户选择的本机路径。相机、PLC、HDevEngine、生产配方管理和检测追溯仍需后续开发。
+已完成独立 HALCON 算子调用、真实图片直线查找、WPF 显示及生命周期回归。2026-10-12 同图叠加版本通过 47 项真实图片检查和 39 项生命周期检查；包含 200 次执行释放 400 个旧图像/区域、连续刷新、反复启停和关闭清理。2026-10-13 文档同步了后续的常用/高级字段调整；这次文档更新未重新运行测试。
 
-HALCON 真实调用的本机证据见 [docs/evidence/HALCON_SMOKE_TEST.md](docs/evidence/HALCON_SMOKE_TEST.md)；阶段与限制见 [docs/LOOP.md](docs/LOOP.md)。
+相机生命周期回归使用 HALCON 官方 File 采集接口，不能替代真实物理相机及驱动验收。相机可用性取决于本机接口、驱动、设备占用和配置。PLC/IO、HDevEngine、生产追溯、权限和长时间产线验收尚未完成。
 
-项目路线：[docs/PLAN.md on GitHub](https://github.com/wa52/HalconVisionPlatform/blob/main/docs/PLAN.md)。
+图像路径仍为本机路径。叠加图形要求共同图像来源及匹配尺寸；裁剪、旋转、重采样后的坐标变换尚未实现。找到/未找到与执行成功是不同状态，结果应结合实际样品和参数判断。
+
+## 文档
+
+- [架构与资源生命周期](docs/ARCHITECTURE.md)
+- [开发计划及当前进度](docs/PLAN.md)
+- [运行环境与验证边界](docs/COMPATIBILITY.md)
+- [开发历史](docs/LOOP.md)
+- [VisionInspection 显示实现参考](docs/VISION_INSPECTION_DISPLAY_REFERENCE.md)
+- [同图叠加验收](docs/evidence/overlay-display.md)
+- [UI 与生命周期验收](docs/evidence/ui-lifecycle-20261012.md)
+- [HALCON 独立调用证据](docs/evidence/HALCON_SMOKE_TEST.md)

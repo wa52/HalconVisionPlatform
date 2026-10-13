@@ -1,20 +1,28 @@
-# Compatibility and local validation
+# 运行环境与验证边界
 
-## Intended baseline
+更新：2026-10-13。
 
-| Component | Baseline | Evidence |
+| 组件 | 当前基线 | 验证范围 |
 | --- | --- | --- |
-| HALCON | 24.11.1.1 Progress-Steady, x64 | Local `%HALCONROOT%\version.txt` and `%HALCONARCH%` |
-| .NET | .NET 8 build target | Local .NET SDK inventory; solution build |
-| UI | WPF + `HSmartWindowControlWPF` | MVTec Programmer's Guide, HALCON/.NET WPF integration section |
-| License | Not yet validated | Local `license` directory contains only the vendor placeholder `license.txt`; no `license*.dat` was found. A license server or dongle is not ruled out. |
+| HALCON | 24.11.1.1 Progress-Steady，x64-win64 | 本机版本记录及实际算子运行 |
+| .NET | .NET 8，x64 Windows | WPF 工程构建、独立 HALCON 调用及运行回归 |
+| 托管包 | MVTec.HalconDotNet / MVTec.HalconDotNet-Windows，24111.0.0 | 以项目包引用为准 |
+| 图像显示 | HSmartWindowControlWPF + WPF Canvas | 真实图片、同图叠加、缩放、平移和配置恢复检查 |
+| 相机 | 本机 HALCON 可用采集接口，包括 DirectShow | 已实现发现、扫描、连接与取帧；自动生命周期回归使用官方 File 接口 |
 
-## Open gates
+## 已有证据
 
-- The solution builds against the cached `MVTec.HalconDotNet-Windows` package `24111.0.0` and `MVTec.HalconDotNet` package `24111.0.0`.
-- Run on the target Windows x64 machine and verify native runtime loading.
-- Run one real operator with a valid license and capture the result.
-- Verify image format behavior and WPF display against local HALCON examples.
-- Confirm the license mechanism; absence of a local license file does not rule out a configured license server.
+- [独立 C# 调用](evidence/HALCON_SMOKE_TEST.md)：读取官方图片、threshold、connection、count_obj 成功。
+- [同图叠加回归](evidence/overlay-display.md)：真实 1900 图片链路及资源生命周期检查；该记录明确列出测试时的参数调整。
+- [UI 与生命周期](evidence/ui-lifecycle-20261012.md)：项目加载、运行控制、采集句柄和关闭清理。
 
-HALCON and camera runtime binaries and license files must not be committed.
+这些证据反映指定机器和测试条件。HALCON 调用未出现授权错误；未修改 HALCON 安装、许可证或授权机制，不能仅由算子成功推断其他机器及部署环境的许可状态。
+
+## 待验收范围
+
+- 每种真实物理相机及采集接口的驱动、设备识别、触发、超时和断线恢复。
+- 新机器的 HALCON 原生库加载、位数、运行环境及部署配置。
+- 跨裁剪、旋转、重采样节点的图形坐标变换。
+- PLC/IO、HDevEngine、产线节拍、长时间稳定性及现场验收。
+
+HALCON/相机运行库、许可证及本机检测图片不提交到仓库。

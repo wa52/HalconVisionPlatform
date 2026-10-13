@@ -1,5 +1,14 @@
 # Development loop · 2026-10-11
 
+## 当前进度索引 · 2026-10-13
+
+下文各轮记录是当时的实现及限制，保留历史含义。最新功能以 [README](../README.md) 和 [ARCHITECTURE](ARCHITECTURE.md) 为准。
+
+- HALCON 节点已包含图像读取、二值化、Blob、2D Metrology 直线查找和相机采集；已支持单次、连续、停止和单文件项目。
+- 检测模式已支持同图多节点图形/判定/数值叠加；常用数据采用中文选项，高级坐标折叠显示。
+- [同图显示及资源验收](evidence/overlay-display.md)：2026-10-12 记录 47 项真实图片检查和 39 项生命周期检查。
+- 后续常用/高级字段调整已编译发布；本次文档同步未重新执行测试。PLC/IO、HDevEngine、真实设备及产线长时间验收仍需推进。
+
 ## Round 1: HALCON offline slice
 
 **Goal:** establish an independent solution and prove the planned WPF/.NET/HALCON route compiles with the locally installed HALCON 24.11.1.1 Progress-Steady files.
