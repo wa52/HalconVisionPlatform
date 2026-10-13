@@ -32,6 +32,13 @@ public sealed record NodeOutputValue(string Name, string DataType, string Value,
             rows.Add(new(name, type, display, full));
             if (value.ValueKind == JsonValueKind.Object)
                 foreach (var field in value.EnumerateObject()) Add($"{name}.{field.Name}", field.Value.ValueKind.ToString(), field.Value);
+            if (value.ValueKind == JsonValueKind.Array && name is "objects" or "classes")
+            {
+                var index = 0;
+                foreach (var item in value.EnumerateArray().Take(200)) Add($"{name}[{index++}]", item.ValueKind.ToString(), item);
+                if (value.GetArrayLength() > 200)
+                    rows.Add(new($"{name}.显示说明", "说明", "仅展开前 200 项，选中数组行复制完整数据", full));
+            }
         }
     }
 }

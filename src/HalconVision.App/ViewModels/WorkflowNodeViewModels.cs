@@ -46,18 +46,19 @@ public sealed class NodeParameterViewModel : ObservableModel
     public string Name => Definition.Name;
     public string DataType => Definition.DataType;
     public bool IsPath => string.Equals(DataType, "path", StringComparison.Ordinal);
+    public bool IsModelPackage => Definition.Id == "modelPackage";
     public bool IsRoiDraw => string.Equals(DataType, "roiDraw", StringComparison.Ordinal);
     public bool IsLineDraw => string.Equals(DataType, "lineDraw", StringComparison.Ordinal);
     public bool IsBoolean => string.Equals(DataType, "bool", StringComparison.Ordinal);
-    public bool IsTransition => DataType is "edgeTransition" or "lineOrientation";
-    public IReadOnlyList<string> TransitionChoices => DataType == "lineOrientation"
+    public bool IsTransition => DataType is "edgeTransition" or "lineOrientation" or "dlDevice";
+    public IReadOnlyList<string> TransitionChoices => DataType == "dlDevice" ? ["GPU", "CPU"] : DataType == "lineOrientation"
         ? ["自动（矩形长边方向）", "水平直线", "垂直直线"] : ["全部边缘", "暗到亮", "亮到暗"];
     public string SelectedTransition
     {
-        get => DataType == "lineOrientation"
+        get => DataType == "dlDevice" ? ValueText.ToUpperInvariant() : DataType == "lineOrientation"
             ? ValueText switch { "horizontal" => "水平直线", "vertical" => "垂直直线", _ => "自动（矩形长边方向）" }
             : ValueText switch { "positive" => "暗到亮", "negative" => "亮到暗", _ => "全部边缘" };
-        set { ValueText = value switch { "水平直线" => "horizontal", "垂直直线" => "vertical", "自动（矩形长边方向）" => "auto", "暗到亮" => "positive", "亮到暗" => "negative", _ => "all" }; Commit(); }
+        set { ValueText = value switch { "GPU" => "gpu", "CPU" => "cpu", "水平直线" => "horizontal", "垂直直线" => "vertical", "自动（矩形长边方向）" => "auto", "暗到亮" => "positive", "亮到暗" => "negative", _ => "all" }; Commit(); }
     }
     public bool BooleanValue
     {
@@ -74,7 +75,7 @@ public sealed class NodeParameterViewModel : ObservableModel
         {
             var element = Definition.DataType switch
             {
-                "string" or "path" or "camera" or "cameraInterface" or "roiDraw" or "lineDraw" or "edgeTransition" or "lineOrientation" => JsonSerializer.SerializeToElement(ValueText),
+                "string" or "path" or "camera" or "cameraInterface" or "roiDraw" or "lineDraw" or "edgeTransition" or "lineOrientation" or "dlDevice" => JsonSerializer.SerializeToElement(ValueText),
                 "number" when double.TryParse(ValueText, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) && double.IsFinite(number) => JsonSerializer.SerializeToElement(number),
                 "bool" when bool.TryParse(ValueText, out var boolean) => JsonSerializer.SerializeToElement(boolean),
                 _ => throw new FormatException($"请输入有效的 {Definition.DataType} 值。")

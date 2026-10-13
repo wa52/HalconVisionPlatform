@@ -13,9 +13,30 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
     public const string Threshold = "halcon.threshold";
     public const string BlobAnalysis = "halcon.blob-analysis";
     public const string StraightLineFind = "halcon.straight-line-find";
+    public const string SemanticSegmentation = "halcon.semantic-segmentation";
 
     public IEnumerable<NodeDefinition> GetDefinitions()
     {
+        yield return new NodeDefinition(
+            SemanticSegmentation, 1, "深度学习", "语义分割检测", "加载 HalconTrainingPlatform 模型目录，按训练预处理进行分割，输出原图坐标的掩膜与目标区域。",
+            [new("image", "Image", PortDirection.Input, "halcon.image", Required: true),
+             new("preview", "检测预览", PortDirection.Output, "halcon.image"),
+             new("mask", "类别掩膜", PortDirection.Output, "halcon.image"),
+             new("regions", "目标区域", PortDirection.Output, "halcon.region"),
+             new("count", "区域数量", PortDirection.Output, "number"),
+             new("area", "目标总面积", PortDirection.Output, "number"),
+             new("objects", "目标几何数据", PortDirection.Output, "vision.segmentation-objects"),
+             new("classes", "类别面积统计", PortDirection.Output, "vision.segmentation-classes"),
+             new("status", "检测状态", PortDirection.Output, "inspection.result"),
+             new("modelInfo", "模型与推理信息", PortDirection.Output, "object")],
+            [new("modelPackage", "训练模型目录", "path", true, JsonSerializer.SerializeToElement("")),
+             new("deviceRuntime", "推理设备", "dlDevice", true, JsonSerializer.SerializeToElement("gpu")),
+             new("deviceIndex", "设备索引（从 0 开始）", "number", true, JsonSerializer.SerializeToElement(0)),
+             new("backgroundClassIds", "背景类别 ID（逗号分隔）", "string", false, JsonSerializer.SerializeToElement("0")),
+             new("targetClassIds", "目标类别 ID（留空为非背景类）", "string", false, JsonSerializer.SerializeToElement("")),
+             new("minimumArea", "最小区域面积（原图像素）", "number", true, JsonSerializer.SerializeToElement(1d)),
+             new("maximumArea", "最大区域面积（原图像素）", "number", true, JsonSerializer.SerializeToElement(1_000_000_000d))]);
+
         yield return new NodeDefinition(
             ImageRead, 1, "图像输入", "读取图像", "使用 HALCON 读取单张图像或文件夹中的图像序列，输出运行期 HImage 对象。",
             [new PortDefinition("image", "Image", PortDirection.Output, "halcon.image")],

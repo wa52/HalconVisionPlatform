@@ -640,7 +640,7 @@ public partial class MainWindow : Window
         string? selectedPath;
         if (string.Equals(button.Content?.ToString(), "选文件夹…", StringComparison.Ordinal))
         {
-            var folderDialog = new OpenFolderDialog { Title = "选择包含图像的文件夹", Multiselect = false };
+            var folderDialog = new OpenFolderDialog { Title = parameter.IsModelPackage ? "选择训练平台导出的模型目录" : "选择包含图像的文件夹", Multiselect = false };
             if (folderDialog.ShowDialog(this) != true) return;
             selectedPath = folderDialog.FolderName;
         }
@@ -648,8 +648,8 @@ public partial class MainWindow : Window
         {
             var dialog = new OpenFileDialog
             {
-                Title = "选择 HALCON 输入图像",
-                Filter = "图像文件|*.bmp;*.png;*.jpg;*.jpeg;*.tif;*.tiff;*.jp2|所有文件|*.*",
+                Title = parameter.IsModelPackage ? "选择训练模型目录中的文件" : "选择 HALCON 输入图像",
+                Filter = parameter.IsModelPackage ? "模型目录入口|manifest.json;model.hdl|所有文件|*.*" : "图像文件|*.bmp;*.png;*.jpg;*.jpeg;*.tif;*.tiff;*.jp2|所有文件|*.*",
                 CheckFileExists = true,
                 FileName = File.Exists(parameter.ValueText) ? parameter.ValueText : string.Empty
             };
@@ -660,6 +660,7 @@ public partial class MainWindow : Window
         selectedPath = Path.GetFullPath(selectedPath);
         parameter.ValueText = selectedPath;
         parameter.Commit();
+        if (parameter.IsModelPackage) { _vm.Log($"已选择语义分割模型：{selectedPath}"); return; }
         var previewPath = Directory.Exists(selectedPath)
             ? EnumerateImageFiles(selectedPath).FirstOrDefault()
             : selectedPath;
