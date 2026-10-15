@@ -660,7 +660,7 @@ public partial class MainWindow : Window
         selectedPath = Path.GetFullPath(selectedPath);
         parameter.ValueText = selectedPath;
         parameter.Commit();
-        if (parameter.IsModelPackage) { _vm.Log($"已选择语义分割模型：{selectedPath}"); return; }
+        if (parameter.IsModelPackage) { _vm.Log($"已选择检测模型：{selectedPath}"); return; }
         var previewPath = Directory.Exists(selectedPath)
             ? EnumerateImageFiles(selectedPath).FirstOrDefault()
             : selectedPath;
@@ -737,13 +737,14 @@ public partial class MainWindow : Window
     private void DrawRoi_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: NodeParameterViewModel parameter } ||
-            _vm.SelectedFlow?.SelectedNode is not { TypeId: HalconNodeProvider.StraightLineFind } lineNode) return;
+            _vm.SelectedFlow?.SelectedNode is not { } lineNode ||
+            lineNode.TypeId is not (HalconNodeProvider.StraightLineFind or HalconNodeProvider.SemanticSegmentation or HalconNodeProvider.Classification)) return;
         var flow = _vm.SelectedFlow;
         var edge = flow.Document.Edges.FirstOrDefault(item => item.ToNodeId == lineNode.Id && item.ToPortId == "image");
         var sourceNode = edge is null ? null : flow.Document.Nodes.FirstOrDefault(item => item.Id == edge.FromNodeId);
         if (sourceNode is null)
         {
-            MessageBox.Show(this, "请先将读取图像或相机采集节点连接到直线查找节点。", "绘制检测范围", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(this, "请先为当前检测节点连接 Image 输入。", "绘制检测范围", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 
@@ -751,7 +752,7 @@ public partial class MainWindow : Window
         {
             var displayed = false;
             if (_vm.LastRun is { } run && run.FlowId == flow.Id && run.RuntimeOutputs?.TryGetValue(sourceNode.Id, out var runtime) == true &&
-                runtime.TryGetValue("image", out var imageValue) && imageValue is HImage image)
+                runtime.TryGetValue(edge!.FromPortId, out var imageValue) && imageValue is HImage image)
             {
                 if (image.CountObj() > 1)
                 {
@@ -786,7 +787,7 @@ public partial class MainWindow : Window
 
             if (!displayed)
             {
-                MessageBox.Show(this, "相机图像需先单次运行采集节点；读取图像节点请先设置有效的图像路径。", "绘制检测范围", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(this, "请先运行上游节点生成输入图像；读取图像节点也可直接设置有效的图像路径。", "绘制检测范围", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -805,6 +806,14 @@ public partial class MainWindow : Window
         catch (Exception ex) { ShowError("准备绘制检测范围失败", ex); }
     }
 
+    private void ClearRoi_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: NodeParameterViewModel parameter }) return;
+        FinishRoiDrawing();
+        parameter.ValueText = string.Empty; parameter.Commit();
+        DetectionSummary.Text = "矩形范围已清除 · 重新运行后使用默认范围（深度学习为全图）";
+        _vm.Log("已清除检测范围，请重新运行检测。");
+    }
 
     private void RoiOverlay_MouseDown(object sender, MouseButtonEventArgs e)
     {

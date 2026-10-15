@@ -14,7 +14,7 @@ HalconVision.App ──> HalconVision.Application ──> HalconVision.Domain
 | --- | --- |
 | Domain | 项目、流程、节点、端口、连线、执行结果，以及 Line2D、GeometryOverlay 等数据契约；不依赖 WPF 或 HALCON |
 | Application | 节点注册和执行契约、流程校验、拓扑排序及依赖执行；仍保留早期 InspectionRunner 等兼容实现 |
-| Halcon | 图像读取、二值化、Blob、2D Metrology 直线查找、语义分割推理、HALCON 采集接口发现和相机句柄管理、图像显示适配 |
+| Halcon | 图像读取、二值化、Blob、2D Metrology 直线查找、带矩形 ROI 的语义分割/分类推理、HALCON 采集接口发现和相机句柄管理、图像显示适配 |
 | Persistence | 单文件项目保存/恢复、旧格式兼容、流程复制/导入及节点引用重映射；仍保留早期配方/批次结果存储 |
 | App | WPF 工作台、节点画布、属性编辑、图像交互、检测模式和运行控制 |
 
@@ -37,6 +37,8 @@ DetectionOverlayScene 从本轮结果提取托管显示快照：搜索矩形、�
 常用字段为评分、角度、长度、数量；高级坐标折叠显示直线起终点。完整算法输出和节点端口保持独立，可供后续计算使用。显示层不修改原图，也不长期持有 HALCON 临时轮廓。
 
 图形叠加检查共同图像源及尺寸；未来改变图像坐标的节点需扩展显式坐标变换。旧显示布局载入时可转换为同图配置，保存后写回项目文件。
+
+深度学习节点内部裁剪使用 DlCropRoi，语义分割掩膜通过 TileImagesOffset 和 ReduceDomain 回到原图坐标及有效 ROI；分类预览保留原图及矩形，不把分类当成目标定位。DlModelPackage 校验任务、类别与配套文件，DlPreprocessing 为两类节点共用官方预处理调用入口。详见 [ROI 与分类](DL_ROI_CLASSIFICATION.md)。
 
 ## 待完善
 

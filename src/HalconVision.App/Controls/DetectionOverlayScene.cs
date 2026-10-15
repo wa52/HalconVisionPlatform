@@ -12,12 +12,13 @@ public sealed class DetectionOverlayScene
 {
     public static IReadOnlyDictionary<string, string> ImportantFields { get; } = new Dictionary<string, string>
     {
-        ["score"] = "评分", ["angle"] = "角度（°）", ["length"] = "长度（像素）", ["count"] = "数量", ["area"] = "面积（像素）"
+        ["score"] = "评分", ["angle"] = "角度（°）", ["length"] = "长度（像素）", ["count"] = "数量", ["area"] = "面积（像素）",
+        ["className"] = "分类类别", ["confidence"] = "分类置信度"
     };
     public static IReadOnlyDictionary<string, string> AdvancedFields { get; } = new Dictionary<string, string>
     {
         ["line.RowBegin"] = "起点行坐标", ["line.ColumnBegin"] = "起点列坐标",
-        ["line.RowEnd"] = "终点行坐标", ["line.ColumnEnd"] = "终点列坐标"
+        ["line.RowEnd"] = "终点行坐标", ["line.ColumnEnd"] = "终点列坐标", ["classId"] = "类别 ID"
     };
     public List<DisplayGeometry> Geometry { get; } = [];
     public List<DisplayCaption> Captions { get; } = [];
@@ -33,7 +34,7 @@ public sealed class DetectionOverlayScene
             var name = node?.DisplayName ?? "已删除节点";
             if (result is null) { scene.Captions.Add(new($"{name}：本轮未运行", "Orange")); continue; }
             if (layer.ShowDecision) scene.Captions.Add(new($"{name}：{NodeResultSummary.Describe(result)}",
-                result.Status == NodeExecutionStatus.Success && !NodeResultSummary.Describe(result).StartsWith("未找到") && !NodeResultSummary.Describe(result).StartsWith("未检出") ? "LimeGreen" : "Orange"));
+                result.Status == NodeExecutionStatus.Success && !NodeResultSummary.Describe(result).StartsWith("未找到") && !NodeResultSummary.Describe(result).StartsWith("未检出") && !NodeResultSummary.Describe(result).StartsWith("分类置信度不足") ? "LimeGreen" : "Orange"));
             var rows = NodeOutputValue.From(result, node?.Definition);
             foreach (var row in rows.Where(row => (ImportantFields.ContainsKey(row.Name) || AdvancedFields.ContainsKey(row.Name)) &&
                 (layer.Fields ?? ImportantFields.Keys.ToList()).Contains(row.Name)))
@@ -41,6 +42,9 @@ public sealed class DetectionOverlayScene
             if (!layer.ShowGeometry || run is null || run.RuntimeOutputs is null || !run.RuntimeOutputs.TryGetValue(layer.NodeId, out var runtime)) continue;
             if (!SharesImageSpace(flow, settings.NodeId, layer.NodeId) || !HasDimensions(result.Outputs, width, height))
             { scene.Captions.Add(new($"{name}：图像坐标来源或尺寸不匹配，未叠加图形", "Orange")); continue; }
+            if (runtime.Values.OfType<ImageRoiOverlay>().FirstOrDefault() is { Bounds: var bounds })
+                scene.Geometry.Add(new([new(bounds.RowBegin, bounds.ColumnBegin), new(bounds.RowBegin, bounds.ColumnEnd),
+                    new(bounds.RowEnd, bounds.ColumnEnd), new(bounds.RowEnd, bounds.ColumnBegin), new(bounds.RowBegin, bounds.ColumnBegin)], "Gold"));
             if (runtime.Values.OfType<GeometryOverlay>().FirstOrDefault() is { } overlay)
             {
                 if (overlay.SearchRegion is { } roi)

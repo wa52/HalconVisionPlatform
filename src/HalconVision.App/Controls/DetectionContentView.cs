@@ -99,7 +99,7 @@ public sealed class DetectionContentView : Border, IDisposable
         BuildLayerChoices(flow, run);
         _values.Visibility = imageView ? Visibility.Collapsed : Visibility.Visible;
         _values.ItemsSource = Settings.OutputField != "全部" ? rows.Where(row => row.Name == Settings.OutputField || row.Name.StartsWith(Settings.OutputField + "."))
-            : Settings.View == "检测结果" ? rows.Where(row => row.Name is "检测结果" or "score" or "count" or "angle" or "length" or "area" or "objects" or "classes" || row.Name.StartsWith("status.")) : rows;
+            : Settings.View == "检测结果" ? rows.Where(row => row.Name is "检测结果" or "score" or "count" or "angle" or "length" or "area" or "objects" or "classes" or "classId" or "className" or "confidence" or "scores" || row.Name.StartsWith("status.")) : rows;
         if (!imageView || !IsLoaded || !IsVisible || _image.HalconWindow is null) return;
         var oldWidth = _width; var oldHeight = _height;
         var preservePart = oldWidth > 0 && _lastSource == Settings.NodeId && _lastPort == Settings.OutputField;
@@ -169,11 +169,11 @@ public sealed class DetectionContentView : Border, IDisposable
             var advanced = new WrapPanel { IsEnabled = enabled };
             var outputNames = NodeOutputValue.From(result, candidate.Definition).Select(item => item.Name).ToHashSet();
             foreach (var (name, label) in DetectionOverlayScene.AdvancedFields)
-                if (outputNames.Contains(name) || (result is null && candidate.OutputPorts.Any(port => port.Id == "line")))
+                if (outputNames.Contains(name) || (result is null && candidate.OutputPorts.Any(port => port.Id == name || name.StartsWith("line.") && port.Id == "line")))
                     AddField(advanced, name, label);
             if (advanced.Children.Count > 0)
             {
-                var section = new Expander { Header = "高级数据（坐标）", Foreground = Brushes.LightGray,
+                var section = new Expander { Header = "高级数据", Foreground = Brushes.LightGray,
                     Margin = new Thickness(20, 0, 0, 4), Content = advanced, IsExpanded = _expandedAdvanced.Contains(candidate.Id) };
                 section.Expanded += (_, _) => _expandedAdvanced.Add(candidate.Id);
                 section.Collapsed += (_, _) => _expandedAdvanced.Remove(candidate.Id);

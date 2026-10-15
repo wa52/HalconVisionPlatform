@@ -10,7 +10,6 @@ namespace HalconVision.Halcon;
 /// <summary>Training-platform-compatible inference; native outputs transfer to the current execution run.</summary>
 public sealed class HalconSemanticSegmentationExecutor : INodeExecutor
 {
-    private static readonly object ProcedureGate = new();
     public string TypeId => HalconNodeProvider.SemanticSegmentation;
     public int Version => 1;
 
@@ -20,7 +19,7 @@ public sealed class HalconSemanticSegmentationExecutor : INodeExecutor
         cancellation.ThrowIfCancellationRequested();
         if (context.RuntimeInputs?.GetValueOrDefault("image") is not HImage source)
             throw new InvalidDataException("语义分割检测需要连接读取图像或相机采集的 Image 输出。");
-        var package = SemanticModelPackage.Load(Text(context.Node, "modelPackage", ""), cancellation);
+        var package = DlModelPackage.Load(Text(context.Node, "modelPackage", ""), cancellation, "semantic_segmentation");
         var runtime = Text(context.Node, "deviceRuntime", "gpu");
         if (runtime is not ("gpu" or "cpu")) throw new InvalidDataException("推理设备必须为 GPU 或 CPU。");
         var deviceIndexValue = Number(context.Node, "deviceIndex", 0);
@@ -35,11 +34,11 @@ public sealed class HalconSemanticSegmentationExecutor : INodeExecutor
             throw new InvalidDataException("背景/目标类别 ID 不在模型类别列表中。");
         var targets = requested.Count == 0 ? package.ClassIds.Where(id => !background.Contains(id)).ToHashSet() : requested;
         if (targets.Count == 0) throw new InvalidDataException("没有可检测的目标类别，请检查背景和目标类别配置。");
-        var procedureDirectory = Path.Combine(Environment.GetEnvironmentVariable("HALCONROOT")
-            ?? throw new InvalidOperationException("HALCONROOT 未设置，无法加载官方 DL 预处理过程。"), "procedures", "dl");
-        if (!Directory.Exists(procedureDirectory)) throw new DirectoryNotFoundException($"官方 DL 预处理目录不存在：{procedureDirectory}");
         using var first = source.SelectObj(1);
         first.GetImageSize(out int width, out int height);
+        var roi = DlCropRoi.Read(context.Node, width, height);
+        using var inferenceImage = roi.Crop(first);
+        using var roiRegion = roi.Region();
         using var channels = first.CountChannels();
         if (channels.I is not (1 or 3)) throw new InvalidDataException("当前语义分割预览仅支持灰度或 RGB 图像。");
         var clock = Stopwatch.StartNew();
@@ -52,6 +51,7 @@ public sealed class HalconSemanticSegmentationExecutor : INodeExecutor
         try
         {
             context.Log($"语义分割：加载模型 {package.DirectoryPath}，设备 {runtime.ToUpperInvariant()}[{deviceIndexValue}]。");
+            context.Log($"裁剪推理范围：({roi.RowBegin},{roi.ColumnBegin})–({roi.RowEnd},{roi.ColumnEnd})，{roi.Width}×{roi.Height} 像素。");
             cancellation.ThrowIfCancellationRequested();
             model = new HDlModel(package.ModelPath);
             using var type = model.GetDlModelParam("type");
@@ -70,21 +70,9 @@ public sealed class HalconSemanticSegmentationExecutor : INodeExecutor
             model.SetDlModelParam("device", device);
             model.SetDlModelParam("batch_size", 1);
             using var sample = new HDict();
-            sample.SetDictObject(first, "image");
+            sample.SetDictObject(inferenceImage, "image");
             cancellation.ThrowIfCancellationRequested();
-            lock (ProcedureGate)
-            {
-                cancellation.ThrowIfCancellationRequested();
-                using var engine = new HDevEngine();
-                engine.SetProcedurePath(procedureDirectory);
-                using var procedure = new HDevProcedure("preprocess_dl_samples");
-                using var call = new HDevProcedureCall(procedure);
-                using var sampleTuple = new HTuple(sample);
-                using var preprocessTuple = new HTuple(preprocess);
-                call.SetInputCtrlParamTuple("DLSampleBatch", sampleTuple);
-                call.SetInputCtrlParamTuple("DLPreprocessParam", preprocessTuple);
-                call.Execute();
-            }
+            DlPreprocessing.Apply(sample, preprocess, cancellation);
             cancellation.ThrowIfCancellationRequested();
             var inference = Stopwatch.StartNew();
             var predictions = model.ApplyDlModel([sample], empty);
@@ -95,8 +83,10 @@ public sealed class HalconSemanticSegmentationExecutor : INodeExecutor
                 if (predictions.Length != 1) throw new InvalidDataException("HALCON 未返回唯一单帧分割结果。");
                 using var labelObject = predictions[0].GetDictObject("segmentation_image");
                 using var labels = new HImage(labelObject);
-                using var restoredLabels = labels.ZoomImageSize(width, height, "nearest_neighbor");
-                mask = restoredLabels.ConvertImageType("byte");
+                using var restoredLabels = labels.ZoomImageSize(roi.Width, roi.Height, "nearest_neighbor");
+                using var byteLabels = restoredLabels.ConvertImageType("byte");
+                using var positionedLabels = byteLabels.TileImagesOffset(roi.RowBegin, roi.ColumnBegin, -1, -1, -1, -1, width, height);
+                mask = positionedLabels.ReduceDomain(roiRegion);
                 regions = new HRegion(); regions.GenEmptyObj();
                 var objects = new List<SegmentationObject>();
                 var classAreas = new List<SegmentationClassArea>();
@@ -123,7 +113,9 @@ public sealed class HalconSemanticSegmentationExecutor : INodeExecutor
                 }
                 using var rgb = channels.I == 1 ? first.Compose3(first, first) : first.CopyImage();
                 using var green = new HTuple(new int[] { 0, 255, 0 });
-                preview = objects.Count > 0 ? rgb.PaintRegion(regions, green, "margin") : rgb.CopyImage();
+                using var yellow = new HTuple(new int[] { 255, 220, 0 });
+                using var marked = objects.Count > 0 ? rgb.PaintRegion(regions, green, "margin") : rgb.CopyImage();
+                preview = roi.IsExplicit ? marked.PaintRegion(roiRegion, yellow, "margin") : marked.CopyImage();
                 var count = objects.Count;
                 var totalArea = objects.Sum(item => item.Area);
                 var status = new SegmentationStatus(count > 0 ? SegmentationStatus.Detected : SegmentationStatus.Empty,
@@ -131,16 +123,18 @@ public sealed class HalconSemanticSegmentationExecutor : INodeExecutor
                 var serialized = new Dictionary<string, JsonElement>
                 {
                     ["preview"] = JsonSerializer.SerializeToElement(new { width, height, channels = 3 }),
-                    ["mask"] = JsonSerializer.SerializeToElement(new { width, height, channels = 1 }),
+                    ["mask"] = JsonSerializer.SerializeToElement(new { width, height, channels = 1, validRoi = roi.Bounds }),
                     ["regions"] = JsonSerializer.SerializeToElement(new { width, height, count }),
                     ["count"] = JsonSerializer.SerializeToElement(count), ["area"] = JsonSerializer.SerializeToElement(totalArea),
                     ["objects"] = JsonSerializer.SerializeToElement(objects), ["classes"] = JsonSerializer.SerializeToElement(classAreas),
                     ["status"] = JsonSerializer.SerializeToElement(status),
+                    ["roi"] = JsonSerializer.SerializeToElement(roi),
                     ["modelInfo"] = JsonSerializer.SerializeToElement(new { directory = package.DirectoryPath,
                         device = runtime, deviceIndex, inferenceMs = inference.Elapsed.TotalMilliseconds, elapsedMs = clock.Elapsed.TotalMilliseconds })
                 };
                 cancellation.ThrowIfCancellationRequested();
                 var native = new Dictionary<string, object?> { ["preview"] = preview, ["mask"] = mask, ["regions"] = regions };
+                if (roi.IsExplicit) native["roiOverlay"] = new ImageRoiOverlay(roi.Bounds);
                 context.Log($"语义分割完成：{status.Code}，{count} 个区域，推理 {inference.Elapsed.TotalMilliseconds:F1} ms。");
                 output = new NodeExecutionOutput(serialized, native);
             }

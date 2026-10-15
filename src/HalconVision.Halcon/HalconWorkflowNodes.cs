@@ -14,9 +14,23 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
     public const string BlobAnalysis = "halcon.blob-analysis";
     public const string StraightLineFind = "halcon.straight-line-find";
     public const string SemanticSegmentation = "halcon.semantic-segmentation";
+    public const string Classification = "halcon.classification";
 
     public IEnumerable<NodeDefinition> GetDefinitions()
     {
+        yield return new NodeDefinition(Classification, 1, "深度学习", "分类检测", "使用训练平台分类模型，对全图或绘制 ROI 裁剪推理，输出类别和真实置信度。",
+            [new("image", "Image", PortDirection.Input, "halcon.image", Required: true),
+             new("preview", "检测预览", PortDirection.Output, "halcon.image"),
+             new("classId", "类别 ID", PortDirection.Output, "number"), new("className", "类别名称", PortDirection.Output, "string"),
+             new("confidence", "分类置信度", PortDirection.Output, "number"), new("scores", "全部类别评分", PortDirection.Output, "vision.classification-scores"),
+             new("status", "分类状态", PortDirection.Output, "inspection.result"), new("roi", "原图检测范围", PortDirection.Output, "vision.roi"),
+             new("modelInfo", "模型与推理信息", PortDirection.Output, "object")],
+            [new("modelPackage", "训练模型目录", "path", true, JsonSerializer.SerializeToElement("")),
+             new("roi", "裁剪推理范围（未设置为全图）", "roiDraw", false, JsonSerializer.SerializeToElement("")),
+             new("deviceRuntime", "推理设备", "dlDevice", true, JsonSerializer.SerializeToElement("gpu")),
+             new("deviceIndex", "设备索引（从 0 开始）", "number", true, JsonSerializer.SerializeToElement(0)),
+             new("minimumConfidence", "最低置信度（0–1）", "number", true, JsonSerializer.SerializeToElement(0.5))]);
+
         yield return new NodeDefinition(
             SemanticSegmentation, 1, "深度学习", "语义分割检测", "加载 HalconTrainingPlatform 模型目录，按训练预处理进行分割，输出原图坐标的掩膜与目标区域。",
             [new("image", "Image", PortDirection.Input, "halcon.image", Required: true),
@@ -28,8 +42,10 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
              new("objects", "目标几何数据", PortDirection.Output, "vision.segmentation-objects"),
              new("classes", "类别面积统计", PortDirection.Output, "vision.segmentation-classes"),
              new("status", "检测状态", PortDirection.Output, "inspection.result"),
+             new("roi", "原图检测范围", PortDirection.Output, "vision.roi"),
              new("modelInfo", "模型与推理信息", PortDirection.Output, "object")],
             [new("modelPackage", "训练模型目录", "path", true, JsonSerializer.SerializeToElement("")),
+             new("roi", "裁剪推理范围（未设置为全图）", "roiDraw", false, JsonSerializer.SerializeToElement("")),
              new("deviceRuntime", "推理设备", "dlDevice", true, JsonSerializer.SerializeToElement("gpu")),
              new("deviceIndex", "设备索引（从 0 开始）", "number", true, JsonSerializer.SerializeToElement(0)),
              new("backgroundClassIds", "背景类别 ID（逗号分隔）", "string", false, JsonSerializer.SerializeToElement("0")),

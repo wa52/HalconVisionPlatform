@@ -15,6 +15,9 @@ public sealed class NodeResultSummary : IValueConverter
             return result.Status == NodeExecutionStatus.Failed ? $"运行错误：{result.Error}" : $"未完成：{result.Status}";
         if (!result.Outputs.TryGetValue("status", out var status) || status.ValueKind != JsonValueKind.Object ||
             !status.TryGetProperty("Code", out var code)) return "执行成功";
+        if (code.GetString() is ClassificationStatus.Classified or ClassificationStatus.LowConfidence)
+            return (code.GetString() == ClassificationStatus.LowConfidence ? "分类置信度不足 · " : "分类完成 · ") +
+                (status.TryGetProperty("Message", out var classificationMessage) ? classificationMessage.GetString() : "请查看分类数据");
         if (code.GetString() == SegmentationStatus.Detected)
             return "语义分割检出目标 · " + (status.TryGetProperty("Message", out var message) ? message.GetString() : "请查看区域数据");
         if (code.GetString() == SegmentationStatus.Empty)
@@ -30,8 +33,8 @@ public sealed class NodeResultSummary : IValueConverter
     public static Brush Color(NodeExecutionResult? result)
     {
         var text = Describe(result);
-        return text.StartsWith("找到直线") || text.StartsWith("语义分割检出") ? Brushes.LightGreen
-            : text.StartsWith("未找到") || text.StartsWith("未检出") || text.StartsWith("运行错误") ? Brushes.Orange : Brushes.LightGray;
+        return text.StartsWith("找到直线") || text.StartsWith("语义分割检出") || text.StartsWith("分类完成") ? Brushes.LightGreen
+            : text.StartsWith("未找到") || text.StartsWith("未检出") || text.StartsWith("分类置信度不足") || text.StartsWith("运行错误") ? Brushes.Orange : Brushes.LightGray;
     }
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => Describe(value as NodeExecutionResult);
