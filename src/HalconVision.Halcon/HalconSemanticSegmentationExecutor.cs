@@ -95,7 +95,8 @@ public sealed class HalconSemanticSegmentationExecutor : INodeExecutor
                 if (predictions.Length != 1) throw new InvalidDataException("HALCON 未返回唯一单帧分割结果。");
                 using var labelObject = predictions[0].GetDictObject("segmentation_image");
                 using var labels = new HImage(labelObject);
-                mask = labels.ZoomImageSize(width, height, "nearest_neighbor");
+                using var restoredLabels = labels.ZoomImageSize(width, height, "nearest_neighbor");
+                mask = restoredLabels.ConvertImageType("byte");
                 regions = new HRegion(); regions.GenEmptyObj();
                 var objects = new List<SegmentationObject>();
                 var classAreas = new List<SegmentationClassArea>();

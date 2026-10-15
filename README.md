@@ -9,7 +9,7 @@
 - **图像读取**：单张图片或文件夹序列；文件夹按文件名顺序读取，每次单次运行切换下一张。目录不递归扫描。
 - **二值化与 Blob**：HALCON Threshold；RGB 图像先灰度转换。Blob 使用 Connection、SelectShape 和 CountObj。
 - **直线查找**：在图像上绘制矩形搜索范围，配置方向、测量卡尺和边缘参数，通过 HALCON 2D Metrology 寻边并拟合直线。显示搜索矩形和延伸到矩形边界的拟合线，输出坐标、角度、长度、评分及 FOUND/NOT_FOUND 状态。
-- **语义分割检测**：加载 HalconTrainingPlatform 导出的模型目录，使用保存的 preprocess.hdict 和官方 preprocess_dl_samples，执行 HALCON 深度学习推理。分割掩膜最近邻还原到原图尺寸，按类别和面积筛选区域，输出预览、掩膜、区域、数量、面积与对象坐标。支持 GPU/CPU 选择；已编译接入，真实模型效果和性能尚未验收。
+- **语义分割检测**：加载 HalconTrainingPlatform 导出的模型目录，使用保存的 preprocess.hdict 和官方 preprocess_dl_samples，执行 HALCON 深度学习推理。分割掩膜最近邻还原到原图尺寸并转为 byte，按类别和面积筛选区域，输出预览、掩膜、区域、数量、面积与对象坐标。支持 GPU/CPU 选择；已通过 NH320 模型 3 张真实图片的 GPU 推理和输出释放检查，准确率、CPU 及长期稳定性仍待验收。[验证记录](docs/evidence/semantic-inference-20261015.md)
 - **相机采集**：选择本机可用的 HALCON 采集接口、扫描设备、连接/断开、连接预览。DirectShow 用于 Windows 摄像头；采集节点每次执行取一帧。
 - **运行控制**：单次运行、连续运行和停止；连续执行支持文件夹回放及相机流程，防止重复启动。
 - **图像交互**：适应窗口、缩放按钮、滚轮缩放和拖动平移；可查看节点输出图像。
