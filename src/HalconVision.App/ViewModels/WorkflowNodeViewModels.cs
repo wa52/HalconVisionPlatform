@@ -48,6 +48,7 @@ public sealed class NodeParameterViewModel : ObservableModel
     public bool IsPath => string.Equals(DataType, "path", StringComparison.Ordinal);
     public bool IsModelPackage => Definition.Id == "modelPackage";
     public bool IsRoiDraw => string.Equals(DataType, "roiDraw", StringComparison.Ordinal);
+    public bool IsRoiList => DataType == "roiList";
     public bool IsLineDraw => string.Equals(DataType, "lineDraw", StringComparison.Ordinal);
     public bool IsBoolean => string.Equals(DataType, "bool", StringComparison.Ordinal);
     public bool IsTransition => DataType is "edgeTransition" or "lineOrientation" or "dlDevice";
@@ -78,12 +79,38 @@ public sealed class NodeParameterViewModel : ObservableModel
                 "string" or "path" or "camera" or "cameraInterface" or "roiDraw" or "lineDraw" or "edgeTransition" or "lineOrientation" or "dlDevice" => JsonSerializer.SerializeToElement(ValueText),
                 "number" when double.TryParse(ValueText, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) && double.IsFinite(number) => JsonSerializer.SerializeToElement(number),
                 "bool" when bool.TryParse(ValueText, out var boolean) => JsonSerializer.SerializeToElement(boolean),
+                "roiList" => JsonSerializer.SerializeToElement(DetectionRoi.Parse(JsonSerializer.Deserialize<JsonElement>(ValueText))),
                 _ => throw new FormatException($"请输入有效的 {Definition.DataType} 值。")
             };
             _owner.SetParameter(_nodeId, Definition.Id, element);
             Error = null;
         }
         catch (Exception ex) { Error = ex.Message; }
+    }
+
+    public IReadOnlyList<DetectionRoi> ReadRois() => DetectionRoi.Parse(JsonSerializer.Deserialize<JsonElement>(ValueText));
+    public void SetRois(IEnumerable<DetectionRoi> rois)
+    {
+        ValueText = JsonSerializer.Serialize(rois); Commit();
+        if (Error is not null) throw new InvalidDataException(Error);
+    }
+    public void SaveDrawnRoi(Guid? id, double row1, double col1, double row2, double col2)
+    {
+        var rois = ReadRois().ToList();
+        if (id is { } selected)
+        {
+            var index = rois.FindIndex(item => item.Id == selected);
+            if (index < 0) throw new InvalidOperationException("所选 ROI 已删除，请重新选择。");
+            rois[index] = rois[index] with { RowBegin = row1, ColumnBegin = col1, RowEnd = row2, ColumnEnd = col2 };
+        }
+        else
+        {
+            if (rois.Count >= DetectionRoi.MaximumCount) throw new InvalidDataException($"最多支持 {DetectionRoi.MaximumCount} 个 ROI。");
+            var number = 1;
+            while (rois.Any(item => string.Equals(item.Name, $"ROI {number}", StringComparison.OrdinalIgnoreCase))) number++;
+            rois.Add(new(Guid.NewGuid(), $"ROI {number}", row1, col1, row2, col2));
+        }
+        SetRois(rois);
     }
 
     private static string Format(JsonElement value) => value.ValueKind switch
@@ -114,7 +141,20 @@ public sealed class FlowNodeViewModel : ObservableModel
             .Select(port => new NodePortViewModel(Id, port.Id, port.Name, port.Direction, port.DataType, port.Required)));
         Parameters = new ObservableCollection<NodeParameterViewModel>((definition?.Parameters ?? []).Select(parameter =>
             new NodeParameterViewModel(owner, Id, parameter,
-                node.Parameters.TryGetValue(parameter.Id, out var value) ? value : parameter.DefaultValue ?? JsonSerializer.SerializeToElement(string.Empty))));
+                ParameterValue(node, parameter))));
+    }
+
+    private static JsonElement ParameterValue(NodeInstance node, NodeParameterDefinition parameter)
+    {
+        if (node.Parameters.TryGetValue(parameter.Id, out var value)) return value;
+        if (parameter.DataType == "roiList" && node.Parameters.TryGetValue("roi", out var legacy) && legacy.ValueKind == JsonValueKind.String)
+        {
+            var tokens = (legacy.GetString() ?? "").Split(',');
+            var numbers = tokens.Select(token => double.TryParse(token, NumberStyles.Float, CultureInfo.InvariantCulture, out var n) ? n : double.NaN).ToArray();
+            if (numbers.Length == 4 && numbers.All(double.IsFinite))
+                return JsonSerializer.SerializeToElement(new[] { new DetectionRoi(Guid.NewGuid(), "ROI 1", numbers[0], numbers[1], numbers[2], numbers[3]) });
+        }
+        return parameter.DefaultValue ?? JsonSerializer.SerializeToElement(string.Empty);
     }
 
     public Guid Id { get; }

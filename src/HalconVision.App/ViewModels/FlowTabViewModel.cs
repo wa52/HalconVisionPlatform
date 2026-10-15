@@ -33,6 +33,17 @@ public sealed class FlowTabViewModel : ObservableModel
     public Guid Id => _document.Id;
     public string Name => _document.Name;
     public FlowDocument Document => _document;
+    public void EnsureRoiEditsValid()
+    {
+        foreach (var node in Nodes)
+            foreach (var parameter in node.Parameters.Where(item => item.IsRoiList))
+            {
+                if (parameter.Error is not null)
+                    throw new InvalidDataException($"{Name} / {node.DisplayName}：{parameter.Error}");
+                try { parameter.ReadRois(); }
+                catch (Exception ex) { throw new InvalidDataException($"{Name} / {node.DisplayName}：ROI 列表无效，{ex.Message}", ex); }
+            }
+    }
     public ObservableCollection<FlowNodeViewModel> Nodes { get; } = [];
     public ObservableCollection<FlowEdgeViewModel> Edges { get; } = [];
     public ObservableCollection<NodeParameterViewModel> SelectedParameters => SelectedNode?.Parameters ?? EmptyParameters;

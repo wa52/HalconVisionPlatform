@@ -5,7 +5,7 @@ using HalconVision.Domain;
 namespace HalconVision.App;
 
 public sealed record DisplayGeometry(IReadOnlyList<Point2D> Points, string Color);
-public sealed record DisplayCaption(string Text, string Color);
+public sealed record DisplayCaption(string Text, string Color, Point2D? Position = null);
 
 /// <summary>Managed display snapshots only; never retains HALCON objects beyond this synchronous call.</summary>
 public sealed class DetectionOverlayScene
@@ -37,7 +37,8 @@ public sealed class DetectionOverlayScene
                 result.Status == NodeExecutionStatus.Success && !NodeResultSummary.Describe(result).StartsWith("未找到") && !NodeResultSummary.Describe(result).StartsWith("未检出") && !NodeResultSummary.Describe(result).StartsWith("分类置信度不足") ? "LimeGreen" : "Orange"));
             var rows = NodeOutputValue.From(result, node?.Definition);
             foreach (var row in rows.Where(row => (ImportantFields.ContainsKey(row.Name) || AdvancedFields.ContainsKey(row.Name)) &&
-                (layer.Fields ?? ImportantFields.Keys.ToList()).Contains(row.Name)))
+                (layer.Fields ?? ImportantFields.Keys.ToList()).Contains(row.Name) &&
+                (!result.Outputs.TryGetValue(row.Name, out var scalar) || scalar.ValueKind != JsonValueKind.Null)))
                 scene.Captions.Add(new($"{name} · {ImportantFields.GetValueOrDefault(row.Name) ?? AdvancedFields[row.Name]}：{row.Value}", "White"));
             if (!layer.ShowGeometry || run is null || run.RuntimeOutputs is null || !run.RuntimeOutputs.TryGetValue(layer.NodeId, out var runtime)) continue;
             if (!SharesImageSpace(flow, settings.NodeId, layer.NodeId) || !HasDimensions(result.Outputs, width, height))
@@ -45,6 +46,14 @@ public sealed class DetectionOverlayScene
             if (runtime.Values.OfType<ImageRoiOverlay>().FirstOrDefault() is { Bounds: var bounds })
                 scene.Geometry.Add(new([new(bounds.RowBegin, bounds.ColumnBegin), new(bounds.RowBegin, bounds.ColumnEnd),
                     new(bounds.RowEnd, bounds.ColumnEnd), new(bounds.RowEnd, bounds.ColumnBegin), new(bounds.RowBegin, bounds.ColumnBegin)], "Gold"));
+            if (runtime.Values.OfType<MultiRoiOverlay>().FirstOrDefault() is { } multi)
+                foreach (var item in multi.Rois)
+                {
+                    var box = item.Bounds;
+                    scene.Geometry.Add(new([new(box.RowBegin, box.ColumnBegin), new(box.RowBegin, box.ColumnEnd),
+                        new(box.RowEnd, box.ColumnEnd), new(box.RowEnd, box.ColumnBegin), new(box.RowBegin, box.ColumnBegin)], item.Warning ? "Orange" : "Gold"));
+                    scene.Captions.Add(new($"{name} / {item.Name}：{item.Summary}", item.Warning ? "Orange" : "Gold", new(box.RowEnd, box.ColumnBegin)));
+                }
             if (runtime.Values.OfType<GeometryOverlay>().FirstOrDefault() is { } overlay)
             {
                 if (overlay.SearchRegion is { } roi)

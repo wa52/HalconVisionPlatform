@@ -7,174 +7,134 @@ using HalconVision.Domain;
 
 namespace HalconVision.Halcon;
 
-/// <summary>Training-platform-compatible inference; native outputs transfer to the current execution run.</summary>
 public sealed class HalconSemanticSegmentationExecutor : INodeExecutor
 {
     public string TypeId => HalconNodeProvider.SemanticSegmentation;
     public int Version => 1;
-
     public ValueTask<NodeExecutionOutput> ExecuteAsync(NodeExecutionContext context)
     {
-        var cancellation = context.CancellationToken;
-        cancellation.ThrowIfCancellationRequested();
-        if (context.RuntimeInputs?.GetValueOrDefault("image") is not HImage source)
-            throw new InvalidDataException("语义分割检测需要连接读取图像或相机采集的 Image 输出。");
+        var cancellation = context.CancellationToken; cancellation.ThrowIfCancellationRequested();
+        if (context.RuntimeInputs?.GetValueOrDefault("image") is not HImage source) throw new InvalidDataException("语义分割需要连接 Image 输入。");
         var package = DlModelPackage.Load(Text(context.Node, "modelPackage", ""), cancellation, "semantic_segmentation");
-        var runtime = Text(context.Node, "deviceRuntime", "gpu");
-        if (runtime is not ("gpu" or "cpu")) throw new InvalidDataException("推理设备必须为 GPU 或 CPU。");
-        var deviceIndexValue = Number(context.Node, "deviceIndex", 0);
-        if (deviceIndexValue < 0 || deviceIndexValue > int.MaxValue || deviceIndexValue != Math.Truncate(deviceIndexValue))
-            throw new InvalidDataException("设备索引必须为非负整数。");
-        var minimum = Number(context.Node, "minimumArea", 1);
-        var maximum = Number(context.Node, "maximumArea", 1_000_000_000);
-        if (minimum < 1 || maximum < minimum) throw new InvalidDataException("面积范围无效，最小面积必须至少为 1 像素。");
+        var minimum = Number(context.Node, "minimumArea", 1); var maximum = Number(context.Node, "maximumArea", 1_000_000_000);
+        if (minimum < 1 || maximum < minimum) throw new InvalidDataException("区域面积范围无效。");
         var background = ParseIds(Text(context.Node, "backgroundClassIds", "0"));
         var requested = ParseIds(Text(context.Node, "targetClassIds", ""));
-        if (background.Concat(requested).Any(id => !package.ClassIds.Contains(id)))
-            throw new InvalidDataException("背景/目标类别 ID 不在模型类别列表中。");
-        var targets = requested.Count == 0 ? package.ClassIds.Where(id => !background.Contains(id)).ToHashSet() : requested;
-        if (targets.Count == 0) throw new InvalidDataException("没有可检测的目标类别，请检查背景和目标类别配置。");
-        using var first = source.SelectObj(1);
-        first.GetImageSize(out int width, out int height);
-        var roi = DlCropRoi.Read(context.Node, width, height);
-        using var inferenceImage = roi.Crop(first);
-        using var roiRegion = roi.Region();
+        if (background.Concat(requested).Any(id => !package.ClassIds.Contains(id))) throw new InvalidDataException("目标/背景类别不在模型类别列表中。");
+        var targets = requested.Count > 0 ? requested : package.ClassIds.Where(id => !background.Contains(id)).ToHashSet();
+        if (targets.Count == 0) throw new InvalidDataException("没有可检测的目标类别。");
+        using var first = source.SelectObj(1); first.GetImageSize(out int width, out int height);
         using var channels = first.CountChannels();
-        if (channels.I is not (1 or 3)) throw new InvalidDataException("当前语义分割预览仅支持灰度或 RGB 图像。");
+        if (channels.I is not (1 or 3)) throw new InvalidDataException("分割预览仅支持灰度或 RGB 图像。");
+        var rois = DlRoiSet.Read(context.Node, width, height);
+        var objects = new List<SegmentationObject>(); var results = new List<RoiSegmentationResult>();
         var clock = Stopwatch.StartNew();
-        HDlModel? model = null;
-        HDlDevice[] devices = [];
-        HImage? mask = null, preview = null;
+        HImage? masks = null, preview = null;
         HRegion? regions = null;
-        NodeExecutionOutput? output = null;
-        var succeeded = false;
+        var transferred = false;
         try
         {
-            context.Log($"语义分割：加载模型 {package.DirectoryPath}，设备 {runtime.ToUpperInvariant()}[{deviceIndexValue}]。");
-            context.Log($"裁剪推理范围：({roi.RowBegin},{roi.ColumnBegin})–({roi.RowEnd},{roi.ColumnEnd})，{roi.Width}×{roi.Height} 像素。");
-            cancellation.ThrowIfCancellationRequested();
-            model = new HDlModel(package.ModelPath);
-            using var type = model.GetDlModelParam("type");
-            using var ids = model.GetDlModelParam("class_ids");
-            if (type.S != "segmentation") throw new InvalidDataException("model.hdl 不是语义分割模型。");
-            if (!ids.ToIArr().Order().SequenceEqual(package.ClassIds.Order()))
-                throw new InvalidDataException("实际模型 class_ids 与模型目录的类别定义不一致。");
-            using var empty = new HTuple();
-            using var preprocess = new HDict(package.PreprocessPath, empty, empty);
-            using var domain = preprocess.GetDictTuple("domain_handling");
-            if (domain.S != "full_domain") throw new InvalidDataException("只支持训练平台 full_domain 预处理；不支持猜测裁剪或填充坐标。");
-            devices = HDlDevice.QueryAvailableDlDevices("runtime", runtime);
-            var deviceIndex = (int)deviceIndexValue;
-            if (deviceIndex >= devices.Length) throw new InvalidOperationException($"HALCON 可用 {runtime.ToUpperInvariant()} 设备数为 {devices.Length}，没有索引 {deviceIndex}。");
-            using var device = new HTuple(devices[deviceIndex]);
-            model.SetDlModelParam("device", device);
-            model.SetDlModelParam("batch_size", 1);
-            using var sample = new HDict();
-            sample.SetDictObject(inferenceImage, "image");
-            cancellation.ThrowIfCancellationRequested();
-            DlPreprocessing.Apply(sample, preprocess, cancellation);
-            cancellation.ThrowIfCancellationRequested();
-            var inference = Stopwatch.StartNew();
-            var predictions = model.ApplyDlModel([sample], empty);
-            try
+            NodeExecutionOutput output;
+            using (var session = new DlInferenceSession(package, context, "segmentation"))
             {
-                inference.Stop();
-                cancellation.ThrowIfCancellationRequested();
-                if (predictions.Length != 1) throw new InvalidDataException("HALCON 未返回唯一单帧分割结果。");
-                using var labelObject = predictions[0].GetDictObject("segmentation_image");
-                using var labels = new HImage(labelObject);
-                using var restoredLabels = labels.ZoomImageSize(roi.Width, roi.Height, "nearest_neighbor");
-                using var byteLabels = restoredLabels.ConvertImageType("byte");
-                using var positionedLabels = byteLabels.TileImagesOffset(roi.RowBegin, roi.ColumnBegin, -1, -1, -1, -1, width, height);
-                mask = positionedLabels.ReduceDomain(roiRegion);
+                masks = new HImage(); masks.GenEmptyObj();
                 regions = new HRegion(); regions.GenEmptyObj();
-                var objects = new List<SegmentationObject>();
-                var classAreas = new List<SegmentationClassArea>();
-                for (var c = 0; c < package.ClassIds.Length; c++)
+                context.Log($"分割模型已加载，按顺序处理 {rois.Count} 个 ROI。");
+                foreach (var roi in rois)
                 {
                     cancellation.ThrowIfCancellationRequested();
-                    var id = package.ClassIds[c]; var name = package.ClassNames[c];
-                    using var classRegion = mask.Threshold((double)id, (double)id);
-                    var pixels = classRegion.AreaCenter(out double _, out double _);
-                    classAreas.Add(new(id, name, pixels, pixels / (width * (double)height)));
-                    if (!targets.Contains(id)) continue;
-                    using var connected = classRegion.Connection();
-                    using var filtered = connected.SelectShape("area", "and", minimum, maximum);
-                    for (var index = 1; index <= filtered.CountObj(); index++)
+                    try
                     {
-                        cancellation.ThrowIfCancellationRequested();
-                        using var component = filtered.SelectObj(index);
-                        var area = component.AreaCenter(out double row, out double column);
-                        component.SmallestRectangle1(out int row1, out int col1, out int row2, out int col2);
-                        objects.Add(new(objects.Count + 1, id, name, area, area / (width * (double)height),
-                            new(row, column), new(row1, col1, row2, col2)));
+                        using var crop = roi.Crop.Crop(first);
+                        using var prediction = session.Predict(crop, cancellation, out var milliseconds);
+                        using var labelsObject = prediction.GetDictObject("segmentation_image");
+                        using var labels = new HImage(labelsObject);
+                        using var resized = labels.ZoomImageSize(roi.Crop.Width, roi.Crop.Height, "nearest_neighbor");
+                        using var bytes = resized.ConvertImageType("byte");
+                        using var positioned = bytes.TileImagesOffset(roi.Crop.RowBegin, roi.Crop.ColumnBegin, -1, -1, -1, -1, width, height);
+                        using var validDomain = roi.Crop.Region();
+                        using var mask = positioned.ReduceDomain(validDomain);
+                        var joinedMasks = masks.ConcatObj(mask); masks.Dispose(); masks = joinedMasks;
+                        var classAreas = new List<SegmentationClassArea>();
+                        var before = objects.Count;
+                        for (var c = 0; c < package.ClassIds.Length; c++)
+                        {
+                            cancellation.ThrowIfCancellationRequested();
+                            var id = package.ClassIds[c]; var name = package.ClassNames[c];
+                            using var classRegion = mask.Threshold((double)id, (double)id);
+                            var pixels = classRegion.AreaCenter(out double _, out double _);
+                            classAreas.Add(new(id, name, pixels, pixels / (width * (double)height)));
+                            if (!targets.Contains(id)) continue;
+                            using var connected = classRegion.Connection();
+                            using var filtered = connected.SelectShape("area", "and", minimum, maximum);
+                            for (var index = 1; index <= filtered.CountObj(); index++)
+                            {
+                                cancellation.ThrowIfCancellationRequested();
+                                using var component = filtered.SelectObj(index);
+                                var area = component.AreaCenter(out double row, out double column);
+                                component.SmallestRectangle1(out int row1, out int col1, out int row2, out int col2);
+                                objects.Add(new(objects.Count + 1, id, name, area, area / (width * (double)height),
+                                    new(row, column), new(row1, col1, row2, col2), roi.Id, roi.Name));
+                            }
+                            var joined = regions.ConcatObj(filtered); regions.Dispose(); regions = joined;
+                        }
+                        var count = objects.Count - before; var totalArea = objects.Skip(before).Sum(item => item.Area);
+                        var status = new SegmentationStatus(count > 0 ? SegmentationStatus.Detected : SegmentationStatus.Empty,
+                            $"{roi.Name}：{count} 个区域，面积 {totalArea:F0} 像素。");
+                        results.Add(new(roi.Id, roi.Name, roi.Crop.Bounds, count, totalArea, classAreas, status, milliseconds));
+                        context.Log($"{status.Message} 推理 {milliseconds:F1} ms。");
                     }
-                    var joined = regions.ConcatObj(filtered); regions.Dispose(); regions = joined;
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    { throw new InvalidOperationException($"ROI“{roi.Name}”分割失败：{ex.Message}", ex); }
                 }
                 using var rgb = channels.I == 1 ? first.Compose3(first, first) : first.CopyImage();
-                using var green = new HTuple(new int[] { 0, 255, 0 });
-                using var yellow = new HTuple(new int[] { 255, 220, 0 });
-                using var marked = objects.Count > 0 ? rgb.PaintRegion(regions, green, "margin") : rgb.CopyImage();
-                preview = roi.IsExplicit ? marked.PaintRegion(roiRegion, yellow, "margin") : marked.CopyImage();
-                var count = objects.Count;
-                var totalArea = objects.Sum(item => item.Area);
-                var status = new SegmentationStatus(count > 0 ? SegmentationStatus.Detected : SegmentationStatus.Empty,
-                    count > 0 ? $"检出 {count} 个目标区域，面积 {totalArea:F0} 像素。" : "未检出满足类别和面积条件的区域。");
-                var serialized = new Dictionary<string, JsonElement>
+                using var green = new HTuple(new int[] { 0, 255, 0 }); using var yellow = new HTuple(new int[] { 255, 220, 0 });
+                preview = objects.Count > 0 ? rgb.PaintRegion(regions, green, "margin") : rgb.CopyImage();
+                foreach (var roi in rois.Where(item => item.Crop.IsExplicit))
+                {
+                    using var boundary = roi.Crop.Region();
+                    var marked = preview.PaintRegion(boundary, yellow, "margin"); preview.Dispose(); preview = marked;
+                }
+                var total = objects.Sum(item => item.Area);
+                var statusAll = new SegmentationStatus(objects.Count > 0 ? SegmentationStatus.Detected : SegmentationStatus.Empty,
+                    $"{results.Count} 个 ROI，共检出 {objects.Count} 个区域，面积累计 {total:F0} 像素。");
+                var classes = results.SelectMany(item => item.Classes).GroupBy(item => item.ClassId)
+                    .Select(group => new SegmentationClassArea(group.Key, group.First().ClassName, group.Sum(item => item.Pixels), group.Sum(item => item.Ratio))).ToArray();
+                var ports = new Dictionary<string, JsonElement>
                 {
                     ["preview"] = JsonSerializer.SerializeToElement(new { width, height, channels = 3 }),
-                    ["mask"] = JsonSerializer.SerializeToElement(new { width, height, channels = 1, validRoi = roi.Bounds }),
-                    ["regions"] = JsonSerializer.SerializeToElement(new { width, height, count }),
-                    ["count"] = JsonSerializer.SerializeToElement(count), ["area"] = JsonSerializer.SerializeToElement(totalArea),
-                    ["objects"] = JsonSerializer.SerializeToElement(objects), ["classes"] = JsonSerializer.SerializeToElement(classAreas),
-                    ["status"] = JsonSerializer.SerializeToElement(status),
-                    ["roi"] = JsonSerializer.SerializeToElement(roi),
-                    ["modelInfo"] = JsonSerializer.SerializeToElement(new { directory = package.DirectoryPath,
-                        device = runtime, deviceIndex, inferenceMs = inference.Elapsed.TotalMilliseconds, elapsedMs = clock.Elapsed.TotalMilliseconds })
+                    ["mask"] = JsonSerializer.SerializeToElement(new { width, height, channels = 1, count = results.Count,
+                        validRoi = results.Count == 1 ? results[0].Bounds : null,
+                        roiIds = results.Select(item => item.RoiId).ToArray(), validRois = results.Select(item => item.Bounds).ToArray() }),
+                    ["regions"] = JsonSerializer.SerializeToElement(new { width, height, count = objects.Count }),
+                    ["count"] = JsonSerializer.SerializeToElement(objects.Count), ["area"] = JsonSerializer.SerializeToElement(total),
+                    ["objects"] = JsonSerializer.SerializeToElement(objects), ["classes"] = JsonSerializer.SerializeToElement(classes),
+                    ["roiResults"] = JsonSerializer.SerializeToElement(results), ["status"] = JsonSerializer.SerializeToElement(statusAll),
+                    ["roi"] = JsonSerializer.SerializeToElement(results.Count == 1 ? results[0].Bounds : null),
+                    ["modelInfo"] = JsonSerializer.SerializeToElement(new { directory = package.DirectoryPath, device = session.Runtime,
+                        deviceIndex = session.DeviceIndex, roiCount = results.Count, inferenceMs = results.Sum(item => item.InferenceMilliseconds), elapsedMs = clock.Elapsed.TotalMilliseconds })
                 };
-                cancellation.ThrowIfCancellationRequested();
-                var native = new Dictionary<string, object?> { ["preview"] = preview, ["mask"] = mask, ["regions"] = regions };
-                if (roi.IsExplicit) native["roiOverlay"] = new ImageRoiOverlay(roi.Bounds);
-                context.Log($"语义分割完成：{status.Code}，{count} 个区域，推理 {inference.Elapsed.TotalMilliseconds:F1} ms。");
-                output = new NodeExecutionOutput(serialized, native);
+                var displays = results.Select(item => new RoiDisplayResult(item.RoiId, item.RoiName, item.Bounds,
+                    $"{item.Count} 个 · {item.Area:F0} px", item.Count == 0)).ToArray();
+                output = new(ports, new Dictionary<string, object?> { ["preview"] = preview, ["mask"] = masks,
+                    ["regions"] = regions, ["roiOverlay"] = new MultiRoiOverlay(displays) });
             }
-            finally { foreach (var prediction in predictions) prediction.Dispose(); }
-            cancellation.ThrowIfCancellationRequested();
-            succeeded = true;
-        }
-        catch (HalconException ex)
-        {
-            throw new InvalidOperationException($"HALCON 语义分割失败（模型：{package.DirectoryPath}，设备：{runtime}）。原始错误：{ex.Message}", ex);
+            cancellation.ThrowIfCancellationRequested(); transferred = true;
+            return ValueTask.FromResult(output);
         }
         finally
         {
-            var cleanupSucceeded = false;
-            try
-            {
-                try { model?.ClearDlModel(); }
-                finally
-                {
-                    model?.Dispose();
-                    foreach (var device in devices) device.Dispose();
-                }
-                cleanupSucceeded = true;
-            }
-            finally
-            {
-                if (!succeeded || !cleanupSucceeded)
-                { preview?.Dispose(); mask?.Dispose(); regions?.Dispose(); }
-            }
+            if (!transferred)
+                try { preview?.Dispose(); }
+                finally { try { masks?.Dispose(); } finally { regions?.Dispose(); } }
         }
-        return ValueTask.FromResult(output!);
     }
-
     private static string Text(NodeInstance node, string key, string fallback) =>
         node.Parameters.TryGetValue(key, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString()?.Trim() ?? fallback : fallback;
     private static double Number(NodeInstance node, string key, double fallback)
     {
-        var value = node.Parameters.TryGetValue(key, out var json) ? json.GetDouble() : fallback;
-        if (!double.IsFinite(value)) throw new InvalidDataException($"参数 {key} 必须为有限数值。");
-        return value;
+        var value = node.Parameters.TryGetValue(key, out var number) ? number.GetDouble() : fallback;
+        if (!double.IsFinite(value)) throw new InvalidDataException($"参数 {key} 必须为有限数值。"); return value;
     }
     private static HashSet<int> ParseIds(string text)
     {

@@ -40,6 +40,9 @@ public sealed class WorkflowGraphValidator(INodeRegistry registry)
                     issues.Add(new WorkflowValidationIssue($"必填参数“{parameter.Name}”不能为空。", node.Id));
                 if (!MatchesDataType(value, parameter.DataType))
                     issues.Add(new WorkflowValidationIssue($"参数“{parameter.Name}”类型无效，应为 {parameter.DataType}。", node.Id));
+                else if (parameter.DataType == "roiList")
+                    try { DetectionRoi.Parse(value); }
+                    catch (Exception ex) { issues.Add(new WorkflowValidationIssue($"ROI 列表无效：{ex.Message}", node.Id)); }
             }
         }
 
@@ -114,7 +117,7 @@ public sealed class WorkflowGraphValidator(INodeRegistry registry)
         "number" => value.ValueKind == JsonValueKind.Number,
         "bool" => value.ValueKind is JsonValueKind.True or JsonValueKind.False,
         "object" => value.ValueKind == JsonValueKind.Object,
-        "array" => value.ValueKind == JsonValueKind.Array,
+        "array" or "roiList" => value.ValueKind == JsonValueKind.Array,
         _ => false
     };
 

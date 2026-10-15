@@ -32,7 +32,7 @@ public sealed record NodeOutputValue(string Name, string DataType, string Value,
             rows.Add(new(name, type, display, full));
             if (value.ValueKind == JsonValueKind.Object)
                 foreach (var field in value.EnumerateObject()) Add($"{name}.{field.Name}", field.Value.ValueKind.ToString(), field.Value);
-            if (value.ValueKind == JsonValueKind.Array && name is "objects" or "classes" or "scores")
+            if (value.ValueKind == JsonValueKind.Array && name is "objects" or "classes" or "scores" or "roiResults")
             {
                 var index = 0;
                 foreach (var item in value.EnumerateArray().Take(200)) Add($"{name}[{index++}]", item.ValueKind.ToString(), item);

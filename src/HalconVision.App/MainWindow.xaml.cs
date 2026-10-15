@@ -77,6 +77,9 @@ public partial class MainWindow : Window
     private bool _panningPreview;
     private Point _lastPreviewPointer;
     private NodeParameterViewModel? _roiParameter;
+    private Guid? _roiEditId;
+    private NodeParameterViewModel? _roiOutlineParameter;
+    private readonly List<UIElement> _roiOutlines = [];
     private bool _isDrawingRoi;
     private Point _roiStart;
     private CancellationTokenSource? _continuousCancellation;
@@ -93,6 +96,7 @@ public partial class MainWindow : Window
     {
         _startupProjectPath = startupProjectPath;
         InitializeComponent(); DataContext = _vm;
+        RoiDrawingOverlay.SizeChanged += (_, _) => RenderConfiguredRois();
     }
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -452,6 +456,7 @@ public partial class MainWindow : Window
     private async void Run_Click(object sender, RoutedEventArgs e)
     {
         if (_closing || _executionTask is not null) return;
+        FinishRoiDrawing();
         _executionTask = RunOnceAsync();
         try { await _executionTask; }
         finally { _executionTask = null; }
@@ -491,6 +496,7 @@ public partial class MainWindow : Window
     private async void ContinuousRun_Click(object sender, RoutedEventArgs e)
     {
         if (_closing || _executionTask is not null) return;
+        FinishRoiDrawing();
         _vm.IsContinuousRunning = true;
         _executionTask = RunContinuouslyAsync();
         try { await _executionTask; }
@@ -588,6 +594,7 @@ public partial class MainWindow : Window
 
     private void DisplaySelectedNodePreview()
     {
+        FinishRoiDrawing();
         DetectionDashboard.SetSource(_vm.SelectedFlow, () => _vm.LastRun);
         var node = _vm.SelectedFlow?.SelectedNode;
         var run = _vm.LastRun;
@@ -690,18 +697,20 @@ public partial class MainWindow : Window
             .Where(path => Path.GetExtension(path).ToLowerInvariant() is ".bmp" or ".png" or ".jpg" or ".jpeg" or ".tif" or ".tiff" or ".jp2")
             .OrderBy(path => path, StringComparer.OrdinalIgnoreCase);
 
-    private void ImageZoomIn_Click(object sender, RoutedEventArgs e) => _imagePresenter.Zoom(PreviewWindow.HalconWindow, 1.25);
-    private void ImageZoomOut_Click(object sender, RoutedEventArgs e) => _imagePresenter.Zoom(PreviewWindow.HalconWindow, 0.8);
+    private void ImageZoomIn_Click(object sender, RoutedEventArgs e) { _imagePresenter.Zoom(PreviewWindow.HalconWindow, 1.25); RenderConfiguredRois(); }
+    private void ImageZoomOut_Click(object sender, RoutedEventArgs e) { _imagePresenter.Zoom(PreviewWindow.HalconWindow, 0.8); RenderConfiguredRois(); }
     private void ImageFit_Click(object sender, RoutedEventArgs e)
     {
         if (_previewImageWidth <= 0 || _previewImageHeight <= 0) return;
         _imagePresenter.Fit(PreviewWindow.HalconWindow, _previewImageWidth, _previewImageHeight, PreviewHost.ActualWidth, PreviewHost.ActualHeight);
+        RenderConfiguredRois();
     }
 
     private void PreviewHost_MouseWheel(object sender, MouseWheelEventArgs e)
     {
         if (_isDrawingRoi) { e.Handled = true; return; }
         _imagePresenter.Zoom(PreviewWindow.HalconWindow, e.Delta > 0 ? 1.15 : 1 / 1.15);
+        RenderConfiguredRois();
         e.Handled = true;
     }
 
@@ -721,6 +730,7 @@ public partial class MainWindow : Window
         var pointer = e.GetPosition(PreviewHost);
         var delta = pointer - _lastPreviewPointer;
         _imagePresenter.Pan(PreviewWindow.HalconWindow, delta.X, delta.Y, PreviewHost.ActualWidth, PreviewHost.ActualHeight);
+        RenderConfiguredRois();
         _lastPreviewPointer = pointer;
         e.Handled = true;
     }
@@ -736,7 +746,23 @@ public partial class MainWindow : Window
 
     private void DrawRoi_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button { Tag: NodeParameterViewModel parameter } ||
+        if (sender is Button { Tag: NodeParameterViewModel parameter }) BeginRoiDrawing(parameter, null);
+    }
+
+    private void RoiList_DrawRequested(object sender, RoutedEventArgs e)
+    {
+        if (e is RoiDrawRequestedEventArgs request) { BeginRoiDrawing(request.Parameter, request.RoiId); e.Handled = true; }
+    }
+
+    private void BeginRoiDrawing(NodeParameterViewModel parameter, Guid? roiId)
+    {
+        if (_vm.IsRunning || _executionTask is not null)
+        {
+            MessageBox.Show(this, "请先停止运行，再编辑 ROI。", "绘制检测范围", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+        FinishRoiDrawing();
+        if (
             _vm.SelectedFlow?.SelectedNode is not { } lineNode ||
             lineNode.TypeId is not (HalconNodeProvider.StraightLineFind or HalconNodeProvider.SemanticSegmentation or HalconNodeProvider.Classification)) return;
         var flow = _vm.SelectedFlow;
@@ -793,9 +819,14 @@ public partial class MainWindow : Window
 
             PreviewEmptyText.Visibility = Visibility.Collapsed;
             _roiParameter = parameter;
+            _roiEditId = roiId;
             _isDrawingRoi = true;
+            RoiDrawingHint.Visibility = Visibility.Visible;
             RoiPreviewRectangle.Visibility = Visibility.Collapsed;
             RoiDrawingOverlay.Visibility = Visibility.Visible;
+            RoiDrawingOverlay.IsHitTestVisible = true;
+            RoiDrawingOverlay.ClipToBounds = true;
+            if (parameter.IsRoiList) SetRoiOutlineParameter(parameter);
             RoiDrawingOverlay.Cursor = Cursors.Cross;
             RoiDrawingOverlay.Focusable = true;
             RoiDrawingOverlay.Focus();
@@ -858,22 +889,78 @@ public partial class MainWindow : Window
         var startColumn = column1 + _roiStart.X / RoiDrawingOverlay.ActualWidth * columnSpan;
         var endRow = row1 + end.Y / RoiDrawingOverlay.ActualHeight * rowSpan;
         var endColumn = column1 + end.X / RoiDrawingOverlay.ActualWidth * columnSpan;
-        _roiParameter.ValueText = string.Join(",", new[] { startRow, startColumn, endRow, endColumn }
-            .Select(value => value.ToString("R", CultureInfo.InvariantCulture)));
-        _roiParameter.Commit();
+        var parameter = _roiParameter;
+        try
+        {
+            if (parameter.IsRoiList) parameter.SaveDrawnRoi(_roiEditId, startRow, startColumn, endRow, endColumn);
+            else
+            {
+                parameter.ValueText = string.Join(",", new[] { startRow, startColumn, endRow, endColumn }
+                    .Select(value => value.ToString("R", CultureInfo.InvariantCulture)));
+                parameter.Commit();
+            }
+        }
+        catch (Exception ex) { ShowError("保存 ROI 失败", ex); FinishRoiDrawing(); return; }
         DetectionSummary.Text = "矩形范围已修改 · 请重新运行检测";
         _vm.Log($"已设置检测范围：行 {Math.Min(startRow, endRow):F0}–{Math.Max(startRow, endRow):F0}，列 {Math.Min(startColumn, endColumn):F0}–{Math.Max(startColumn, endColumn):F0}。");
         FinishRoiDrawing();
+        if (parameter.IsRoiList) SetRoiOutlineParameter(parameter);
         e.Handled = true;
     }
 
     private void FinishRoiDrawing()
     {
+        RoiDrawingOverlay.ReleaseMouseCapture();
+        ClearConfiguredRois();
         _isDrawingRoi = false;
         _roiParameter = null;
+        _roiEditId = null;
         RoiDrawingOverlay.Visibility = Visibility.Collapsed;
         RoiDrawingOverlay.Cursor = Cursors.Arrow;
         RoiPreviewRectangle.Visibility = Visibility.Collapsed;
+        RoiDrawingHint.Visibility = Visibility.Collapsed;
+    }
+
+    private void ClearConfiguredRois()
+    {
+        if (_roiOutlineParameter is { } parameter) parameter.PropertyChanged -= ConfiguredRois_Changed;
+        _roiOutlineParameter = null;
+        foreach (var element in _roiOutlines) RoiDrawingOverlay.Children.Remove(element);
+        _roiOutlines.Clear();
+        if (!_isDrawingRoi) RoiDrawingOverlay.Visibility = Visibility.Collapsed;
+    }
+    private void SetRoiOutlineParameter(NodeParameterViewModel parameter)
+    {
+        ClearConfiguredRois();
+        _roiOutlineParameter = parameter; parameter.PropertyChanged += ConfiguredRois_Changed;
+        RenderConfiguredRois();
+    }
+    private void ConfiguredRois_Changed(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(NodeParameterViewModel.ValueText)) Dispatcher.BeginInvoke(new Action(RenderConfiguredRois));
+    }
+    private void RenderConfiguredRois()
+    {
+        foreach (var element in _roiOutlines) RoiDrawingOverlay.Children.Remove(element);
+        _roiOutlines.Clear();
+        if (_roiOutlineParameter is null || PreviewWindow.HalconWindow is null || RoiDrawingOverlay.ActualWidth <= 0 || RoiDrawingOverlay.ActualHeight <= 0) return;
+        try
+        {
+            PreviewWindow.HalconWindow.GetPart(out int r1, out int c1, out int r2, out int c2);
+            foreach (var item in _roiOutlineParameter.ReadRois().Where(item => item.Enabled))
+            {
+                var left = (Math.Min(item.ColumnBegin, item.ColumnEnd) - c1) * RoiDrawingOverlay.ActualWidth / (c2 - c1 + 1d);
+                var top = (Math.Min(item.RowBegin, item.RowEnd) - r1) * RoiDrawingOverlay.ActualHeight / (r2 - r1 + 1d);
+                var rectangle = new System.Windows.Shapes.Rectangle { Width = Math.Abs(item.ColumnEnd - item.ColumnBegin) * RoiDrawingOverlay.ActualWidth / (c2 - c1 + 1d),
+                    Height = Math.Abs(item.RowEnd - item.RowBegin) * RoiDrawingOverlay.ActualHeight / (r2 - r1 + 1d), Stroke = Brushes.Gold, StrokeThickness = 1.5, IsHitTestVisible = false };
+                var label = new TextBlock { Text = item.Name, Foreground = Brushes.Gold, Background = Brushes.Black, IsHitTestVisible = false };
+                Canvas.SetLeft(rectangle, left); Canvas.SetTop(rectangle, top); Canvas.SetLeft(label, left + 2); Canvas.SetTop(label, top + 2);
+                RoiDrawingOverlay.Children.Add(rectangle); RoiDrawingOverlay.Children.Add(label); _roiOutlines.Add(rectangle); _roiOutlines.Add(label);
+            }
+            RoiDrawingOverlay.IsHitTestVisible = _isDrawingRoi;
+            RoiDrawingOverlay.Visibility = _isDrawingRoi || _roiOutlines.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+        catch (Exception ex) { _vm.Log($"ROI 预览：{ex.Message}"); }
     }
 
     private void Preview_HMouseDown(object sender, HalconDotNet.HSmartWindowControlWPF.HMouseEventArgsWPF e) { }

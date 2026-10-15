@@ -218,6 +218,7 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
     public void SaveAll()
     {
         if (Workspace is null) return;
+        foreach (var flow in Flows) flow.EnsureRoiEditsValid();
         Workspace = Workspace with { Project = _projectStore.SaveProject(Workspace, Flows.Select(flow => flow.Document).ToArray()) };
         foreach (var flow in Flows) flow.MarkSaved();
         RefreshProjectTree(); ProjectStatus = "项目已保存"; Raise(nameof(HasUnsavedFlows));
@@ -242,6 +243,7 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
     public string ExportFlow(FlowTabViewModel flow, string path)
     {
         if (Workspace is null) throw new InvalidOperationException("请先打开项目。");
+        flow.EnsureRoiEditsValid();
         return _projectStore.ExportFlow(flow.Document, path);
     }
 
@@ -337,7 +339,7 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
         hasImageSequence = false;
         sequenceEnded = false;
         if (SelectedFlow is null) return null;
-
+        SelectedFlow.EnsureRoiEditsValid();
         var flow = SelectedFlow.Document;
         var nodes = flow.Nodes.ToList();
         foreach (var node in flow.Nodes.Where(node => node.TypeId == HalconNodeProvider.ImageRead))
@@ -395,6 +397,7 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
         EnsureActive();
         if (IsRunning) throw new InvalidOperationException("流程已经在运行。");
         if (Workspace is null || SelectedFlow is null) throw new InvalidOperationException("请先打开项目和流程。");
+        SelectedFlow.EnsureRoiEditsValid();
         using var cancellation = new CancellationTokenSource();
         _runCancellation = cancellation; Raise(nameof(IsRunning)); Raise(nameof(RunStateText)); Raise(nameof(CanConfigureCamera));
         try

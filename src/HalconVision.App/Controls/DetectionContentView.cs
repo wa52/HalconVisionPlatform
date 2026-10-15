@@ -15,6 +15,7 @@ public sealed class DetectionContentView : Border, IDisposable
     private readonly ComboBox _node = new() { Width = 140, DisplayMemberPath = "DisplayName" };
     private readonly ComboBox _view = new() { Width = 95, ItemsSource = new[] { "图像", "输出参数", "检测结果" } };
     private readonly ComboBox _field = new() { MinWidth = 110, MaxWidth = 220 };
+    private readonly ComboBox _imageIndex = new() { MinWidth = 95, MaxWidth = 180, Visibility = Visibility.Collapsed };
     private readonly TextBlock _summary = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(8, 4, 8, 4) };
     private readonly TextBlock _empty = new() { Foreground = Brushes.LightGray, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
     private readonly Grid _imageHost = new() { Background = Brushes.Black };
@@ -31,6 +32,7 @@ public sealed class DetectionContentView : Border, IDisposable
     private int _width, _height;
     private Guid _lastSource;
     private string _lastPort = "";
+    private int _lastImageIndex;
     public DetectionContentSettings Settings { get; private set; }
     public event Action<DetectionContentView>? Changed;
     public event Action<DetectionContentView>? RemoveRequested;
@@ -43,7 +45,7 @@ public sealed class DetectionContentView : Border, IDisposable
         var root = new DockPanel(); Child = root;
         var tools = new WrapPanel { Margin = new Thickness(5), Background = new SolidColorBrush(Color.FromRgb(32, 46, 57)) };
         DockPanel.SetDock(tools, Dock.Top); root.Children.Add(tools);
-        tools.Children.Add(_node); tools.Children.Add(_view); tools.Children.Add(_field);
+        tools.Children.Add(_node); tools.Children.Add(_view); tools.Children.Add(_field); tools.Children.Add(_imageIndex);
         AddButton("−", () => Zoom(0.8)); AddButton("+", () => Zoom(1.25)); AddButton("适应", Fit);
         AddButton("复制数据", () => { if (_values.SelectedItem is NodeOutputValue value) Clipboard.SetText(value.FullValue); });
         AddButton("移除内容", () => RemoveRequested?.Invoke(this));
@@ -55,6 +57,7 @@ public sealed class DetectionContentView : Border, IDisposable
         _values.Columns.Add(new DataGridTextColumn { Header = "字段", Binding = new System.Windows.Data.Binding("Name"), Width = new DataGridLength(180) });
         _values.Columns.Add(new DataGridTextColumn { Header = "当前值", Binding = new System.Windows.Data.Binding("Value"), Width = new DataGridLength(1, DataGridLengthUnitType.Star), MinWidth = 160 });
         _node.SelectionChanged += (_, _) => Configure(true); _view.SelectionChanged += (_, _) => Configure(true); _field.SelectionChanged += (_, _) => Configure();
+        _imageIndex.SelectionChanged += (_, _) => Configure();
         Loaded += (_, _) => Refresh();
         _image.Loaded += (_, _) => Dispatcher.BeginInvoke(new Action(Refresh), System.Windows.Threading.DispatcherPriority.Loaded);
         SizeChanged += (_, _) => { if (IsLoaded && _width > 0 && _imageHost.IsVisible) Fit(); };
@@ -72,7 +75,8 @@ public sealed class DetectionContentView : Border, IDisposable
     {
         if (_updating || _disposed) return;
         Settings = Settings with { NodeId = (_node.SelectedItem as FlowNodeViewModel)?.Id ?? Settings.NodeId,
-            View = _view.SelectedItem as string ?? Settings.View, OutputField = resetField ? "全部" : _field.SelectedItem as string ?? "全部" };
+            View = _view.SelectedItem as string ?? Settings.View, OutputField = resetField ? "全部" : _field.SelectedItem as string ?? "全部",
+            ImageIndex = resetField ? 1 : _imageIndex.SelectedIndex >= 0 ? _imageIndex.SelectedIndex + 1 : Settings.ImageIndex };
         Changed?.Invoke(this); Refresh();
     }
 
@@ -94,15 +98,16 @@ public sealed class DetectionContentView : Border, IDisposable
         _summary.Text = node is null ? "源节点已删除，请重新选择" : $"{node.DisplayName} · {NodeResultSummary.Describe(result)}";
         _summary.Foreground = NodeResultSummary.Color(result);
         var imageView = Settings.View == "图像";
+        _imageIndex.Visibility = Visibility.Collapsed;
         _imageHost.Visibility = imageView ? Visibility.Visible : Visibility.Collapsed;
         _layerEditor.Visibility = imageView ? Visibility.Visible : Visibility.Collapsed;
         BuildLayerChoices(flow, run);
         _values.Visibility = imageView ? Visibility.Collapsed : Visibility.Visible;
         _values.ItemsSource = Settings.OutputField != "全部" ? rows.Where(row => row.Name == Settings.OutputField || row.Name.StartsWith(Settings.OutputField + "."))
-            : Settings.View == "检测结果" ? rows.Where(row => row.Name is "检测结果" or "score" or "count" or "angle" or "length" or "area" or "objects" or "classes" or "classId" or "className" or "confidence" or "scores" || row.Name.StartsWith("status.")) : rows;
+            : Settings.View == "检测结果" ? rows.Where(row => row.Name is "检测结果" or "score" or "count" or "angle" or "length" or "area" or "objects" or "classes" or "classId" or "className" or "confidence" or "scores" || row.Name.StartsWith("status.") || row.Name.StartsWith("roiResults")) : rows;
         if (!imageView || !IsLoaded || !IsVisible || _image.HalconWindow is null) return;
         var oldWidth = _width; var oldHeight = _height;
-        var preservePart = oldWidth > 0 && _lastSource == Settings.NodeId && _lastPort == Settings.OutputField;
+        var preservePart = oldWidth > 0 && _lastSource == Settings.NodeId && _lastPort == Settings.OutputField && _lastImageIndex == Settings.ImageIndex;
         _image.HalconWindow.GetPart(out int oldRow1, out int oldCol1, out int oldRow2, out int oldCol2);
         _image.HalconWindow.ClearWindow(); _overlayCanvas.Children.Clear(); _scene = new(); _width = _height = 0;
         if (run is null || run.FlowId != flow?.Id || run.RuntimeOutputs is null || !run.RuntimeOutputs.TryGetValue(Settings.NodeId, out var runtime))
@@ -113,7 +118,18 @@ public sealed class DetectionContentView : Border, IDisposable
         {
             if (iconic is HImage image)
             {
-                using var first = image.SelectObj(1); first.GetImageSize(out _width, out _height);
+                var count = image.CountObj();
+                _updating = true;
+                try
+                {
+                    var names = result?.Outputs.TryGetValue("roiResults", out var roiResults) == true && roiResults.ValueKind == System.Text.Json.JsonValueKind.Array
+                        ? roiResults.EnumerateArray().Select(item => item.GetProperty("RoiName").GetString() ?? "ROI").ToArray() : [];
+                    _imageIndex.ItemsSource = Enumerable.Range(1, count).Select(index => names.Length == count ? names[index - 1] : $"图像 {index}").ToArray();
+                    _imageIndex.SelectedIndex = Math.Clamp(Settings.ImageIndex - 1, 0, Math.Max(0, count - 1));
+                    _imageIndex.Visibility = count > 1 ? Visibility.Visible : Visibility.Collapsed;
+                }
+                finally { _updating = false; }
+                using var first = image.SelectObj(Math.Clamp(Settings.ImageIndex, 1, Math.Max(1, count))); first.GetImageSize(out _width, out _height);
                 _presenter.Display(first, _image.HalconWindow, _width, _height, _imageHost.ActualWidth, _imageHost.ActualHeight);
             }
             else
@@ -125,7 +141,7 @@ public sealed class DetectionContentView : Border, IDisposable
             _empty.Visibility = Visibility.Collapsed;
             if (preservePart && oldWidth == _width && oldHeight == _height)
                 _image.HalconWindow.SetPart(oldRow1, oldCol1, oldRow2, oldCol2);
-            _lastSource = Settings.NodeId; _lastPort = Settings.OutputField;
+            _lastSource = Settings.NodeId; _lastPort = Settings.OutputField; _lastImageIndex = Settings.ImageIndex;
             if (flow is not null) _scene = DetectionOverlayScene.Create(flow, run, Settings, _width, _height);
             RenderOverlays();
         }
@@ -209,7 +225,14 @@ public sealed class DetectionContentView : Border, IDisposable
                 Background = new SolidColorBrush(Color.FromArgb(185, 10, 20, 28)), FontSize = 12, Padding = new Thickness(4, 2, 4, 2), TextWrapping = TextWrapping.Wrap,
                 MaxWidth = Math.Max(20, _imageHost.ActualWidth - 16), IsHitTestVisible = false };
             text.Measure(new Size(text.MaxWidth, double.PositiveInfinity));
-            Canvas.SetLeft(text, 8); Canvas.SetTop(text, top); top += text.DesiredSize.Height + 3; _overlayCanvas.Children.Add(text);
+            if (caption.Position is { } anchor)
+            {
+                var position = Position(anchor);
+                Canvas.SetLeft(text, Math.Clamp(position.X + 3, 0, Math.Max(0, _imageHost.ActualWidth - text.DesiredSize.Width)));
+                Canvas.SetTop(text, Math.Clamp(position.Y - text.DesiredSize.Height - 2, 0, Math.Max(0, _imageHost.ActualHeight - text.DesiredSize.Height)));
+            }
+            else { Canvas.SetLeft(text, 8); Canvas.SetTop(text, top); top += text.DesiredSize.Height + 3; }
+            _overlayCanvas.Children.Add(text);
         }
     }
 

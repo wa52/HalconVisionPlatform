@@ -1,6 +1,6 @@
 # 架构与资源生命周期
 
-更新：2026-10-13。平台采用五工程模块化单体架构。
+更新：2026-10-16。平台采用五工程模块化单体架构。
 
 ```text
 HalconVision.App ──> HalconVision.Application ──> HalconVision.Domain
@@ -39,6 +39,8 @@ DetectionOverlayScene 从本轮结果提取托管显示快照：搜索矩形、�
 图形叠加检查共同图像源及尺寸；未来改变图像坐标的节点需扩展显式坐标变换。旧显示布局载入时可转换为同图配置，保存后写回项目文件。
 
 深度学习节点内部裁剪使用 DlCropRoi，语义分割掩膜通过 TileImagesOffset 和 ReduceDomain 回到原图坐标及有效 ROI；分类预览保留原图及矩形，不把分类当成目标定位。DlModelPackage 校验任务、类别与配套文件，DlPreprocessing 为两类节点共用官方预处理调用入口。详见 [ROI 与分类](DL_ROI_CLASSIFICATION.md)。
+
+多 ROI 通过 Domain 的 DetectionRoi 和各任务 RoiResult 契约统一。RoiListEditor 管理名称、启用状态及绘制请求；DlRoiSet 兼容旧参数并解析有效范围；DlInferenceSession 仅在一次节点调用内复用模型，每个 ROI 的样本与预测即时释放。任一 ROI 失败则回收部分输出，不提交半份成功结果。分割掩膜保持独立 HImage 元组，检测视图按 ImageIndex 选择，避免重叠区域覆盖。MultiRoiOverlay 只包含托管矩形与文字，不拥有 HALCON 资源。本轮完成编译，运行和交互验收待完成。
 
 ## 待完善
 
