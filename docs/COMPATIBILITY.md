@@ -15,6 +15,7 @@
 - [独立 C# 调用](evidence/HALCON_SMOKE_TEST.md)：读取官方图片、threshold、connection、count_obj 成功。
 - [同图叠加回归](evidence/overlay-display.md)：真实 1900 图片链路及资源生命周期检查；该记录明确列出测试时的参数调整。
 - [UI 与生命周期](evidence/ui-lifecycle-20261012.md)：项目加载、运行控制、采集句柄和关闭清理。
+- [2026-10-16 多 ROI 与缓存](evidence/dl-roi-validation-20261016.md)：真实分类/分割差分、100 轮回归、缓存清理及 UI 修复；仍不代表 CPU、准确率和长时间显存验收。
 
 这些证据反映指定机器和测试条件。HALCON 调用未出现授权错误；未修改 HALCON 安装、许可证或授权机制，不能仅由算子成功推断其他机器及部署环境的许可状态。
 

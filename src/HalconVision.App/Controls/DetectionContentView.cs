@@ -59,6 +59,10 @@ public sealed class DetectionContentView : Border, IDisposable
         _node.SelectionChanged += (_, _) => Configure(true); _view.SelectionChanged += (_, _) => Configure(true); _field.SelectionChanged += (_, _) => Configure();
         _imageIndex.SelectionChanged += (_, _) => Configure();
         Loaded += (_, _) => Refresh();
+        IsVisibleChanged += (_, e) =>
+        {
+            if (e.NewValue is true) Dispatcher.BeginInvoke(new Action(Refresh), System.Windows.Threading.DispatcherPriority.Loaded);
+        };
         _image.Loaded += (_, _) => Dispatcher.BeginInvoke(new Action(Refresh), System.Windows.Threading.DispatcherPriority.Loaded);
         SizeChanged += (_, _) => { if (IsLoaded && _width > 0 && _imageHost.IsVisible) Fit(); };
         _imageHost.SizeChanged += (_, _) => { if (IsLoaded && _width > 0 && _imageHost.IsVisible) Fit(); };
@@ -219,6 +223,7 @@ public sealed class DetectionContentView : Border, IDisposable
             _overlayCanvas.Children.Add(new System.Windows.Shapes.Polyline { Points = new PointCollection(shape.Points.Select(Position)),
                 Stroke = (Brush)new BrushConverter().ConvertFromString(shape.Color)!, StrokeThickness = shape.Color == "Red" ? 2.5 : 1.5, IsHitTestVisible = false });
         var top = 8d;
+        var occupied = new List<Rect>();
         foreach (var caption in _scene.Captions)
         {
             var text = new TextBlock { Text = caption.Text, Foreground = (Brush)new BrushConverter().ConvertFromString(caption.Color)!,
@@ -228,10 +233,23 @@ public sealed class DetectionContentView : Border, IDisposable
             if (caption.Position is { } anchor)
             {
                 var position = Position(anchor);
-                Canvas.SetLeft(text, Math.Clamp(position.X + 3, 0, Math.Max(0, _imageHost.ActualWidth - text.DesiredSize.Width)));
-                Canvas.SetTop(text, Math.Clamp(position.Y - text.DesiredSize.Height - 2, 0, Math.Max(0, _imageHost.ActualHeight - text.DesiredSize.Height)));
+                var left = Math.Clamp(position.X + 3, 0, Math.Max(0, _imageHost.ActualWidth - text.DesiredSize.Width));
+                var maxTop = Math.Max(0, _imageHost.ActualHeight - text.DesiredSize.Height);
+                var desiredTop = Math.Clamp(position.Y - text.DesiredSize.Height - 2, 0, maxTop);
+                var chosenTop = desiredTop;
+                var stride = Math.Max(1, text.DesiredSize.Height + 3);
+                for (var step = 0; step <= Math.Ceiling(_imageHost.ActualHeight / stride); step++)
+                {
+                    var candidates = step == 0 ? new[] { desiredTop } : new[] { desiredTop - step * stride, desiredTop + step * stride };
+                    var free = candidates.Where(y => y >= 0 && y <= maxTop).Select(y => (double?)y).FirstOrDefault(y =>
+                        occupied.All(rectangle => !rectangle.IntersectsWith(new Rect(left, y!.Value, text.DesiredSize.Width, text.DesiredSize.Height))));
+                    if (free is null) continue;
+                    chosenTop = free.Value; break;
+                }
+                Canvas.SetLeft(text, left); Canvas.SetTop(text, chosenTop);
             }
             else { Canvas.SetLeft(text, 8); Canvas.SetTop(text, top); top += text.DesiredSize.Height + 3; }
+            occupied.Add(new Rect(Canvas.GetLeft(text), Canvas.GetTop(text), text.DesiredSize.Width, text.DesiredSize.Height));
             _overlayCanvas.Children.Add(text);
         }
     }

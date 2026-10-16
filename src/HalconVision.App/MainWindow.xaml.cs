@@ -573,14 +573,15 @@ public partial class MainWindow : Window
             _continuousCancellation.Dispose();
             _continuousCancellation = null;
             // The last run remains available for inspection; acquisition is no longer active.
-            await _vm.DisconnectCameraAsync();
+            try { _vm.ReleaseModelSessions(); }
+            finally { await _vm.DisconnectCameraAsync(); }
         }
     }
 
-    private void CancelRun_Click(object sender, RoutedEventArgs e)
+    private async void CancelRun_Click(object sender, RoutedEventArgs e)
     {
-        _continuousCancellation?.Cancel();
-        _vm.CancelRun();
+        try { await StopExecutionAsync(); _vm.ReleaseModelSessions(); }
+        catch (Exception ex) { ShowError("停止运行失败", ex); }
     }
 
     private void DisplayLastSuccessfulNode(FlowTabViewModel flow)
@@ -933,6 +934,8 @@ public partial class MainWindow : Window
     {
         ClearConfiguredRois();
         _roiOutlineParameter = parameter; parameter.PropertyChanged += ConfiguredRois_Changed;
+        // A collapsed Canvas has no arranged size. Make it participate in layout before mapping the ROI.
+        RoiDrawingOverlay.Visibility = Visibility.Visible;
         RenderConfiguredRois();
     }
     private void ConfiguredRois_Changed(object? sender, PropertyChangedEventArgs e)

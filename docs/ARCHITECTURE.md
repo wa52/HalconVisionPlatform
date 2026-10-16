@@ -26,7 +26,7 @@ WorkflowExecutionEngine 校验依赖并执行节点。相机节点每次取一�
 
 WorkflowExecutionRun 持有本轮 RuntimeOutputs，并按引用去重释放 IDisposable 对象。工作区替换结果、切换项目及关闭时释放旧运行；相机管理器独立拥有采集句柄，停止/关闭时结束采集并释放。退出等待运行任务与设备操作完成。
 
-语义分割执行器独立读取训练平台模型目录并校验类别和文件校验和；官方预处理过程使用 HDevEngine。每次执行拥有独立 HDlModel、HDict 和预测数据，模型清理成功后才将预览、标签图和区域转交当前运行。原图标签还原仅支持 full_domain，使用最近邻，保证类别 ID 不因插值改变。检测到区域和产品 OK/NG 判定保持独立。详见 [算法和所有权分析](SEMANTIC_SEGMENTATION_NODE.md)。
+语义分割执行器独立读取训练平台模型目录并校验类别和文件校验和；官方预处理过程使用 HDevEngine。工作区通过 DlModelSessionCache 拥有 HDlModel 和预处理字典，执行器借用独占租约；临时样本与预测即时释放，输出归当前运行。停止、切换和关闭清理模型。原图标签还原仅支持 full_domain，使用最近邻，保证类别 ID 不因插值改变。检测到区域和产品 OK/NG 判定保持独立。详见 [算法和所有权分析](SEMANTIC_SEGMENTATION_NODE.md)。
 
 ## 同图多节点显示
 
@@ -40,7 +40,7 @@ DetectionOverlayScene 从本轮结果提取托管显示快照：搜索矩形、�
 
 深度学习节点内部裁剪使用 DlCropRoi，语义分割掩膜通过 TileImagesOffset 和 ReduceDomain 回到原图坐标及有效 ROI；分类预览保留原图及矩形，不把分类当成目标定位。DlModelPackage 校验任务、类别与配套文件，DlPreprocessing 为两类节点共用官方预处理调用入口。详见 [ROI 与分类](DL_ROI_CLASSIFICATION.md)。
 
-多 ROI 通过 Domain 的 DetectionRoi 和各任务 RoiResult 契约统一。RoiListEditor 管理名称、启用状态及绘制请求；DlRoiSet 兼容旧参数并解析有效范围；DlInferenceSession 仅在一次节点调用内复用模型，每个 ROI 的样本与预测即时释放。任一 ROI 失败则回收部分输出，不提交半份成功结果。分割掩膜保持独立 HImage 元组，检测视图按 ImageIndex 选择，避免重叠区域覆盖。MultiRoiOverlay 只包含托管矩形与文字，不拥有 HALCON 资源。本轮完成编译，运行和交互验收待完成。
+多 ROI 通过 Domain 的 DetectionRoi 和各任务 RoiResult 契约统一。RoiListEditor 管理名称、启用状态及绘制请求；DlRoiSet 兼容旧参数并解析有效范围；DlInferenceSession 通过工作区缓存跨轮复用模型，每个 ROI 的样本与预测即时释放。任一 ROI 失败则回收部分输出，不提交半份成功结果。分割掩膜保持独立 HImage 元组，检测视图按 ImageIndex 选择，避免重叠区域覆盖。MultiRoiOverlay 只包含托管矩形与文字，不拥有 HALCON 资源。已完成真实差分推理、100 轮缓存回归及部分实际 UI 交互；完整矩阵和长期验收仍待完成。详见 [实测记录](evidence/dl-roi-validation-20261016.md)。
 
 ## 待完善
 

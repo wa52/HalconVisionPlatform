@@ -6,7 +6,7 @@ using HalconVision.Domain;
 
 namespace HalconVision.Halcon;
 
-public sealed class HalconClassificationExecutor : INodeExecutor
+public sealed class HalconClassificationExecutor(DlModelSessionCache? cache = null) : INodeExecutor
 {
     public string TypeId => HalconNodeProvider.Classification;
     public int Version => 1;
@@ -15,7 +15,6 @@ public sealed class HalconClassificationExecutor : INodeExecutor
         var cancellation = context.CancellationToken; cancellation.ThrowIfCancellationRequested();
         if (context.RuntimeInputs?.GetValueOrDefault("image") is not HImage source) throw new InvalidDataException("分类检测需要连接 Image 输入。");
         var path = context.Node.Parameters.TryGetValue("modelPackage", out var value) ? value.GetString() ?? "" : "";
-        var package = DlModelPackage.Load(path, cancellation, "classification");
         var threshold = context.Node.Parameters.TryGetValue("minimumConfidence", out var number) ? number.GetDouble() : .5;
         if (!double.IsFinite(threshold) || threshold is < 0 or > 1) throw new InvalidDataException("最低置信度必须在 0–1 之间。");
         using var first = source.SelectObj(1); first.GetImageSize(out int width, out int height);
@@ -29,8 +28,9 @@ public sealed class HalconClassificationExecutor : INodeExecutor
         try
         {
             NodeExecutionOutput output;
-            using (var session = new DlInferenceSession(package, context, "classification"))
+            using (var lease = DlSessionLease.Open(cache, path, context, "classification", "classification"))
             {
+                var package = lease.Package; var session = lease.Session;
                 context.Log($"分类模型已加载，按顺序处理 {rois.Count} 个 ROI。");
                 foreach (var roi in rois)
                 {
@@ -68,11 +68,13 @@ public sealed class HalconClassificationExecutor : INodeExecutor
                     ["status"] = JsonSerializer.SerializeToElement(summary), ["roiResults"] = JsonSerializer.SerializeToElement(results),
                     ["roi"] = JsonSerializer.SerializeToElement(single?.Bounds),
                     ["modelInfo"] = JsonSerializer.SerializeToElement(new { directory = package.DirectoryPath, device = session.Runtime,
-                        deviceIndex = session.DeviceIndex, roiCount = results.Count, inferenceMs = results.Sum(item => item.InferenceMilliseconds), elapsedMs = clock.Elapsed.TotalMilliseconds })
+                        deviceIndex = session.DeviceIndex, roiCount = results.Count, cacheHit = lease.CacheHit, modelLoadMs = lease.LoadMilliseconds,
+                        inferenceMs = results.Sum(item => item.InferenceMilliseconds), elapsedMs = clock.Elapsed.TotalMilliseconds })
                 };
                 var labels = results.Select(item => new RoiDisplayResult(item.RoiId, item.RoiName, item.Bounds,
                     $"{item.ClassName} · {item.Confidence:P1}", item.Status.Code == ClassificationStatus.LowConfidence)).ToArray();
                 output = new(ports, new Dictionary<string, object?> { ["preview"] = preview, ["roiOverlay"] = new MultiRoiOverlay(labels) });
+                cancellation.ThrowIfCancellationRequested(); lease.Complete();
             }
             cancellation.ThrowIfCancellationRequested();
             transferred = true;

@@ -15,6 +15,7 @@ namespace HalconVision.App;
 public sealed class WorkflowWorkspaceViewModel : ObservableModel
 {
     private readonly HalconCameraManager _cameraManager = new();
+    private readonly DlModelSessionCache _dlSessions = new();
     private readonly ProjectStore _projectStore = new();
     private readonly INodeRegistry _registry;
     private readonly WorkflowGraphValidator _validator;
@@ -44,8 +45,8 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
             new HalconThresholdExecutor(),
             new HalconBlobAnalysisExecutor(),
             new HalconStraightLineFindExecutor(),
-            new HalconSemanticSegmentationExecutor(),
-            new HalconClassificationExecutor()
+            new HalconSemanticSegmentationExecutor(_dlSessions),
+            new HalconClassificationExecutor(_dlSessions)
         ]);
         _registry = registry;
         _validator = new WorkflowGraphValidator(_registry);
@@ -249,6 +250,7 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
 
     public void CloseProject()
     {
+        ReleaseModelSessions();
         Workspace = null; Flows.Clear(); SelectedFlow = null; ProjectTree.Clear(); ProjectStatus = "未打开项目";
     }
 
@@ -413,6 +415,12 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
     }
 
     public void CancelRun() => _runCancellation?.Cancel();
+
+    public void ReleaseModelSessions()
+    {
+        if (IsRunning) throw new InvalidOperationException("请等待当前推理结束后释放模型。");
+        _dlSessions.Clear();
+    }
     public void SetExecutionRun(WorkflowExecutionRun run)
     {
         if (!ReferenceEquals(LastRun, run)) LastRun?.Dispose();
@@ -428,6 +436,7 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
         if (IsRunning || _cameraOperations.Count > 0) throw new InvalidOperationException("请等待运行或相机操作结束后切换项目。");
         var flows = _projectStore.ListFlows(workspace);
         if (flows.Count == 0) throw new InvalidDataException("项目中没有流程文件。");
+        ReleaseModelSessions();
         LastRun?.Dispose();
         LastRun = null;
         ExecutionResults.Clear();
@@ -494,6 +503,7 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
         LastRun = null;
         ExecutionResults.Clear();
         _imageSequenceCursors.Clear();
-        _cameraManager.Dispose();
+        try { _cameraManager.Dispose(); }
+        finally { _dlSessions.Dispose(); }
     }
 }

@@ -7,7 +7,7 @@ using HalconVision.Domain;
 
 namespace HalconVision.Halcon;
 
-public sealed class HalconSemanticSegmentationExecutor : INodeExecutor
+public sealed class HalconSemanticSegmentationExecutor(DlModelSessionCache? cache = null) : INodeExecutor
 {
     public string TypeId => HalconNodeProvider.SemanticSegmentation;
     public int Version => 1;
@@ -15,14 +15,10 @@ public sealed class HalconSemanticSegmentationExecutor : INodeExecutor
     {
         var cancellation = context.CancellationToken; cancellation.ThrowIfCancellationRequested();
         if (context.RuntimeInputs?.GetValueOrDefault("image") is not HImage source) throw new InvalidDataException("语义分割需要连接 Image 输入。");
-        var package = DlModelPackage.Load(Text(context.Node, "modelPackage", ""), cancellation, "semantic_segmentation");
         var minimum = Number(context.Node, "minimumArea", 1); var maximum = Number(context.Node, "maximumArea", 1_000_000_000);
         if (minimum < 1 || maximum < minimum) throw new InvalidDataException("区域面积范围无效。");
         var background = ParseIds(Text(context.Node, "backgroundClassIds", "0"));
         var requested = ParseIds(Text(context.Node, "targetClassIds", ""));
-        if (background.Concat(requested).Any(id => !package.ClassIds.Contains(id))) throw new InvalidDataException("目标/背景类别不在模型类别列表中。");
-        var targets = requested.Count > 0 ? requested : package.ClassIds.Where(id => !background.Contains(id)).ToHashSet();
-        if (targets.Count == 0) throw new InvalidDataException("没有可检测的目标类别。");
         using var first = source.SelectObj(1); first.GetImageSize(out int width, out int height);
         using var channels = first.CountChannels();
         if (channels.I is not (1 or 3)) throw new InvalidDataException("分割预览仅支持灰度或 RGB 图像。");
@@ -35,8 +31,12 @@ public sealed class HalconSemanticSegmentationExecutor : INodeExecutor
         try
         {
             NodeExecutionOutput output;
-            using (var session = new DlInferenceSession(package, context, "segmentation"))
+            using (var lease = DlSessionLease.Open(cache, Text(context.Node, "modelPackage", ""), context, "semantic_segmentation", "segmentation"))
             {
+                var package = lease.Package; var session = lease.Session;
+                if (background.Concat(requested).Any(id => !package.ClassIds.Contains(id))) throw new InvalidDataException("目标/背景类别不在模型类别列表中。");
+                var targets = requested.Count > 0 ? requested : package.ClassIds.Where(id => !background.Contains(id)).ToHashSet();
+                if (targets.Count == 0) throw new InvalidDataException("没有可检测的目标类别。");
                 masks = new HImage(); masks.GenEmptyObj();
                 regions = new HRegion(); regions.GenEmptyObj();
                 context.Log($"分割模型已加载，按顺序处理 {rois.Count} 个 ROI。");
@@ -112,12 +112,14 @@ public sealed class HalconSemanticSegmentationExecutor : INodeExecutor
                     ["roiResults"] = JsonSerializer.SerializeToElement(results), ["status"] = JsonSerializer.SerializeToElement(statusAll),
                     ["roi"] = JsonSerializer.SerializeToElement(results.Count == 1 ? results[0].Bounds : null),
                     ["modelInfo"] = JsonSerializer.SerializeToElement(new { directory = package.DirectoryPath, device = session.Runtime,
-                        deviceIndex = session.DeviceIndex, roiCount = results.Count, inferenceMs = results.Sum(item => item.InferenceMilliseconds), elapsedMs = clock.Elapsed.TotalMilliseconds })
+                        deviceIndex = session.DeviceIndex, roiCount = results.Count, cacheHit = lease.CacheHit, modelLoadMs = lease.LoadMilliseconds,
+                        inferenceMs = results.Sum(item => item.InferenceMilliseconds), elapsedMs = clock.Elapsed.TotalMilliseconds })
                 };
                 var displays = results.Select(item => new RoiDisplayResult(item.RoiId, item.RoiName, item.Bounds,
                     $"{item.Count} 个 · {item.Area:F0} px", item.Count == 0)).ToArray();
                 output = new(ports, new Dictionary<string, object?> { ["preview"] = preview, ["mask"] = masks,
                     ["regions"] = regions, ["roiOverlay"] = new MultiRoiOverlay(displays) });
+                cancellation.ThrowIfCancellationRequested(); lease.Complete();
             }
             cancellation.ThrowIfCancellationRequested(); transferred = true;
             return ValueTask.FromResult(output);
