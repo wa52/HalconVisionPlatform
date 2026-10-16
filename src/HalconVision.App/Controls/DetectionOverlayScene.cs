@@ -34,7 +34,7 @@ public sealed class DetectionOverlayScene
             var name = node?.DisplayName ?? "已删除节点";
             if (result is null) { scene.Captions.Add(new($"{name}：本轮未运行", "Orange")); continue; }
             if (layer.ShowDecision) scene.Captions.Add(new($"{name}：{NodeResultSummary.Describe(result)}",
-                result.Status == NodeExecutionStatus.Success && !NodeResultSummary.Describe(result).StartsWith("未找到") && !NodeResultSummary.Describe(result).StartsWith("未检出") && !NodeResultSummary.Describe(result).StartsWith("分类置信度不足") ? "LimeGreen" : "Orange"));
+                NodeResultSummary.Color(result).ToString()));
             var rows = NodeOutputValue.From(result, node?.Definition);
             foreach (var row in rows.Where(row => (ImportantFields.ContainsKey(row.Name) || AdvancedFields.ContainsKey(row.Name)) &&
                 (layer.Fields ?? ImportantFields.Keys.ToList()).Contains(row.Name) &&
@@ -50,9 +50,10 @@ public sealed class DetectionOverlayScene
                 foreach (var item in multi.Rois)
                 {
                     var box = item.Bounds;
+                    var color = item.Decision is { } decision ? NodeResultSummary.ClassificationColor(decision).ToString() : item.Warning ? "Orange" : "Gold";
                     scene.Geometry.Add(new([new(box.RowBegin, box.ColumnBegin), new(box.RowBegin, box.ColumnEnd),
-                        new(box.RowEnd, box.ColumnEnd), new(box.RowEnd, box.ColumnBegin), new(box.RowBegin, box.ColumnBegin)], item.Warning ? "Orange" : "Gold"));
-                    scene.Captions.Add(new($"{name} / {item.Name}：{item.Summary}", item.Warning ? "Orange" : "Gold", new(box.RowEnd, box.ColumnBegin)));
+                        new(box.RowEnd, box.ColumnEnd), new(box.RowEnd, box.ColumnBegin), new(box.RowBegin, box.ColumnBegin)], color));
+                    scene.Captions.Add(new($"{name} / {item.Name}：{item.Summary}", color, new(box.RowEnd, box.ColumnBegin)));
                 }
             if (runtime.Values.OfType<GeometryOverlay>().FirstOrDefault() is { } overlay)
             {

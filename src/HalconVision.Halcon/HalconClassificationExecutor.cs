@@ -17,6 +17,8 @@ public sealed class HalconClassificationExecutor(DlModelSessionCache? cache = nu
         var path = context.Node.Parameters.TryGetValue("modelPackage", out var value) ? value.GetString() ?? "" : "";
         var threshold = context.Node.Parameters.TryGetValue("minimumConfidence", out var number) ? number.GetDouble() : .5;
         if (!double.IsFinite(threshold) || threshold is < 0 or > 1) throw new InvalidDataException("最低置信度必须在 0–1 之间。");
+        var ngPrefix = context.Node.Parameters.TryGetValue("ngClassPrefix", out var prefix) ? prefix.GetString()?.Trim() ?? "" : "NG";
+        if (string.IsNullOrWhiteSpace(ngPrefix)) throw new InvalidDataException("NG 类别前缀不能为空。");
         using var first = source.SelectObj(1); first.GetImageSize(out int width, out int height);
         using var channels = first.CountChannels();
         if (channels.I is not (1 or 3)) throw new InvalidDataException("分类预览仅支持灰度或 RGB 图像。");
@@ -43,36 +45,48 @@ public sealed class HalconClassificationExecutor(DlModelSessionCache? cache = nu
                         var top = scores[0];
                         var status = new ClassificationStatus(top.Confidence >= threshold ? ClassificationStatus.Classified : ClassificationStatus.LowConfidence,
                             $"{roi.Name}：{top.ClassName}，置信度 {top.Confidence:P2}" + (top.Confidence < threshold ? "，低于阈值。" : "。"));
-                        results.Add(new(roi.Id, roi.Name, roi.Crop.Bounds, top.ClassId, top.ClassName, top.Confidence, scores, status, milliseconds));
+                        var decision = ClassificationDecision.From(top.ClassName, status, ngPrefix);
+                        results.Add(new(roi.Id, roi.Name, roi.Crop.Bounds, top.ClassId, top.ClassName, top.Confidence, scores, status, milliseconds, decision));
                         context.Log($"{status.Message} 推理 {milliseconds:F1} ms。");
                     }
                     catch (Exception ex) when (ex is not OperationCanceledException)
                     { throw new InvalidOperationException($"ROI“{roi.Name}”分类失败：{ex.Message}", ex); }
                 }
                 preview = channels.I == 1 ? first.Compose3(first, first) : first.CopyImage();
-                using var yellow = new HTuple(new int[] { 255, 220, 0 });
-                foreach (var roi in rois.Where(item => item.Crop.IsExplicit))
+                foreach (var result in results)
                 {
-                    using var region = roi.Crop.Region();
-                    var marked = preview.PaintRegion(region, yellow, "margin"); preview.Dispose(); preview = marked;
+                    using var region = new HRegion(result.Bounds.RowBegin, result.Bounds.ColumnBegin, result.Bounds.RowEnd, result.Bounds.ColumnEnd);
+                    using var color = new HTuple(result.Decision!.Code switch
+                    {
+                        ClassificationDecision.Ok => new int[] { 50, 205, 50 },
+                        ClassificationDecision.DetectedNg => new int[] { 30, 144, 255 },
+                        _ => new int[] { 255, 0, 0 }
+                    });
+                    var marked = preview.PaintRegion(region, color, "margin"); preview.Dispose(); preview = marked;
                 }
                 var single = results.Count == 1 ? results[0] : null;
                 var lowCount = results.Count(item => item.Status.Code == ClassificationStatus.LowConfidence);
                 var summary = single?.Status ?? new ClassificationStatus(lowCount == 0 ? ClassificationStatus.Classified : ClassificationStatus.LowConfidence,
                     $"完成 {results.Count} 个 ROI 分类，低置信度 {lowCount} 个；各区域结果见图像标注和 ROI 明细。");
+                var okCount = results.Count(item => item.Decision!.Code == ClassificationDecision.Ok);
+                var ngCount = results.Count(item => item.Decision!.Code == ClassificationDecision.DetectedNg);
+                var decisionSummary = new ClassificationDecision(lowCount > 0 ? ClassificationDecision.NotDetected :
+                    ngCount > 0 ? ClassificationDecision.DetectedNg : ClassificationDecision.Ok,
+                    $"OK {okCount} 个；未检出 NG {lowCount} 个；检出 NG {ngCount} 个");
                 var ports = new Dictionary<string, JsonElement>
                 {
                     ["preview"] = JsonSerializer.SerializeToElement(new { width, height, channels = 3 }),
                     ["classId"] = JsonSerializer.SerializeToElement(single?.ClassId), ["className"] = JsonSerializer.SerializeToElement(single?.ClassName),
                     ["confidence"] = JsonSerializer.SerializeToElement(single?.Confidence), ["scores"] = JsonSerializer.SerializeToElement(single?.Scores ?? []),
                     ["status"] = JsonSerializer.SerializeToElement(summary), ["roiResults"] = JsonSerializer.SerializeToElement(results),
+                    ["decision"] = JsonSerializer.SerializeToElement(decisionSummary),
                     ["roi"] = JsonSerializer.SerializeToElement(single?.Bounds),
                     ["modelInfo"] = JsonSerializer.SerializeToElement(new { directory = package.DirectoryPath, device = session.Runtime,
                         deviceIndex = session.DeviceIndex, roiCount = results.Count, cacheHit = lease.CacheHit, modelLoadMs = lease.LoadMilliseconds,
                         inferenceMs = results.Sum(item => item.InferenceMilliseconds), elapsedMs = clock.Elapsed.TotalMilliseconds })
                 };
                 var labels = results.Select(item => new RoiDisplayResult(item.RoiId, item.RoiName, item.Bounds,
-                    $"{item.ClassName} · {item.Confidence:P1}", item.Status.Code == ClassificationStatus.LowConfidence)).ToArray();
+                    $"{item.Decision!.Message} · {item.ClassName} · {item.Confidence:P1}", item.Status.Code == ClassificationStatus.LowConfidence, item.Decision)).ToArray();
                 output = new(ports, new Dictionary<string, object?> { ["preview"] = preview, ["roiOverlay"] = new MultiRoiOverlay(labels) });
                 cancellation.ThrowIfCancellationRequested(); lease.Complete();
             }

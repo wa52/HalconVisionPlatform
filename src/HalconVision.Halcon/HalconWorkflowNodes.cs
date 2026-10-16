@@ -24,12 +24,14 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
              new("classId", "类别 ID", PortDirection.Output, "number"), new("className", "类别名称", PortDirection.Output, "string"),
              new("confidence", "分类置信度", PortDirection.Output, "number"), new("scores", "全部类别评分", PortDirection.Output, "vision.classification-scores"),
              new("status", "分类状态", PortDirection.Output, "inspection.result"), new("roi", "原图检测范围（单 ROI）", PortDirection.Output, "vision.roi"), new("roiResults", "各 ROI 结果", PortDirection.Output, "vision.roi-results"),
+             new("decision", "检测判定（OK/未检出/检出NG）", PortDirection.Output, "inspection.result"),
              new("modelInfo", "模型与推理信息", PortDirection.Output, "object")],
             [new("modelPackage", "训练模型目录", "path", true, JsonSerializer.SerializeToElement("")),
              new("rois", "多 ROI 检测范围", "roiList", false, JsonSerializer.SerializeToElement(Array.Empty<DetectionRoi>())),
              new("deviceRuntime", "推理设备", "dlDevice", true, JsonSerializer.SerializeToElement("gpu")),
              new("deviceIndex", "设备索引（从 0 开始）", "number", true, JsonSerializer.SerializeToElement(0)),
-             new("minimumConfidence", "最低置信度（0–1）", "number", true, JsonSerializer.SerializeToElement(0.5))]);
+             new("minimumConfidence", "最低置信度（0–1）", "number", true, JsonSerializer.SerializeToElement(0.5)),
+             new("ngClassPrefix", "NG 类别前缀（蓝色）", "string", true, JsonSerializer.SerializeToElement("NG"))]);
 
         yield return new NodeDefinition(
             SemanticSegmentation, 1, "深度学习", "语义分割检测", "加载 HalconTrainingPlatform 模型目录，按训练预处理进行分割，输出原图坐标的掩膜与目标区域。",

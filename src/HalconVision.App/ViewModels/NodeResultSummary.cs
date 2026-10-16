@@ -13,6 +13,7 @@ public sealed class NodeResultSummary : IValueConverter
         if (result is null) return "未运行 · 请运行所选节点所在流程";
         if (result.Status != NodeExecutionStatus.Success)
             return result.Status == NodeExecutionStatus.Failed ? $"运行错误：{result.Error}" : $"未完成：{result.Status}";
+        if (ReadClassificationDecision(result) is { } decision) return decision.Message;
         if (!result.Outputs.TryGetValue("status", out var status) || status.ValueKind != JsonValueKind.Object ||
             !status.TryGetProperty("Code", out var code)) return "执行成功";
         if (code.GetString() is ClassificationStatus.Classified or ClassificationStatus.LowConfidence)
@@ -32,10 +33,22 @@ public sealed class NodeResultSummary : IValueConverter
 
     public static Brush Color(NodeExecutionResult? result)
     {
+        if (ReadClassificationDecision(result) is { } decision) return ClassificationColor(decision);
         var text = Describe(result);
         return text.StartsWith("找到直线") || text.StartsWith("语义分割检出") || text.StartsWith("分类完成") ? Brushes.LightGreen
             : text.StartsWith("未找到") || text.StartsWith("未检出") || text.StartsWith("分类置信度不足") || text.StartsWith("运行错误") ? Brushes.Orange : Brushes.LightGray;
     }
+
+    public static Brush ClassificationColor(ClassificationDecision decision) => decision.Code switch
+    {
+        ClassificationDecision.Ok => Brushes.LimeGreen,
+        ClassificationDecision.DetectedNg => Brushes.DodgerBlue,
+        _ => Brushes.Red
+    };
+
+    private static ClassificationDecision? ReadClassificationDecision(NodeExecutionResult? result) =>
+        result?.Status == NodeExecutionStatus.Success && result.Outputs.TryGetValue("decision", out var value) && value.ValueKind == JsonValueKind.Object
+            ? value.Deserialize<ClassificationDecision>() : null;
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => Describe(value as NodeExecutionResult);
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();

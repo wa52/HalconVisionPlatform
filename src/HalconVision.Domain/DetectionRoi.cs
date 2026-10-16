@@ -20,9 +20,11 @@ public sealed record DetectionRoi(Guid Id, string Name, double RowBegin, double 
     }
 }
 
-public sealed record RoiDisplayResult(Guid Id, string Name, Rectangle2D Bounds, string Summary, bool Warning = false);
+public sealed record RoiDisplayResult(Guid Id, string Name, Rectangle2D Bounds, string Summary, bool Warning = false,
+    ClassificationDecision? Decision = null);
 public sealed record MultiRoiOverlay(IReadOnlyList<RoiDisplayResult> Rois);
 public sealed record RoiClassificationResult(Guid RoiId, string RoiName, Rectangle2D Bounds, int ClassId, string ClassName,
-    double Confidence, IReadOnlyList<ClassificationScore> Scores, ClassificationStatus Status, double InferenceMilliseconds);
+    double Confidence, IReadOnlyList<ClassificationScore> Scores, ClassificationStatus Status, double InferenceMilliseconds,
+    ClassificationDecision? Decision = null);
 public sealed record RoiSegmentationResult(Guid RoiId, string RoiName, Rectangle2D Bounds, int Count, double Area,
     IReadOnlyList<SegmentationClassArea> Classes, SegmentationStatus Status, double InferenceMilliseconds);

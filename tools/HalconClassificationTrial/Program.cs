@@ -177,10 +177,18 @@ internal static class Program
             foreach (var roi in rois)
             {
                 var result = results?.First(item => item.RoiId == roi.Id);
-                var color = result is not null && result.Confidence < threshold ? Brushes.OrangeRed : Brushes.Gold;
+                var decision = result is null ? null : result.Decision ?? ClassificationDecision.From(result.ClassName,
+                    new ClassificationStatus(result.Confidence < threshold ? ClassificationStatus.LowConfidence : result.Status.Code, result.Status.Message), "NG");
+                var color = decision?.Code switch
+                {
+                    ClassificationDecision.Ok => Brushes.LimeGreen,
+                    ClassificationDecision.DetectedNg => Brushes.DodgerBlue,
+                    ClassificationDecision.NotDetected => Brushes.Red,
+                    _ => Brushes.Gold
+                };
                 var rectangle = new Rect(roi.ColumnBegin * scale, roi.RowBegin * scale, (roi.ColumnEnd - roi.ColumnBegin + 1) * scale, (roi.RowEnd - roi.RowBegin + 1) * scale);
                 drawing.DrawRectangle(null, new Pen(color, 3), rectangle);
-                var label = result is null ? roi.Name : $"{roi.Name} → {result.ClassName}  {result.Confidence:P1}";
+                var label = result is null ? roi.Name : $"{roi.Name} → {decision!.Message} · {result.ClassName}  {result.Confidence:P1}";
                 var text = new FormattedText(label, CultureInfo.GetCultureInfo("zh-CN"), FlowDirection.LeftToRight, new Typeface("Microsoft YaHei"), 18, color, 1);
                 var location = new Point(Math.Clamp(rectangle.X, 0, Math.Max(0, width - text.Width - 8)), Math.Clamp(rectangle.Y - text.Height - 6, 0, Math.Max(0, height - text.Height - 6)));
                 drawing.DrawRectangle(new SolidColorBrush(Color.FromArgb(220, 12, 18, 24)), null, new Rect(location.X, location.Y, text.Width + 8, text.Height + 4));
