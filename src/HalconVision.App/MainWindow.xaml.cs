@@ -765,7 +765,7 @@ public partial class MainWindow : Window
         FinishRoiDrawing();
         if (
             _vm.SelectedFlow?.SelectedNode is not { } lineNode ||
-            lineNode.TypeId is not (HalconNodeProvider.StraightLineFind or HalconNodeProvider.SemanticSegmentation or HalconNodeProvider.Classification)) return;
+            lineNode.TypeId is not (HalconNodeProvider.StraightLineFind or HalconNodeProvider.SemanticSegmentation or HalconNodeProvider.Classification or HalconNodeProvider.ObjectDetection)) return;
         var flow = _vm.SelectedFlow;
         var edge = flow.Document.Edges.FirstOrDefault(item => item.ToNodeId == lineNode.Id && item.ToPortId == "image");
         var sourceNode = edge is null ? null : flow.Document.Nodes.FirstOrDefault(item => item.Id == edge.FromNodeId);

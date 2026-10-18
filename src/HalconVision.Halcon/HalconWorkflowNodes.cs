@@ -15,9 +15,26 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
     public const string StraightLineFind = "halcon.straight-line-find";
     public const string SemanticSegmentation = "halcon.semantic-segmentation";
     public const string Classification = "halcon.classification";
+    public const string ObjectDetection = "halcon.object-detection";
 
     public IEnumerable<NodeDefinition> GetDefinitions()
     {
+        yield return new NodeDefinition(ObjectDetection, 1, "深度学习", "目标检测", "使用 HALCON rectangle1 模型在多个 ROI 中定位目标，输出原图框、类别、置信度与数量判定。",
+            [new("image", "Image", PortDirection.Input, "halcon.image", Required: true),
+             new("preview", "检测预览", PortDirection.Output, "halcon.image"), new("objects", "检测目标", PortDirection.Output, "vision.detection-objects"),
+             new("count", "目标数（逐 ROI）", PortDirection.Output, "number"), new("roiResults", "各 ROI 结果", PortDirection.Output, "vision.roi-results"),
+             new("decision", "检测判定", PortDirection.Output, "inspection.result"), new("status", "执行结果", PortDirection.Output, "inspection.result"), new("modelInfo", "模型信息", PortDirection.Output, "object")],
+            [new("modelPackage", "HALCON 检测模型目录", "path", true, JsonSerializer.SerializeToElement("")),
+             new("rois", "多 ROI 检测范围", "roiList", false, JsonSerializer.SerializeToElement(Array.Empty<DetectionRoi>())),
+             new("expectedClass", "期望类别（$roi=ROI名称；留空全部）", "string", false, JsonSerializer.SerializeToElement("")),
+             new("minimumConfidence", "最低置信度（0–1）", "number", true, JsonSerializer.SerializeToElement(.5)),
+             new("maxOverlap", "NMS 最大重叠（0–1）", "number", true, JsonSerializer.SerializeToElement(.5)),
+             new("maxDetections", "每 ROI 最多检测数", "number", true, JsonSerializer.SerializeToElement(100)),
+             new("minimumCount", "正常目标最少数量", "number", true, JsonSerializer.SerializeToElement(1)),
+             new("maximumCount", "正常目标最多数量", "number", true, JsonSerializer.SerializeToElement(1)),
+             new("ngClassPrefix", "NG 类别前缀（蓝色）", "string", true, JsonSerializer.SerializeToElement("NG")),
+             new("deviceRuntime", "推理设备", "dlDevice", true, JsonSerializer.SerializeToElement("gpu")),
+             new("deviceIndex", "设备索引（从 0 开始）", "number", true, JsonSerializer.SerializeToElement(0))]);
         yield return new NodeDefinition(Classification, 1, "深度学习", "分类检测", "使用训练平台分类模型，对全图或绘制 ROI 裁剪推理，输出类别和真实置信度。",
             [new("image", "Image", PortDirection.Input, "halcon.image", Required: true),
              new("preview", "检测预览", PortDirection.Output, "halcon.image"),

@@ -46,7 +46,8 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
             new HalconBlobAnalysisExecutor(),
             new HalconStraightLineFindExecutor(),
             new HalconSemanticSegmentationExecutor(_dlSessions),
-            new HalconClassificationExecutor(_dlSessions)
+            new HalconClassificationExecutor(_dlSessions),
+            new HalconObjectDetectionExecutor(_dlSessions)
         ]);
         _registry = registry;
         _validator = new WorkflowGraphValidator(_registry);

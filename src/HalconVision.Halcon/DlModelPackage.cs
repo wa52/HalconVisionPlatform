@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace HalconVision.Halcon;
 
-internal sealed record DlModelPackage(string DirectoryPath, int[] ClassIds, string[] ClassNames)
+internal sealed record DlModelPackage(string DirectoryPath, int[] ClassIds, string[] ClassNames, string ValidationStatus)
 {
     public string ModelPath => Path.Combine(DirectoryPath, "model.hdl");
     public string PreprocessPath => Path.Combine(DirectoryPath, "preprocess.hdict");
@@ -44,7 +44,7 @@ internal sealed record DlModelPackage(string DirectoryPath, int[] ClassIds, stri
                     throw new InvalidDataException($"模型文件校验失败：{file}。请重新选择完整训练输出目录。");
             }
         }
-        return new(directory, ids, names);
+        return new(directory, ids, names, root.TryGetProperty("status", out var validation) ? validation.GetString() ?? "unknown" : "unknown");
     }
 
     private static (int[], string[]) ReadClasses(JsonElement root, string task)

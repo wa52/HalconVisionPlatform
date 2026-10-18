@@ -27,7 +27,7 @@ try
     using var cameras = new HalconCameraManager();
     var registry = new NodeRegistry();
     registry.Register(new HalconNodeProvider(), [new HalconImageReadExecutor(), new HalconCameraCaptureExecutor(cameras),
-        new HalconThresholdExecutor(), new HalconBlobAnalysisExecutor(), new HalconStraightLineFindExecutor(), new HalconSemanticSegmentationExecutor(), new HalconClassificationExecutor()]);
+        new HalconThresholdExecutor(), new HalconBlobAnalysisExecutor(), new HalconStraightLineFindExecutor(), new HalconSemanticSegmentationExecutor(), new HalconClassificationExecutor(), new HalconObjectDetectionExecutor()]);
     var engine = new WorkflowExecutionEngine(registry, new WorkflowGraphValidator(registry));
     var definition = registry.Definitions.Single(item => item.TypeId == HalconNodeProvider.SemanticSegmentation);
     for (var i = 0; i < indices.Length; i++)

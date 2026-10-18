@@ -38,7 +38,7 @@ try
     using var cache = new DlModelSessionCache(); var cached = args.Contains("--cache");
     registry.Register(new HalconNodeProvider(), [new HalconImageReadExecutor(), new HalconCameraCaptureExecutor(camera),
         new HalconThresholdExecutor(), new HalconBlobAnalysisExecutor(), new HalconStraightLineFindExecutor(),
-        new HalconSemanticSegmentationExecutor(cached ? cache : null), new HalconClassificationExecutor(cached ? cache : null)]);
+        new HalconSemanticSegmentationExecutor(cached ? cache : null), new HalconClassificationExecutor(cached ? cache : null), new HalconObjectDetectionExecutor(cached ? cache : null)]);
     var validator = new WorkflowGraphValidator(registry); var engine = new WorkflowExecutionEngine(registry, validator);
     Check(validator.Validate(flow).Count == 0, "真实组合流程端口和参数校验");
     var vmFlow = new FlowTabViewModel(flow, registry, validator);
