@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:HalconVision.App"
         xmlns:ha="http://schemas.mvtec.com/halcondotnet"
-        Title="HalconVisionPlatform · 工业视觉检测平台 · 矩形找线版" Height="940" Width="1580" MinHeight="720" MinWidth="1180"
+        Title="HalconVisionPlatform · 工业视觉检测平台" Height="940" Width="1580" MinHeight="720" MinWidth="1180"
         Background="#111820" Foreground="#D6E0E5" WindowStartupLocation="CenterScreen"
         Loaded="Window_Loaded" Closing="Window_Closing" PreviewKeyDown="Window_PreviewKeyDown" PreviewMouseMove="Window_PreviewMouseMove" PreviewMouseLeftButtonUp="Window_PreviewMouseLeftButtonUp">
  <Window.Resources>
