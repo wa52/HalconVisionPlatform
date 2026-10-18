@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Data;
+using System.Globalization;
 using HalconVision.App;
 
 internal static class Program
@@ -19,6 +20,16 @@ internal static class Program
       BindingOperations.GetBindingExpression(t, TextBlock.TextProperty)?.ParentBinding.Path?.Path == "ProjectName"))
       text.Text = new string('长', 80);
   var failures = new List<string>(); var checks = 0;
+  var iconConverter = new ActionIconConverter();
+  var helpConverter = new ActionHelpConverter();
+  foreach (var label in new[] { "文件", "项目", "新建项目…", "打开项目…", "保存项目", "新建流程…", "导入流程…", "导出当前流程…", "选文件…", "选文件夹…", "退出", "确定", "取消" })
+  {
+      checks += 2;
+      if (iconConverter.Convert(new object[] { label, false }, typeof(object), null!, CultureInfo.InvariantCulture) is not TextBlock { FontFamily.Source: "Segoe MDL2 Assets" })
+          failures.Add("未显示文件操作图标：" + label);
+      if (helpConverter.Convert(label, typeof(object), null!, CultureInfo.InvariantCulture) is not string { Length: > 0 })
+          failures.Add("文件操作缺少功能提示：" + label);
+  }
   foreach (var width in new[] { 1180d, 1366d, 1580d })
   {
    root.Measure(new Size(width, 680)); root.Arrange(new Rect(0, 0, width, 680)); root.UpdateLayout();

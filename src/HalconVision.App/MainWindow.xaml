@@ -36,9 +36,9 @@
  </Window.Resources>
  <Grid><Grid.RowDefinitions><RowDefinition x:Name="MenuRow" Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
   <Menu x:Name="EditorMenu" Grid.Row="0" Background="#151E26" Foreground="#C7D2D8" Padding="4,0" BorderBrush="#2B3943" BorderThickness="0,0,0,1">
-   <MenuItem Header="文件" local:IconUi.KeepText="True"><MenuItem Header="新建项目…" Click="NewProject_Click"/><MenuItem Header="打开项目…" Click="OpenProject_Click"/><Separator/><MenuItem Header="保存项目" Click="Save_Click"/><Separator/><MenuItem Header="退出" Click="Exit_Click"/></MenuItem>
+   <MenuItem Header="文件"><MenuItem Header="新建项目…" Click="NewProject_Click"/><MenuItem Header="打开项目…" Click="OpenProject_Click"/><Separator/><MenuItem Header="保存项目" Click="Save_Click"/><Separator/><MenuItem Header="退出" Click="Exit_Click"/></MenuItem>
    <MenuItem Header="视图"><MenuItem Header="检测显示配置…" IsEnabled="{Binding HasProject}" Click="ConfigureDetectionDisplay_Click"/><Separator/><MenuItem Header="节点库面板" Click="ToggleLeft_Click"/><MenuItem Header="属性面板" Click="ToggleRight_Click"/><MenuItem Header="下方调试面板" Click="ToggleBottom_Click"/></MenuItem>
-   <MenuItem Header="项目" local:IconUi.KeepText="True"><MenuItem Header="新建流程…" Click="NewFlow_Click"/><MenuItem Header="导入流程…" Click="ImportFlow_Click"/><MenuItem Header="导出当前流程…" Click="ExportFlow_Click"/></MenuItem>
+   <MenuItem Header="项目"><MenuItem Header="新建流程…" Click="NewFlow_Click"/><MenuItem Header="导入流程…" Click="ImportFlow_Click"/><MenuItem Header="导出当前流程…" Click="ExportFlow_Click"/></MenuItem>
    <MenuItem Header="帮助"><MenuItem Header="关于 HALCON 节点平台" Click="About_Click"/></MenuItem>
   </Menu>
   <Border Grid.Row="1" Background="#1A252E" BorderBrush="#2C3B45" BorderThickness="0,0,0,1" Padding="8,4">
