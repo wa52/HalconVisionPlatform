@@ -71,6 +71,7 @@ powershell -NoProfile -File tools/InstallDesktop.ps1 -PublishedDirectory artifac
 
 ## 文档
 
+- [目标检测节点训练与接入计划](docs/OBJECT_DETECTION_TRAINING_PLAN.md)
 - [架构与资源生命周期](docs/ARCHITECTURE.md)
 - [开发计划及当前进度](docs/PLAN.md)
 - [运行环境与验证边界](docs/COMPATIBILITY.md)
