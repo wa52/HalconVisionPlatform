@@ -10,6 +10,7 @@ public sealed class DetectionDashboard : DockPanel, IDisposable
 {
     private readonly Grid _grid = new();
     private readonly List<DetectionTile> _tiles = [];
+    private readonly DetectionThresholdControl _threshold = new();
     private readonly TextBlock _empty = new() { Text = "点击“添加面板”，组合各节点的图像、参数和结果。", Foreground = Brushes.LightGray, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
     private Func<WorkflowExecutionRun?> _run = () => null;
     private FlowTabViewModel? _flow;
@@ -23,6 +24,7 @@ public sealed class DetectionDashboard : DockPanel, IDisposable
         var add = new Button { Content = "添加面板", Padding = new Thickness(12, 5, 12, 5) };
         add.Click += (_, _) => AddPanel(); toolbar.Children.Add(add);
         toolbar.Children.Add(new TextBlock { Text = "选择底图，展开“叠加节点与显示字段”组合多个节点的图形、判定和数值；拖动分隔条调整大小", Foreground = Brushes.LightGray, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0) });
+        SetDock(_threshold, Dock.Top); Children.Add(_threshold);
         Children.Add(_grid);
     }
 
@@ -30,6 +32,7 @@ public sealed class DetectionDashboard : DockPanel, IDisposable
     {
         if (_disposed) return;
         _run = run;
+        _threshold.SetSource(flow, run);
         if (!ReferenceEquals(_flow, flow))
         {
             foreach (var tile in _tiles) tile.Dispose(); _tiles.Clear(); _flow = flow;
