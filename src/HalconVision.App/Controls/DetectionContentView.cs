@@ -17,7 +17,7 @@ public sealed class DetectionContentView : Border, IDisposable
     private readonly ComboBox _field = new() { MinWidth = 110, MaxWidth = 220 };
     private readonly ComboBox _imageIndex = new() { MinWidth = 95, MaxWidth = 180, Visibility = Visibility.Collapsed };
     private readonly TextBlock _summary = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(8, 4, 8, 4) };
-    private readonly TextBlock _empty = new() { Foreground = Brushes.LightGray, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+    private readonly TextBlock _empty = new() { Foreground = Brushes.LightGray, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(8), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
     private readonly Grid _imageHost = new() { Background = Brushes.Black };
     private readonly HSmartWindowControlWPF _image = new();
     private readonly Canvas _overlayCanvas = new() { IsHitTestVisible = false, ClipToBounds = true };
@@ -44,7 +44,7 @@ public sealed class DetectionContentView : Border, IDisposable
         Settings = settings; _flow = flow; _run = run;
         Margin = new Thickness(3); BorderBrush = new SolidColorBrush(Color.FromRgb(52, 67, 78)); BorderThickness = new Thickness(1);
         Background = new SolidColorBrush(Color.FromRgb(27, 39, 49));
-        var root = new DockPanel(); Child = root;
+        var root = new DockPanel { ClipToBounds = true }; Child = root;
         var tools = new WrapPanel { Margin = new Thickness(5), Background = new SolidColorBrush(Color.FromRgb(32, 46, 57)) };
         tools.Visibility = configurationMode ? Visibility.Visible : Visibility.Collapsed;
         DockPanel.SetDock(tools, Dock.Top); root.Children.Add(tools);
@@ -53,7 +53,7 @@ public sealed class DetectionContentView : Border, IDisposable
         AddButton("复制数据", () => { if (_values.SelectedItem is NodeOutputValue value) Clipboard.SetText(value.FullValue); });
         AddButton("移除内容", () => RemoveRequested?.Invoke(this));
         DockPanel.SetDock(_summary, Dock.Top); root.Children.Add(_summary);
-        var content = new Grid(); root.Children.Add(content);
+        var content = new Grid { MinHeight = _configurationMode ? 120 : 60 }; root.Children.Add(content);
         content.Children.Add(_imageHost); _imageHost.Children.Add(_image); _imageHost.Children.Add(_overlayCanvas); _imageHost.Children.Add(_empty); content.Children.Add(_values);
         _layerEditor.Content = new ScrollViewer { Content = _layerChoices, MaxHeight = 190, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
         DockPanel.SetDock(_layerEditor, Dock.Top); root.Children.Insert(1, _layerEditor);

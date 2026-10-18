@@ -23,13 +23,13 @@ public sealed class DetectionDashboard : DockPanel, IDisposable
     {
         _configurationMode = configurationMode;
         _empty.Text = configurationMode ? "添加面板以配置检测图像和结果。" : "尚未配置检测显示，请返回编辑模式，在“视图”中配置。";
-        var toolbar = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(6) };
+        var toolbar = new WrapPanel { Margin = new Thickness(6) };
         toolbar.Visibility = configurationMode ? Visibility.Visible : Visibility.Collapsed;
         SetDock(toolbar, Dock.Top); Children.Add(toolbar);
         var add = new Button { Content = "添加面板", Padding = new Thickness(12, 5, 12, 5) };
         add.Click += (_, _) => AddPanel(); toolbar.Children.Add(add);
-        toolbar.Children.Add(new TextBlock { Text = "选择底图，展开“叠加节点与显示字段”组合多个节点的图形、判定和数值；拖动分隔条调整大小", Foreground = Brushes.LightGray, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0) });
-        Children.Add(_grid);
+        toolbar.Children.Add(new TextBlock { Text = "选择底图，展开“叠加节点与显示字段”组合多个节点的图形、判定和数值；拖动分隔条调整大小", TextWrapping = TextWrapping.Wrap, Foreground = Brushes.LightGray, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 3, 0, 3) });
+        Children.Add(new ScrollViewer { Content = _grid, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
     }
 
     public void SetSource(FlowTabViewModel? flow, Func<WorkflowExecutionRun?> run, bool reloadPanels = false)
@@ -100,9 +100,9 @@ public sealed class DetectionDashboard : DockPanel, IDisposable
     private void Layout()
     {
         _grid.Children.Clear(); _grid.RowDefinitions.Clear(); _grid.ColumnDefinitions.Clear();
-        _grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 180 });
+        _grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 340 });
         _grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(6) });
-        _grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 180 });
+        _grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 340 });
         if (_tiles.Count == 0) { _grid.Children.Add(_empty); Grid.SetColumnSpan(_empty, 3); return; }
         var count = (_tiles.Count + 1) / 2;
         for (var row = 0; row < count; row++)

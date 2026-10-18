@@ -42,8 +42,8 @@ public sealed class DetectionTile : Border, IDisposable
         add.Click += (_, _) => AddContent(); header.Children.Add(add);
         var remove = new Button { Content = "删除面板", Margin = new Thickness(8, 0, 0, 0), Padding = new Thickness(10, 4, 10, 4) };
         remove.Click += (_, _) => RemoveRequested?.Invoke(this); header.Children.Add(remove);
-        header.Children.Add(new TextBlock { Text = "图像内可叠加多个节点；添加内容可补充独立参数表", Foreground = Brushes.LightGray, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0) });
-        root.Children.Add(_grid);
+        header.Children.Add(new TextBlock { Text = "图像内可叠加多个节点；添加内容可补充独立参数表", TextWrapping = TextWrapping.Wrap, Foreground = Brushes.LightGray, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 3, 0, 3) });
+        root.Children.Add(new ScrollViewer { Content = _grid, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
         foreach (var content in settings.Contents ?? [new(Guid.NewGuid(), settings.NodeId, settings.View, settings.OutputField)]) AddView(content);
         Layout();
     }
@@ -72,9 +72,9 @@ public sealed class DetectionTile : Border, IDisposable
     private void Layout()
     {
         _grid.Children.Clear(); _grid.RowDefinitions.Clear(); _grid.ColumnDefinitions.Clear();
-        _grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        _grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 150 });
         _grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(5) });
-        _grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        _grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 150 });
         if (_contents.Count == 0)
         {
             var empty = new TextBlock { Text = _configurationMode ? "添加内容以配置此面板。" : "此面板尚未配置内容", Foreground = Brushes.LightGray, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center };

@@ -36,7 +36,7 @@ public partial class MainWindow : Window
         FinishRoiDrawing();
         _detectionMode = enabled;
         EditorMenu.Visibility = enabled ? Visibility.Collapsed : Visibility.Visible;
-        MenuRow.Height = new GridLength(enabled ? 0 : 26);
+        MenuRow.Height = enabled ? new GridLength(0) : GridLength.Auto;
         DetectionModeToggle.Content = enabled ? "返回编辑" : "检测模式";
         if (enabled)
         {
@@ -187,6 +187,8 @@ public partial class MainWindow : Window
     private void ToggleLeft_Click(object sender, RoutedEventArgs e)
     {
         _leftVisible = !_leftVisible;
+        LeftPanel.Visibility = LeftDockSplitter.Visibility = _leftVisible ? Visibility.Visible : Visibility.Collapsed;
+        LeftColumn.MinWidth = _leftVisible ? 180 : 0;
         if (_leftVisible) { LeftColumn.Width = _leftColumnWidth; LeftSplitterColumn.Width = new GridLength(5); }
         else { if (LeftColumn.Width.Value > 0) _leftColumnWidth = LeftColumn.Width; LeftColumn.Width = new GridLength(0); LeftSplitterColumn.Width = new GridLength(0); }
     }
@@ -194,6 +196,8 @@ public partial class MainWindow : Window
     private void ToggleRight_Click(object sender, RoutedEventArgs e)
     {
         _rightVisible = !_rightVisible;
+        RightPanel.Visibility = RightDockSplitter.Visibility = _rightVisible ? Visibility.Visible : Visibility.Collapsed;
+        RightColumn.MinWidth = _rightVisible ? 260 : 0;
         if (_rightVisible) { RightColumn.Width = _rightColumnWidth; RightSplitterColumn.Width = new GridLength(5); }
         else { if (RightColumn.Width.Value > 0) _rightColumnWidth = RightColumn.Width; RightColumn.Width = new GridLength(0); RightSplitterColumn.Width = new GridLength(0); }
     }
@@ -201,6 +205,8 @@ public partial class MainWindow : Window
     private void ToggleBottom_Click(object sender, RoutedEventArgs e)
     {
         _bottomVisible = !_bottomVisible;
+        RuntimePanel.Visibility = BottomDockSplitter.Visibility = _bottomVisible ? Visibility.Visible : Visibility.Collapsed;
+        BottomRow.MinHeight = _bottomVisible ? 150 : 0;
         if (_bottomVisible) { BottomRow.Height = _bottomRowHeight; BottomSplitterRow.Height = new GridLength(5); }
         else { if (BottomRow.Height.Value > 0) _bottomRowHeight = BottomRow.Height; BottomRow.Height = new GridLength(0); BottomSplitterRow.Height = new GridLength(0); }
     }
