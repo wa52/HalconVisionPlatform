@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using System.IO;
 
 namespace HalconVision.App;
@@ -7,6 +8,10 @@ public partial class App : System.Windows.Application
 {
     private void Application_Startup(object sender, StartupEventArgs e)
     {
+        ToolTipService.InitialShowDelayProperty.OverrideMetadata(typeof(FrameworkElement), new FrameworkPropertyMetadata(1500));
+        ToolTipService.BetweenShowDelayProperty.OverrideMetadata(typeof(FrameworkElement), new FrameworkPropertyMetadata(0));
+        ToolTipService.ShowDurationProperty.OverrideMetadata(typeof(FrameworkElement), new FrameworkPropertyMetadata(15000));
+        ToolTipService.ShowOnDisabledProperty.OverrideMetadata(typeof(FrameworkElement), new FrameworkPropertyMetadata(true));
         var args = e.Args.Concat(Environment.GetCommandLineArgs().Skip(1));
         var projectPath = ResolveProjectArgument(args);
         var window = new MainWindow(projectPath);

@@ -179,6 +179,7 @@ public sealed class DetectionContentView : Border, IDisposable
             layer ??= new(candidate.Id);
             var row = new WrapPanel { Margin = new Thickness(3) };
             var select = new CheckBox { Content = candidate.DisplayName, IsChecked = enabled, Width = 150, Foreground = Brushes.White };
+            IconUi.SetKeepText(select, true);
             select.Checked += (_, _) => SetOverlay(layer); select.Unchecked += (_, _) => SetOverlay(layer, false); row.Children.Add(select);
             var geometry = new CheckBox { Content = "图形", IsChecked = layer.ShowGeometry, IsEnabled = enabled, Foreground = Brushes.Gold, Margin = new Thickness(8, 0, 8, 0) };
             geometry.Checked += (_, _) => SetOverlay(layer with { ShowGeometry = true }); geometry.Unchecked += (_, _) => SetOverlay(layer with { ShowGeometry = false }); row.Children.Add(geometry);
@@ -214,6 +215,7 @@ public sealed class DetectionContentView : Border, IDisposable
                 var chosen = (layer.Fields ?? DetectionOverlayScene.ImportantFields.Keys.ToList())
                     .Where(field => DetectionOverlayScene.ImportantFields.ContainsKey(field) || DetectionOverlayScene.AdvancedFields.ContainsKey(field)).ToList();
                 var check = new CheckBox { Content = label, IsChecked = chosen.Contains(name), Foreground = Brushes.LightGray, Margin = new Thickness(6, 0, 6, 0) };
+                IconUi.SetKeepText(check, true);
                 check.Checked += (_, _) => SetOverlay(layer with { Fields = chosen.Append(name).Distinct().ToList() });
                 check.Unchecked += (_, _) => SetOverlay(layer with { Fields = chosen.Where(field => field != name).ToList() });
                 host.Children.Add(check);

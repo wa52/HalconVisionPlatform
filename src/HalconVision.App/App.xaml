@@ -3,11 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Startup="Application_Startup">
   <Application.Resources>
+   <ResourceDictionary>
+    <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="Themes/IconControls.xaml"/></ResourceDictionary.MergedDictionaries>
     <SolidColorBrush x:Key="Canvas" Color="#E9EDF1" />
     <SolidColorBrush x:Key="Ink" Color="#17232D" />
     <SolidColorBrush x:Key="Muted" Color="#71808B" />
     <SolidColorBrush x:Key="Teal" Color="#087E83" />
-    <Style TargetType="Button">
+    <Style TargetType="Button" BasedOn="{StaticResource IconButtonStyle}">
       <Setter Property="Padding" Value="12,7"/><Setter Property="Background" Value="#FFFFFF"/>
       <Setter Property="Foreground" Value="#26343D"/><Setter Property="BorderBrush" Value="#CFD7DC"/>
       <Setter Property="BorderThickness" Value="1"/><Setter Property="FontSize" Value="12"/>
@@ -16,5 +18,6 @@
       </Setter>
     </Style>
     <Style TargetType="TextBox"><Setter Property="Padding" Value="7,5"/><Setter Property="BorderBrush" Value="#D5DDE1"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Background" Value="#FAFBFC"/><Setter Property="FontFamily" Value="Consolas"/></Style>
+   </ResourceDictionary>
   </Application.Resources>
 </Application>
