@@ -28,6 +28,7 @@ public sealed class DetectionContentView : Border, IDisposable
     private readonly DataGrid _values = new() { AutoGenerateColumns = false, IsReadOnly = true, Background = new SolidColorBrush(Color.FromRgb(27, 39, 49)), Foreground = Brushes.LightGray, RowBackground = new SolidColorBrush(Color.FromRgb(27, 39, 49)) };
     private readonly HalconImagePresenter _presenter = new();
     private bool _updating, _disposed, _panning;
+    private readonly bool _configurationMode;
     private Point _pointer;
     private int _width, _height;
     private Guid _lastSource;
@@ -37,13 +38,15 @@ public sealed class DetectionContentView : Border, IDisposable
     public event Action<DetectionContentView>? Changed;
     public event Action<DetectionContentView>? RemoveRequested;
 
-    public DetectionContentView(DetectionContentSettings settings, Func<FlowTabViewModel?> flow, Func<WorkflowExecutionRun?> run)
+    public DetectionContentView(DetectionContentSettings settings, Func<FlowTabViewModel?> flow, Func<WorkflowExecutionRun?> run, bool configurationMode = false)
     {
+        _configurationMode = configurationMode;
         Settings = settings; _flow = flow; _run = run;
         Margin = new Thickness(3); BorderBrush = new SolidColorBrush(Color.FromRgb(52, 67, 78)); BorderThickness = new Thickness(1);
         Background = new SolidColorBrush(Color.FromRgb(27, 39, 49));
         var root = new DockPanel(); Child = root;
         var tools = new WrapPanel { Margin = new Thickness(5), Background = new SolidColorBrush(Color.FromRgb(32, 46, 57)) };
+        tools.Visibility = configurationMode ? Visibility.Visible : Visibility.Collapsed;
         DockPanel.SetDock(tools, Dock.Top); root.Children.Add(tools);
         tools.Children.Add(_node); tools.Children.Add(_view); tools.Children.Add(_field); tools.Children.Add(_imageIndex);
         AddButton("−", () => Zoom(0.8)); AddButton("+", () => Zoom(1.25)); AddButton("适应", Fit);
@@ -67,7 +70,12 @@ public sealed class DetectionContentView : Border, IDisposable
         SizeChanged += (_, _) => { if (IsLoaded && _width > 0 && _imageHost.IsVisible) Fit(); };
         _imageHost.SizeChanged += (_, _) => { if (IsLoaded && _width > 0 && _imageHost.IsVisible) Fit(); };
         _imageHost.PreviewMouseWheel += (_, e) => { Zoom(e.Delta > 0 ? 1.15 : 1 / 1.15); e.Handled = true; };
-        _imageHost.PreviewMouseLeftButtonDown += (_, e) => { _panning = true; _pointer = e.GetPosition(_imageHost); _imageHost.CaptureMouse(); };
+        _imageHost.ToolTip = "滚轮缩放，拖动平移，双击适应图像";
+        _imageHost.PreviewMouseLeftButtonDown += (_, e) =>
+        {
+            if (e.ClickCount == 2) { _panning = false; _imageHost.ReleaseMouseCapture(); Fit(); e.Handled = true; return; }
+            _panning = true; _pointer = e.GetPosition(_imageHost); _imageHost.CaptureMouse();
+        };
         _imageHost.PreviewMouseMove += (_, e) => { if (!_panning || e.LeftButton != MouseButtonState.Pressed) return; var point = e.GetPosition(_imageHost); var delta = point - _pointer; _presenter.Pan(_image.HalconWindow, delta.X, delta.Y, _imageHost.ActualWidth, _imageHost.ActualHeight); _pointer = point; RenderOverlays(); };
         _imageHost.PreviewMouseLeftButtonUp += (_, _) => { _panning = false; _imageHost.ReleaseMouseCapture(); };
         Refresh();
@@ -102,10 +110,11 @@ public sealed class DetectionContentView : Border, IDisposable
         _summary.Text = node is null ? "源节点已删除，请重新选择" : $"{node.DisplayName} · {NodeResultSummary.Describe(result)}";
         _summary.Foreground = NodeResultSummary.Color(result);
         var imageView = Settings.View == "图像";
+        _summary.Visibility = !_configurationMode && imageView && Settings.Overlays?.Count > 0 ? Visibility.Collapsed : Visibility.Visible;
         _imageIndex.Visibility = Visibility.Collapsed;
         _imageHost.Visibility = imageView ? Visibility.Visible : Visibility.Collapsed;
-        _layerEditor.Visibility = imageView ? Visibility.Visible : Visibility.Collapsed;
-        BuildLayerChoices(flow, run);
+        _layerEditor.Visibility = _configurationMode && imageView ? Visibility.Visible : Visibility.Collapsed;
+        if (_configurationMode) BuildLayerChoices(flow, run);
         _values.Visibility = imageView ? Visibility.Collapsed : Visibility.Visible;
         _values.ItemsSource = Settings.OutputField != "全部" ? rows.Where(row => row.Name == Settings.OutputField || row.Name.StartsWith(Settings.OutputField + "."))
             : Settings.View == "检测结果" ? rows.Where(row => row.Name is "检测结果" or "score" or "count" or "angle" or "length" or "area" or "objects" or "classes" or "classId" or "className" or "confidence" or "scores" || row.Name.StartsWith("status.") || row.Name.StartsWith("decision.") || row.Name.StartsWith("roiResults")) : rows;

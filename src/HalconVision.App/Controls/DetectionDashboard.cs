@@ -14,11 +14,17 @@ public sealed class DetectionDashboard : DockPanel, IDisposable
     private Func<WorkflowExecutionRun?> _run = () => null;
     private FlowTabViewModel? _flow;
     private bool _disposed;
+    private readonly bool _configurationMode;
     public IReadOnlyList<DetectionTile> Tiles => _tiles;
 
-    public DetectionDashboard()
+    public DetectionDashboard() : this(false) { }
+
+    public DetectionDashboard(bool configurationMode)
     {
+        _configurationMode = configurationMode;
+        _empty.Text = configurationMode ? "添加面板以配置检测图像和结果。" : "尚未配置检测显示，请返回编辑模式，在“视图”中配置。";
         var toolbar = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(6) };
+        toolbar.Visibility = configurationMode ? Visibility.Visible : Visibility.Collapsed;
         SetDock(toolbar, Dock.Top); Children.Add(toolbar);
         var add = new Button { Content = "添加面板", Padding = new Thickness(12, 5, 12, 5) };
         add.Click += (_, _) => AddPanel(); toolbar.Children.Add(add);
@@ -26,11 +32,11 @@ public sealed class DetectionDashboard : DockPanel, IDisposable
         Children.Add(_grid);
     }
 
-    public void SetSource(FlowTabViewModel? flow, Func<WorkflowExecutionRun?> run)
+    public void SetSource(FlowTabViewModel? flow, Func<WorkflowExecutionRun?> run, bool reloadPanels = false)
     {
         if (_disposed) return;
         _run = run;
-        if (!ReferenceEquals(_flow, flow))
+        if (reloadPanels || !ReferenceEquals(_flow, flow))
         {
             foreach (var tile in _tiles) tile.Dispose(); _tiles.Clear(); _flow = flow;
             var settingsList = flow?.Document.DetectionPanels ?? [];
@@ -77,7 +83,7 @@ public sealed class DetectionDashboard : DockPanel, IDisposable
 
     private void AddTile(DetectionPanelSettings settings)
     {
-        var tile = new DetectionTile(settings, () => _flow, () => _run());
+        var tile = new DetectionTile(settings, () => _flow, () => _run(), _configurationMode);
         tile.Changed += _ => Save();
         tile.RemoveRequested += RemovePanel;
         _tiles.Add(tile);

@@ -35,6 +35,11 @@ public partial class MainWindow : Window
         if (_detectionMode == enabled) return;
         FinishRoiDrawing();
         _detectionMode = enabled;
+        EditorMenu.Visibility = enabled ? Visibility.Collapsed : Visibility.Visible;
+        MenuRow.Height = new GridLength(enabled ? 0 : 26);
+        EditorProjectActions.Visibility = enabled ? Visibility.Collapsed : Visibility.Visible;
+        FitCanvasButton.Visibility = enabled ? Visibility.Collapsed : Visibility.Visible;
+        DetectionModeToggle.Content = enabled ? "返回编辑" : "检测模式";
         if (enabled)
         {
             foreach (UIElement child in WorkspaceGrid.Children)
@@ -49,6 +54,27 @@ public partial class MainWindow : Window
             _editorVisibility.Clear();
             DetectionDashboard.Visibility = Visibility.Collapsed;
         }
+    }
+
+    private async void ConfigureDetectionDisplay_Click(object sender, RoutedEventArgs e)
+    {
+        if (_vm.SelectedFlow is not { } flow) return;
+        try
+        {
+            await StopExecutionAsync();
+            using var display = new DetectionDashboard(configurationMode: true);
+            display.SetSource(flow, () => _vm.LastRun); display.EnsureInitialPanels();
+            var dialog = new Window
+            {
+                Title = "检测显示配置", Owner = this, WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Width = Math.Max(800, ActualWidth * .9), Height = Math.Max(550, ActualHeight * .85),
+                MinWidth = 800, MinHeight = 500, Background = new SolidColorBrush(Color.FromRgb(21, 30, 38)), Content = display
+            };
+            dialog.Resources.MergedDictionaries.Add(Resources);
+            dialog.ShowDialog();
+            DetectionDashboard.SetSource(flow, () => _vm.LastRun, reloadPanels: true);
+        }
+        catch (Exception error) { ShowError("检测显示配置失败", error); }
     }
 
     private void DisplayNode_SelectionChanged(object sender, SelectionChangedEventArgs e)

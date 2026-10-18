@@ -13,6 +13,7 @@ public sealed class DetectionTile : Border, IDisposable
     private readonly Grid _grid = new();
     private readonly List<DetectionContentView> _contents = [];
     private bool _disposed;
+    private readonly bool _configurationMode;
     public IReadOnlyList<DetectionContentView> Contents => _contents;
     public DetectionPanelSettings Settings
     {
@@ -26,13 +27,15 @@ public sealed class DetectionTile : Border, IDisposable
     public event Action<DetectionTile>? Changed;
     public event Action<DetectionTile>? RemoveRequested;
 
-    public DetectionTile(DetectionPanelSettings settings, Func<FlowTabViewModel?> flow, Func<WorkflowExecutionRun?> run)
+    public DetectionTile(DetectionPanelSettings settings, Func<FlowTabViewModel?> flow, Func<WorkflowExecutionRun?> run, bool configurationMode = false)
     {
+        _configurationMode = configurationMode;
         _id = settings.Id; _flow = flow; _run = run;
         Margin = new Thickness(3); BorderThickness = new Thickness(2); BorderBrush = Brushes.DarkCyan;
         Background = new SolidColorBrush(Color.FromRgb(27, 39, 49));
         var root = new DockPanel(); Child = root;
         var header = new WrapPanel { Margin = new Thickness(6) };
+        header.Visibility = configurationMode ? Visibility.Visible : Visibility.Collapsed;
         DockPanel.SetDock(header, Dock.Top); root.Children.Add(header);
         header.Children.Add(new TextBlock { Text = "组合面板", Foreground = Brushes.White, FontWeight = FontWeights.Bold, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 12, 0) });
         var add = new Button { Content = "添加内容", Padding = new Thickness(10, 4, 10, 4) };
@@ -61,7 +64,7 @@ public sealed class DetectionTile : Border, IDisposable
 
     private void AddView(DetectionContentSettings settings)
     {
-        var content = new DetectionContentView(settings, _flow, _run);
+        var content = new DetectionContentView(settings, _flow, _run, _configurationMode);
         content.Changed += _ => Changed?.Invoke(this); content.RemoveRequested += RemoveContent;
         _contents.Add(content);
     }
@@ -74,7 +77,7 @@ public sealed class DetectionTile : Border, IDisposable
         _grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         if (_contents.Count == 0)
         {
-            var empty = new TextBlock { Text = "点击“添加内容”，在此面板组合不同节点的内容。", Foreground = Brushes.LightGray, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center };
+            var empty = new TextBlock { Text = _configurationMode ? "添加内容以配置此面板。" : "此面板尚未配置内容", Foreground = Brushes.LightGray, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center };
             Grid.SetColumnSpan(empty, 3); _grid.Children.Add(empty); return;
         }
         var rows = (_contents.Count + 1) / 2;
