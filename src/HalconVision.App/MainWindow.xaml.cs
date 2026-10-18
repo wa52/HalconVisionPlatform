@@ -37,8 +37,6 @@ public partial class MainWindow : Window
         _detectionMode = enabled;
         EditorMenu.Visibility = enabled ? Visibility.Collapsed : Visibility.Visible;
         MenuRow.Height = new GridLength(enabled ? 0 : 26);
-        EditorProjectActions.Visibility = enabled ? Visibility.Collapsed : Visibility.Visible;
-        FitCanvasButton.Visibility = enabled ? Visibility.Collapsed : Visibility.Visible;
         DetectionModeToggle.Content = enabled ? "返回编辑" : "检测模式";
         if (enabled)
         {
