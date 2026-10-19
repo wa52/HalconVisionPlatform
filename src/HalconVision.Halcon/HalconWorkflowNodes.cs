@@ -17,13 +17,27 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
     public const string Classification = "halcon.classification";
     public const string ObjectDetection = "halcon.object-detection";
     public const string QuickMatch = "halcon.quick-match";
+    public const string PositionCorrection = "halcon.position-correction";
 
     public IEnumerable<NodeDefinition> GetDefinitions()
     {
+        yield return new NodeDefinition(PositionCorrection, 1, "定位匹配", "位置矫正", "按唯一匹配位姿将图像对齐到示教基准，供固定 ROI 检测使用。",
+            [new("image", "原始图像", PortDirection.Input, "halcon.image", Required: true),
+             new("poses", "匹配位姿", PortDirection.Input, "vision.pose-set", Required: true),
+             new("image", "矫正图像", PortDirection.Output, "halcon.image"),
+             new("transform", "双向变换", PortDirection.Output, "vision.transform2d"),
+             new("offsets", "位姿与偏移", PortDirection.Output, "object"),
+             new("validRegion", "有效区域", PortDirection.Output, "halcon.region"),
+             new("status", "矫正状态", PortDirection.Output, "inspection.result")],
+            [new(PositionReferenceParameters.Key, "示教基准", "positionReference", false, JsonSerializer.SerializeToElement<PositionReference?>(null)),
+             new("limitMotion", "启用位移与旋转限制", "bool", true, JsonSerializer.SerializeToElement(false)),
+             new("maximumTranslation", "最大位移（像素）", "number", true, JsonSerializer.SerializeToElement(100d)),
+             new("maximumRotation", "最大旋转（度）", "number", true, JsonSerializer.SerializeToElement(30d))], ImageSpaceBehavior.NewSpace);
         yield return new NodeDefinition(QuickMatch, 1, "定位匹配", "快捷匹配", "使用 HALCON 形状模板在图像或绘制的搜索范围内定位目标，返回原图坐标、角度、评分和匹配轮廓。",
             [new("image", "Image", PortDirection.Input, "halcon.image", Required: true),
-             new("preview", "匹配预览", PortDirection.Output, "halcon.image"),
+             new("preview", "匹配预览", PortDirection.Output, "halcon.image", Annotated: true),
              new("matches", "匹配位置（单图）", PortDirection.Output, "vision.template-matches"),
+             new("poses", "匹配位姿", PortDirection.Output, "vision.pose-set"),
              new("imageResults", "逐图匹配结果", PortDirection.Output, "vision.image-results"),
              new("row", "最佳位置行", PortDirection.Output, "number"), new("column", "最佳位置列", PortDirection.Output, "number"),
              new("angle", "最佳角度（度）", PortDirection.Output, "number"), new("score", "最佳评分", PortDirection.Output, "number"),
@@ -44,7 +58,7 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
              new("timeoutMs", "单图搜索超时（毫秒）", "number", true, JsonSerializer.SerializeToElement(5000))]);
         yield return new NodeDefinition(ObjectDetection, 1, "深度学习", "目标检测", "使用 HALCON rectangle1 模型在多个 ROI 中定位目标，输出原图框、类别、置信度与数量判定。",
             [new("image", "Image", PortDirection.Input, "halcon.image", Required: true),
-             new("preview", "检测预览", PortDirection.Output, "halcon.image"), new("objects", "检测目标", PortDirection.Output, "vision.detection-objects"),
+             new("preview", "检测预览", PortDirection.Output, "halcon.image", Annotated: true), new("objects", "检测目标", PortDirection.Output, "vision.detection-objects"),
              new("count", "目标数（逐 ROI）", PortDirection.Output, "number"), new("roiResults", "各 ROI 结果", PortDirection.Output, "vision.roi-results"),
              new("decision", "检测判定", PortDirection.Output, "inspection.result"), new("status", "执行结果", PortDirection.Output, "inspection.result"), new("modelInfo", "模型信息", PortDirection.Output, "object")],
             [new("modelPackage", "HALCON 检测模型目录", "path", true, JsonSerializer.SerializeToElement("")),
@@ -60,7 +74,7 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
              new("deviceIndex", "设备索引（从 0 开始）", "number", true, JsonSerializer.SerializeToElement(0))]);
         yield return new NodeDefinition(Classification, 1, "深度学习", "分类检测", "使用训练平台分类模型，对全图或绘制 ROI 裁剪推理，输出类别和真实置信度。",
             [new("image", "Image", PortDirection.Input, "halcon.image", Required: true),
-             new("preview", "检测预览", PortDirection.Output, "halcon.image"),
+             new("preview", "检测预览", PortDirection.Output, "halcon.image", Annotated: true),
              new("classId", "类别 ID", PortDirection.Output, "number"), new("className", "类别名称", PortDirection.Output, "string"),
              new("confidence", "分类置信度", PortDirection.Output, "number"), new("scores", "全部类别评分", PortDirection.Output, "vision.classification-scores"),
              new("status", "分类状态", PortDirection.Output, "inspection.result"), new("roi", "原图检测范围（单 ROI）", PortDirection.Output, "vision.roi"), new("roiResults", "各 ROI 结果", PortDirection.Output, "vision.roi-results"),
@@ -76,7 +90,7 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
         yield return new NodeDefinition(
             SemanticSegmentation, 1, "深度学习", "语义分割检测", "加载 HalconTrainingPlatform 模型目录，按训练预处理进行分割，输出原图坐标的掩膜与目标区域。",
             [new("image", "Image", PortDirection.Input, "halcon.image", Required: true),
-             new("preview", "检测预览", PortDirection.Output, "halcon.image"),
+             new("preview", "检测预览", PortDirection.Output, "halcon.image", Annotated: true),
              new("mask", "类别掩膜", PortDirection.Output, "halcon.image"),
              new("regions", "目标区域", PortDirection.Output, "halcon.region"),
              new("count", "区域数量", PortDirection.Output, "number"),
@@ -132,8 +146,8 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
              new PortDefinition("score", "Score", PortDirection.Output, "number"),
              new PortDefinition("overlay", "Overlay", PortDirection.Output, "halcon.geometry"),
              new PortDefinition("status", "Status", PortDirection.Output, "inspection.result"),
-             new PortDefinition("preview", "预览图像", PortDirection.Output, "halcon.image"),
-             new PortDefinition("resultImage", "ResultImage", PortDirection.Output, "halcon.image"),
+             new PortDefinition("preview", "预览图像", PortDirection.Output, "halcon.image", Annotated: true),
+             new PortDefinition("resultImage", "ResultImage", PortDirection.Output, "halcon.image", Annotated: true),
              new PortDefinition("lines", "Lines", PortDirection.Output, "halcon.xld"),
              new PortDefinition("count", "Count", PortDirection.Output, "number")],
             [new NodeParameterDefinition("roi", "矩形搜索范围", "roiDraw", false, JsonSerializer.SerializeToElement(string.Empty)),
@@ -412,6 +426,7 @@ public sealed class HalconStraightLineFindExecutor : INodeExecutor
         var searchImage = gray ?? image;
         var dimensions = HalconThresholdExecutor.ReadImageDimensions(context, "image");
         var searchRegion = ReadSearchRegion(context.Node, dimensions.Width, dimensions.Height);
+        ValidRegionGuard.Require(context, image, [searchRegion]);
         var orientation = ReadString(context.Node, "lineOrientation", "auto");
         if (orientation is not ("auto" or "horizontal" or "vertical")) throw new InvalidDataException("直线方向必须选择自动、水平或垂直。");
         var vertical = orientation == "vertical" || orientation == "auto" && searchRegion.RowEnd - searchRegion.RowBegin >= searchRegion.ColumnEnd - searchRegion.ColumnBegin;

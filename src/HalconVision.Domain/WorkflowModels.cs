@@ -50,7 +50,7 @@ public sealed record NodePosition(double X, double Y);
 
 public enum PortDirection { Input, Output }
 
-public sealed record PortDefinition(string Id, string Name, PortDirection Direction, string DataType, bool Required = false, bool Multiple = false);
+public sealed record PortDefinition(string Id, string Name, PortDirection Direction, string DataType, bool Required = false, bool Multiple = false, bool Annotated = false);
 
 public enum NodeExecutionStatus { Idle, Running, Success, Failed, Skipped }
 
@@ -75,7 +75,8 @@ public sealed record WorkflowExecutionRun(
     IReadOnlyList<NodeExecutionResult> NodeResults,
     IReadOnlyList<string> Errors,
     IReadOnlyList<string> Logs,
-    IReadOnlyDictionary<Guid, IReadOnlyDictionary<string, object?>>? RuntimeOutputs = null) : IDisposable
+    IReadOnlyDictionary<Guid, IReadOnlyDictionary<string, object?>>? RuntimeOutputs = null,
+    IReadOnlyDictionary<Guid, IReadOnlyDictionary<string, FrameReference>>? SpatialOutputs = null) : IDisposable
 {
     private int _disposed;
     public void Dispose()

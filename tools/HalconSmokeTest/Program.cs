@@ -62,7 +62,7 @@ try
     var registry = BuiltInNodeCatalog.Create();
     using var camera = new HalconCameraManager();
     registry.Register(new HalconNodeProvider(), [new HalconImageReadExecutor(), new HalconCameraCaptureExecutor(camera), new HalconThresholdExecutor(), new HalconBlobAnalysisExecutor(),
-        new HalconStraightLineFindExecutor(), new HalconSemanticSegmentationExecutor(), new HalconClassificationExecutor(), new HalconObjectDetectionExecutor(), new HalconQuickMatchExecutor()]);
+        new HalconStraightLineFindExecutor(), new HalconSemanticSegmentationExecutor(), new HalconClassificationExecutor(), new HalconObjectDetectionExecutor(), new HalconQuickMatchExecutor(), new HalconPositionCorrectionExecutor()]);
     var imageNode = new NodeInstance
     {
         TypeId = HalconNodeProvider.ImageRead,

@@ -63,8 +63,8 @@ public sealed class WorkflowGraphValidator(INodeRegistry registry)
             if (!registry.TryGetDefinition(source.TypeId, source.TypeVersion, out var sourceDefinition) ||
                 !registry.TryGetDefinition(target.TypeId, target.TypeVersion, out var targetDefinition)) continue;
 
-            var sourcePort = sourceDefinition.Ports.SingleOrDefault(port => port.Id == edge.FromPortId);
-            var targetPort = targetDefinition.Ports.SingleOrDefault(port => port.Id == edge.ToPortId);
+            var sourcePort = sourceDefinition.Ports.SingleOrDefault(port => port.Id == edge.FromPortId && port.Direction == PortDirection.Output);
+            var targetPort = targetDefinition.Ports.SingleOrDefault(port => port.Id == edge.ToPortId && port.Direction == PortDirection.Input);
             if (sourcePort is null || sourcePort.Direction != PortDirection.Output)
             {
                 issues.Add(new WorkflowValidationIssue("连线的起点端口不存在或不是输出端口。", source.Id, edge.Id));
@@ -117,6 +117,7 @@ public sealed class WorkflowGraphValidator(INodeRegistry registry)
         "number" => value.ValueKind == JsonValueKind.Number,
         "bool" => value.ValueKind is JsonValueKind.True or JsonValueKind.False,
         "object" => value.ValueKind == JsonValueKind.Object,
+        "positionReference" => value.ValueKind is JsonValueKind.Object or JsonValueKind.Null,
         "array" or "roiList" => value.ValueKind == JsonValueKind.Array,
         _ => false
     };

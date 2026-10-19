@@ -48,6 +48,21 @@ public sealed class NodeParameterViewModel : ObservableModel
     public bool IsPath => DataType is "path" or "imageFile";
     public bool IsImageFile => DataType == "imageFile";
     public bool IsQuickMatchTemplate => Definition.Id == "templateImage";
+    public bool IsPositionReference => DataType == "positionReference";
+    public string ReferenceSummary
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(ValueText)) return "未示教 · 先运行快捷匹配，再设为基准";
+            try
+            {
+                var reference = JsonSerializer.Deserialize<PositionReference>(ValueText);
+                return reference is null ? "未示教 · 先运行快捷匹配，再设为基准" :
+                    $"已示教 · 行 {reference.Pose.Row:F2} · 列 {reference.Pose.Column:F2} · {reference.Pose.AngleDegrees:F2}°\n{reference.Width} × {reference.Height} · {reference.TaughtAtUtc.ToLocalTime():yyyy-MM-dd HH:mm:ss}";
+            }
+            catch { return "基准无效 · 请重新示教"; }
+        }
+    }
     public bool IsModelPackage => Definition.Id == "modelPackage";
     public bool IsRoiDraw => string.Equals(DataType, "roiDraw", StringComparison.Ordinal);
     public bool IsRoiList => DataType == "roiList";
@@ -69,7 +84,7 @@ public sealed class NodeParameterViewModel : ObservableModel
         set { ValueText = value ? "true" : "false"; Commit(); }
     }
     public bool IsCamera => DataType is "camera" or "cameraInterface";
-    public string ValueText { get => _valueText; set => Set(ref _valueText, value); }
+    public string ValueText { get => _valueText; set { if (Set(ref _valueText, value)) Raise(nameof(ReferenceSummary)); } }
     public string? Error { get => _error; private set => Set(ref _error, value); }
 
     public void Commit()
@@ -82,6 +97,7 @@ public sealed class NodeParameterViewModel : ObservableModel
                 "number" when double.TryParse(ValueText, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) && double.IsFinite(number) => JsonSerializer.SerializeToElement(number),
                 "bool" when bool.TryParse(ValueText, out var boolean) => JsonSerializer.SerializeToElement(boolean),
                 "roiList" => JsonSerializer.SerializeToElement(DetectionRoi.Parse(JsonSerializer.Deserialize<JsonElement>(ValueText))),
+                "positionReference" => JsonSerializer.SerializeToElement(JsonSerializer.Deserialize<PositionReference>(ValueText)),
                 _ => throw new FormatException($"请输入有效的 {Definition.DataType} 值。")
             };
             _owner.SetParameter(_nodeId, Definition.Id, element);

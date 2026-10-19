@@ -49,7 +49,7 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
             new HalconSemanticSegmentationExecutor(_dlSessions),
             new HalconClassificationExecutor(_dlSessions),
             new HalconObjectDetectionExecutor(_dlSessions),
-            new HalconQuickMatchExecutor(_matchModels)
+            new HalconQuickMatchExecutor(_matchModels), new HalconPositionCorrectionExecutor()
         ]);
         _registry = registry;
         _validator = new WorkflowGraphValidator(_registry);
@@ -409,7 +409,8 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
         {
             var document = flowOverride ?? SelectedFlow.Document;
             var token = cancellation.Token;
-            _activeRunTask = Task.Run(() => _engine.RunAsync(document, progress, token));
+            var configuration = SelectedFlow.Document;
+            _activeRunTask = Task.Run(() => _engine.RunAsync(document, progress, token, configuration));
             var run = await _activeRunTask;
             if (_shuttingDown) run.Dispose();
             return run;

@@ -151,7 +151,7 @@ public sealed class FlowTabViewModel : ObservableModel
         if (_clipboardNodes.Count == 0) return;
         PushUndo();
         var ids = _clipboardNodes.ToDictionary(node => node.Id, _ => Guid.NewGuid());
-        var nodes = _clipboardNodes.Select(node => node with { Id = ids[node.Id], X = node.X + 40, Y = node.Y + 40, Parameters = new Dictionary<string, JsonElement>(node.Parameters) }).ToList();
+        var nodes = _clipboardNodes.Select(node => PositionReferenceParameters.Remap(node with { Id = ids[node.Id], X = node.X + 40, Y = node.Y + 40, Parameters = new Dictionary<string, JsonElement>(node.Parameters) }, ids)).ToList();
         var edges = _clipboardEdges.Select(edge => edge with { Id = Guid.NewGuid(), FromNodeId = ids[edge.FromNodeId], ToNodeId = ids[edge.ToNodeId] }).ToList();
         _document = _document with { Nodes = [.. _document.Nodes, .. nodes], Edges = [.. _document.Edges, .. edges] };
         _selection.Clear(); foreach (var node in nodes) _selection.Add(node.Id);

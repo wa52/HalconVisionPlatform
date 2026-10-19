@@ -9,13 +9,15 @@ public sealed class WorkflowExecutionEngine(INodeRegistry registry, WorkflowGrap
     public async Task<WorkflowExecutionRun> RunAsync(
         FlowDocument flow,
         IProgress<NodeExecutionResult>? progress = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        FlowDocument? configurationFlow = null)
     {
         ArgumentNullException.ThrowIfNull(flow);
         var id = Guid.NewGuid();
         var startedAt = DateTime.UtcNow;
         var results = new Dictionary<Guid, NodeExecutionResult>();
         var runtimeOutputs = new Dictionary<Guid, IReadOnlyDictionary<string, object?>>();
+        var spatialOutputs = new Dictionary<Guid, IReadOnlyDictionary<string, FrameReference>>();
         var logs = new List<string>();
         var errors = new List<string>();
 
@@ -78,11 +80,17 @@ public sealed class WorkflowExecutionEngine(INodeRegistry registry, WorkflowGrap
                 {
                     var inputs = BuildInputs(flow, node, definition, results);
                     var runtimeInputs = BuildRuntimeInputs(flow, node, definition, results, runtimeOutputs);
+                    var frames = new Dictionary<string, FrameReference>();
+                    foreach (var edge in flow.Edges.Where(edge => edge.ToNodeId == node.Id))
+                        if (spatialOutputs.TryGetValue(edge.FromNodeId, out var sourceFrames) && sourceFrames.TryGetValue(edge.FromPortId, out var frame))
+                            frames[edge.ToPortId] = frame;
+                    var signature = WorkflowConfiguration.NodeSignature(configurationFlow ?? flow, node.Id);
                     var context = new NodeExecutionContext(node, inputs, cancellationToken,
-                        message => logs.Add($"{DateTime.UtcNow:O} [{node.DisplayName}] {message}"), runtimeInputs);
+                        message => logs.Add($"{DateTime.UtcNow:O} [{node.DisplayName}] {message}"), runtimeInputs, id, frames, signature);
                     var output = await executor.ExecuteAsync(context).ConfigureAwait(false);
                     if (output.RuntimePorts is { Count: > 0 }) runtimeOutputs[node.Id] = new Dictionary<string, object?>(output.RuntimePorts);
                     outputs = output.Ports.ToDictionary(pair => pair.Key, pair => pair.Value.Clone());
+                    spatialOutputs[node.Id] = DescribeFrames(node, definition, outputs, frames, id, signature);
                     status = NodeExecutionStatus.Success;
                 }
             }
@@ -109,7 +117,7 @@ public sealed class WorkflowExecutionEngine(INodeRegistry registry, WorkflowGrap
             : errors.Count > 0 ? WorkflowRunStatus.Failed : WorkflowRunStatus.Success;
         var completedRun = new WorkflowExecutionRun(id, flow.Id, startedAt, DateTime.UtcNow, runStatus,
             order.Where(node => results.ContainsKey(node.Id)).Select(node => results[node.Id]).ToArray(), errors, logs,
-            runtimeOutputs.ToDictionary(pair => pair.Key, pair => pair.Value));
+            runtimeOutputs.ToDictionary(pair => pair.Key, pair => pair.Value), spatialOutputs);
         runtimeOwnershipTransferred = true;
         return completedRun;
         }
@@ -117,6 +125,28 @@ public sealed class WorkflowExecutionEngine(INodeRegistry registry, WorkflowGrap
         {
             if (!runtimeOwnershipTransferred) DisposeRuntimeOutputs(runtimeOutputs);
         }
+    }
+
+    private static IReadOnlyDictionary<string, FrameReference> DescribeFrames(NodeInstance node, NodeDefinition definition,
+        IReadOnlyDictionary<string, JsonElement> outputs, IReadOnlyDictionary<string, FrameReference> inputs, Guid runId, string signature)
+    {
+        var result = new Dictionary<string, FrameReference>();
+        var source = inputs.Values.DistinctBy(frame => frame.SpaceId).ToArray();
+        foreach (var port in definition.Ports.Where(p => p.Direction == PortDirection.Output && p.DataType is "halcon.image" or "halcon.region" or "any"))
+        {
+            if (!outputs.TryGetValue(port.Id, out var value) || value.ValueKind != JsonValueKind.Object ||
+                !value.TryGetProperty("width", out var w) || !w.TryGetInt32(out var width) ||
+                !value.TryGetProperty("height", out var h) || !h.TryGetInt32(out var height)) continue;
+            var count = value.TryGetProperty("count", out var n) && n.TryGetInt32(out var objects) ? objects : source.FirstOrDefault()?.Count ?? 1;
+            var parent = source.Length == 1 ? source[0] : null;
+            if (parent is null)
+                result[port.Id] = new(runId, Guid.NewGuid(), node.Id, port.Id, Guid.NewGuid(), width, height, count, port.Annotated, false, signature);
+            else
+                result[port.Id] = parent with { SpaceId = definition.ImageSpace == ImageSpaceBehavior.NewSpace ? node.Id : parent.SpaceId,
+                    Width = width, Height = height, Count = count, Annotated = parent.Annotated || port.Annotated,
+                    Corrected = parent.Corrected || definition.ImageSpace == ImageSpaceBehavior.NewSpace, ConfigurationIdentity = signature };
+        }
+        return result;
     }
 
     private static IReadOnlyDictionary<string, JsonElement> BuildInputs(

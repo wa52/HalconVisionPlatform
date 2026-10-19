@@ -48,7 +48,7 @@ internal static class Program
             var registry = BuiltInNodeCatalog.Create();
             registry.Register(new HalconNodeProvider(), [new HalconImageReadExecutor(), new HalconCameraCaptureExecutor(camera),
                 new HalconThresholdExecutor(), new HalconBlobAnalysisExecutor(), new HalconStraightLineFindExecutor(),
-                new HalconSemanticSegmentationExecutor(), new HalconClassificationExecutor(), new HalconObjectDetectionExecutor(), new HalconQuickMatchExecutor(cache)]);
+                new HalconSemanticSegmentationExecutor(), new HalconClassificationExecutor(), new HalconObjectDetectionExecutor(), new HalconQuickMatchExecutor(cache), new HalconPositionCorrectionExecutor()]);
             var definition = registry.Definitions.Single(item => item.TypeId == HalconNodeProvider.QuickMatch);
             var reader = new NodeInstance { TypeId = HalconNodeProvider.ImageRead, DisplayName = "读取测试图像", X = 60, Y = 110,
                 Parameters = new() { ["path"] = JsonSerializer.SerializeToElement(input) } };

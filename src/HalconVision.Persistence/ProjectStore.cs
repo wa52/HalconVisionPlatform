@@ -100,7 +100,8 @@ public sealed class ProjectStore
             AssetReferences = [.. source.AssetReferences]
         };
         var idMap = source.Nodes.Zip(copy.Nodes).ToDictionary(pair => pair.First.Id, pair => pair.Second.Id);
-        copy = copy with { Edges = source.Edges.Select(edge => edge with { Id = Guid.NewGuid(), FromNodeId = idMap[edge.FromNodeId], ToNodeId = idMap[edge.ToNodeId] }).ToList(),
+        copy = copy with { Nodes = copy.Nodes.Select(node => PositionReferenceParameters.Remap(node, idMap)).ToList(),
+            Edges = source.Edges.Select(edge => edge with { Id = Guid.NewGuid(), FromNodeId = idMap[edge.FromNodeId], ToNodeId = idMap[edge.ToNodeId] }).ToList(),
             DetectionPanels = source.DetectionPanels.Select(panel => RemapDetectionPanel(panel, idMap)).OfType<DetectionPanelSettings>().ToList() };
         return copy;
     }
@@ -129,7 +130,7 @@ public sealed class ProjectStore
         {
             Id = Guid.NewGuid(),
             Name = newName ?? $"{imported.Name} 副本",
-            Nodes = imported.Nodes.Select(node => node with { Id = nodeIds[node.Id] }).ToList(),
+            Nodes = imported.Nodes.Select(node => PositionReferenceParameters.Remap(node with { Id = nodeIds[node.Id] }, nodeIds)).ToList(),
             DetectionPanels = imported.DetectionPanels.Select(panel => RemapDetectionPanel(panel, nodeIds)).OfType<DetectionPanelSettings>().ToList(),
             Edges = imported.Edges.Select(edge => edge with { Id = Guid.NewGuid(), FromNodeId = nodeIds[edge.FromNodeId], ToNodeId = nodeIds[edge.ToNodeId] }).ToList(),
             AssetReferences = [.. imported.AssetReferences]

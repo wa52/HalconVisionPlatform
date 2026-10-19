@@ -78,18 +78,20 @@ public sealed class HalconQuickMatchExecutor(ShapeMatchModelCache? cache = null)
             var status = new QuickMatchStatus(total == 0 ? QuickMatchStatus.NotFound : foundImages == count ? QuickMatchStatus.Found : QuickMatchStatus.Partial,
                 total == 0 ? "未找到模板目标" : $"{count} 张图像中 {foundImages} 张找到目标，共 {total} 个匹配");
             var best = count == 1 ? results[0].Matches.MaxBy(pose => pose.Score) : null;
+            var posesOutput = new PoseSet(context.Node.Id, context.InputFrames?.GetValueOrDefault("image"), lease.ModelIdentity, context.ConfigurationIdentity, results);
             var ports = new Dictionary<string, JsonElement>
             {
                 ["preview"] = JsonSerializer.SerializeToElement(new { width, height, count }),
                 ["matches"] = JsonSerializer.SerializeToElement(count == 1 ? results[0].Matches : Array.Empty<QuickMatchPose>()),
                 ["imageResults"] = JsonSerializer.SerializeToElement(results), ["count"] = JsonSerializer.SerializeToElement(total),
+                ["poses"] = JsonSerializer.SerializeToElement(posesOutput),
                 ["row"] = JsonSerializer.SerializeToElement(best?.Row), ["column"] = JsonSerializer.SerializeToElement(best?.Column),
                 ["angle"] = JsonSerializer.SerializeToElement(best?.AngleDegrees), ["score"] = JsonSerializer.SerializeToElement(best?.Score),
                 ["status"] = JsonSerializer.SerializeToElement(status),
                 ["overlay"] = JsonSerializer.SerializeToElement(new { images = count, matches = total }),
                 ["modelInfo"] = JsonSerializer.SerializeToElement(new { cacheHit = lease.CacheHit, templateImage = QuickMatchParameters.TemplatePath(context.Node), method = "HALCON shape matching" })
             };
-            var runtime = new Dictionary<string, object?> { ["preview"] = previews, ["overlay"] = new QuickMatchOverlay(overlays) };
+            var runtime = new Dictionary<string, object?> { ["preview"] = previews, ["overlay"] = new QuickMatchOverlay(overlays), ["poses"] = posesOutput };
             previews = null; lease.Complete();
             context.Log($"快捷匹配：{status.Message}；模型{(lease.CacheHit ? "复用" : "新建")}。");
             return ValueTask.FromResult(new NodeExecutionOutput(ports, runtime));

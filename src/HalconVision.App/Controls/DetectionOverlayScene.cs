@@ -42,7 +42,7 @@ public sealed class DetectionOverlayScene
                 (!result.Outputs.TryGetValue(row.Name, out var scalar) || scalar.ValueKind != JsonValueKind.Null)))
                 scene.Captions.Add(new($"{name} · {ImportantFields.GetValueOrDefault(row.Name) ?? AdvancedFields[row.Name]}：{row.Value}", "White"));
             if (!layer.ShowGeometry || run is null || run.RuntimeOutputs is null || !run.RuntimeOutputs.TryGetValue(layer.NodeId, out var runtime)) continue;
-            if (!SharesImageSpace(flow, settings.NodeId, layer.NodeId) || !HasDimensions(result.Outputs, width, height))
+            if (!SharesImageSpace(flow, run, settings.NodeId, layer.NodeId) || !HasDimensions(result.Outputs, width, height))
             { scene.Captions.Add(new($"{name}：图像坐标来源或尺寸不匹配，未叠加图形", "Orange")); continue; }
             if (runtime.Values.OfType<ImageRoiOverlay>().FirstOrDefault() is { Bounds: var bounds })
                 scene.Geometry.Add(new([new(bounds.RowBegin, bounds.ColumnBegin), new(bounds.RowBegin, bounds.ColumnEnd),
@@ -107,13 +107,18 @@ public sealed class DetectionOverlayScene
         outputs.Values.Any(value => value.ValueKind == JsonValueKind.Object && value.TryGetProperty("width", out var w) &&
             value.TryGetProperty("height", out var h) && w.TryGetInt32(out var wi) && h.TryGetInt32(out var hi) && wi == width && hi == height);
 
-    private static bool SharesImageSpace(FlowTabViewModel flow, Guid first, Guid second)
+    private static bool SharesImageSpace(FlowTabViewModel flow, WorkflowExecutionRun run, Guid first, Guid second)
     {
+        var firstFrame = run.SpatialOutputs?.GetValueOrDefault(first)?.Values.FirstOrDefault();
+        var secondFrame = run.SpatialOutputs?.GetValueOrDefault(second)?.Values.FirstOrDefault();
+        if (firstFrame is not null && secondFrame is not null)
+            return firstFrame.RunId == secondFrame.RunId && firstFrame.FrameId == secondFrame.FrameId && firstFrame.SpaceId == secondFrame.SpaceId;
         HashSet<Guid> Roots(Guid id, HashSet<Guid> seen)
         {
             if (!seen.Add(id)) return [];
             var node = flow.Nodes.FirstOrDefault(item => item.Id == id);
             if (node is null) return [];
+            if (node.TypeId == "halcon.position-correction") return [id];
             var inputIds = node.InputPorts.Where(port => port.DataType is "halcon.image" or "halcon.region").Select(port => port.Id).ToHashSet();
             var edges = flow.Document.Edges.Where(edge => edge.ToNodeId == id && inputIds.Contains(edge.ToPortId)).ToArray();
             return edges.Length == 0 ? [id] : edges.SelectMany(edge => Roots(edge.FromNodeId, seen)).ToHashSet();

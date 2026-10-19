@@ -57,7 +57,7 @@ public sealed class ShapeMatchModelCache(int capacity = 4) : IDisposable
                 finally { contours?.Dispose(); model?.Dispose(); }
             }
             entry!.LastUse = ++_clock;
-            return new(entry.Model, entry.Contours, hit, successful =>
+            return new(entry.Model, entry.Contours, hit, Identity(entry.Identity), successful =>
             {
                 try { if (!successful) Remove(context.Node.Id); }
                 finally { _gate.Release(); }
@@ -75,6 +75,9 @@ public sealed class ShapeMatchModelCache(int capacity = 4) : IDisposable
             .Select(key => context.Node.Parameters.TryGetValue(key, out var value) ? value.GetRawText() : "default");
         return path.ToUpperInvariant() + "|" + hash + "|" + string.Join("|", settings);
     }
+    private static string Identity(string fingerprint) => Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(fingerprint)));
+    public static string ReadModelIdentity(HalconVision.Domain.NodeInstance node) => Identity(Fingerprint(QuickMatchParameters.TemplatePath(node),
+        new NodeExecutionContext(node, new Dictionary<string, JsonElement>(), CancellationToken.None, _ => { })));
     private void Remove(Guid id)
     {
         if (!_entries.Remove(id, out var entry)) return;
@@ -102,13 +105,14 @@ public sealed class ShapeMatchModelCache(int capacity = 4) : IDisposable
     private sealed record Entry(string Identity, HShapeModel Model, HXLDCont Contours, long InitialUse)
     { public long LastUse { get; set; } = InitialUse; }
 
-    internal sealed class Lease(HShapeModel model, HXLDCont contours, bool cacheHit, Action<bool> release) : IDisposable
+    internal sealed class Lease(HShapeModel model, HXLDCont contours, bool cacheHit, string identity, Action<bool> release) : IDisposable
     {
         private Action<bool>? _release = release;
         private bool _successful;
         public HShapeModel Model { get; } = model;
         public HXLDCont Contours { get; } = contours;
         public bool CacheHit { get; } = cacheHit;
+        public string ModelIdentity { get; } = identity;
         public void Complete() => _successful = true;
         public void Dispose() => Interlocked.Exchange(ref _release, null)?.Invoke(_successful);
     }

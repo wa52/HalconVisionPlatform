@@ -35,7 +35,7 @@ public sealed class HalconObjectDetectionExecutor(DlModelSessionCache? cache = n
         using var first = source.SelectObj(1); first.GetImageSize(out int width, out int height);
         using var channels = first.CountChannels();
         if (channels.I is not (1 or 3)) throw new InvalidDataException("目标检测仅支持灰度/RGB 图像。");
-        var rois = DlRoiSet.Read(context.Node, width, height); var clock = Stopwatch.StartNew();
+        var rois = DlRoiSet.Read(context.Node, width, height); ValidRegionGuard.Require(context, first, rois.Select(roi => roi.Crop.Bounds)); var clock = Stopwatch.StartNew();
         var results = new List<RoiObjectDetectionResult>(); var labels = new List<RoiDisplayResult>();
         HImage? preview = null; var transferred = false;
         try

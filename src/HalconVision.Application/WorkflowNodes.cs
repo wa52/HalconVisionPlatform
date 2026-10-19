@@ -12,14 +12,18 @@ public sealed record NodeDefinition(
     string DisplayName,
     string Description,
     IReadOnlyList<PortDefinition> Ports,
-    IReadOnlyList<NodeParameterDefinition> Parameters);
+    IReadOnlyList<NodeParameterDefinition> Parameters,
+    ImageSpaceBehavior ImageSpace = ImageSpaceBehavior.Preserve);
 
 public sealed record NodeExecutionContext(
     NodeInstance Node,
     IReadOnlyDictionary<string, JsonElement> Inputs,
     CancellationToken CancellationToken,
     Action<string> Log,
-    IReadOnlyDictionary<string, object?>? RuntimeInputs = null);
+    IReadOnlyDictionary<string, object?>? RuntimeInputs = null,
+    Guid RunId = default,
+    IReadOnlyDictionary<string, FrameReference>? InputFrames = null,
+    string ConfigurationIdentity = "");
 
 public sealed record NodeExecutionOutput(
     IReadOnlyDictionary<string, JsonElement> Ports,

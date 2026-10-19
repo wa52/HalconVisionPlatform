@@ -12,12 +12,13 @@ public sealed class NodeResultSummary : IValueConverter
     {
         if (result is null) return "未运行 · 请运行所选节点所在流程";
         if (result.Status != NodeExecutionStatus.Success)
-            return result.Status == NodeExecutionStatus.Failed ? $"运行错误：{result.Error}" : $"未完成：{result.Status}";
+            return result.Status == NodeExecutionStatus.Failed ? $"运行错误：{ShortError(result.Error)}" : $"未完成：{result.Status}";
         if (ReadClassificationDecision(result) is { } decision) return decision.Message;
         if (!result.Outputs.TryGetValue("status", out var status) || status.ValueKind != JsonValueKind.Object ||
             !status.TryGetProperty("Code", out var code)) return "执行成功";
         if (code.GetString() is QuickMatchStatus.Found or QuickMatchStatus.NotFound or QuickMatchStatus.Partial)
             return "快捷匹配 · " + (status.TryGetProperty("Message", out var matchMessage) ? matchMessage.GetString() : "请查看匹配结果");
+        if (code.GetString() == "CORRECTION_OK") return status.GetProperty("Message").GetString() ?? "位置矫正完成";
         if (code.GetString() is ClassificationStatus.Classified or ClassificationStatus.LowConfidence)
             return (code.GetString() == ClassificationStatus.LowConfidence ? "分类置信度不足 · " : "分类完成 · ") +
                 (status.TryGetProperty("Message", out var classificationMessage) ? classificationMessage.GetString() : "请查看分类数据");
@@ -33,6 +34,14 @@ public sealed class NodeResultSummary : IValueConverter
         return $"找到直线 · 红色线为拟合结果 · 评分 {Number("score", "F3")} · 长度 {Number("length", "F1")} px · 角度 {Number("angle", "F2")}°";
     }
 
+    private static string ShortError(string? error)
+    {
+        var line = error?.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "请查看完整错误记录";
+        var separator = line.IndexOf(": ", StringComparison.Ordinal);
+        if (separator >= 0) line = line[(separator + 2)..];
+        return line.Length > 300 ? line[..300] + "…" : line;
+    }
+
     public static Brush Color(NodeExecutionResult? result)
     {
         if (ReadClassificationDecision(result) is { } decision) return ClassificationColor(decision);
@@ -40,7 +49,7 @@ public sealed class NodeResultSummary : IValueConverter
         if (result?.Status == NodeExecutionStatus.Success && result.Outputs.TryGetValue("status", out var status) &&
             status.ValueKind == JsonValueKind.Object && status.TryGetProperty("Code", out var code) && code.GetString() is QuickMatchStatus.Found or QuickMatchStatus.NotFound or QuickMatchStatus.Partial)
             return code.GetString() == QuickMatchStatus.Found ? Brushes.LimeGreen : Brushes.Red;
-        return text.StartsWith("找到直线") || text.StartsWith("语义分割检出") || text.StartsWith("分类完成") ? Brushes.LightGreen
+        return text.StartsWith("位置矫正完成") || text.StartsWith("找到直线") || text.StartsWith("语义分割检出") || text.StartsWith("分类完成") ? Brushes.LightGreen
             : text.StartsWith("未找到") || text.StartsWith("未检出") || text.StartsWith("分类置信度不足") || text.StartsWith("运行错误") ? Brushes.Orange : Brushes.LightGray;
     }
 
