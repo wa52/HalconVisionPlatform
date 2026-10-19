@@ -22,7 +22,7 @@ internal static class Program
   var failures = new List<string>(); var checks = 0;
   var iconConverter = new ActionIconConverter();
   var helpConverter = new ActionHelpConverter();
-  foreach (var label in new[] { "文件", "项目", "新建项目…", "打开项目…", "保存项目", "新建流程…", "导入流程…", "导出当前流程…", "选文件…", "选文件夹…", "退出", "确定", "取消" })
+  foreach (var label in new[] { "文件", "项目", "新建项目…", "打开项目…", "保存项目", "新建流程…", "导入流程…", "导出当前流程…", "选文件…", "选文件夹…", "退出", "确定", "取消", "取当前图像为模板" })
   {
       checks += 2;
       if (iconConverter.Convert(new object[] { label, false }, typeof(object), null!, CultureInfo.InvariantCulture) is not TextBlock { FontFamily.Source: "Segoe MDL2 Assets" })

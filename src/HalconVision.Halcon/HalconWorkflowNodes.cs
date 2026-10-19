@@ -16,9 +16,32 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
     public const string SemanticSegmentation = "halcon.semantic-segmentation";
     public const string Classification = "halcon.classification";
     public const string ObjectDetection = "halcon.object-detection";
+    public const string QuickMatch = "halcon.quick-match";
 
     public IEnumerable<NodeDefinition> GetDefinitions()
     {
+        yield return new NodeDefinition(QuickMatch, 1, "定位匹配", "快捷匹配", "使用 HALCON 形状模板在图像或绘制的搜索范围内定位目标，返回原图坐标、角度、评分和匹配轮廓。",
+            [new("image", "Image", PortDirection.Input, "halcon.image", Required: true),
+             new("preview", "匹配预览", PortDirection.Output, "halcon.image"),
+             new("matches", "匹配位置（单图）", PortDirection.Output, "vision.template-matches"),
+             new("imageResults", "逐图匹配结果", PortDirection.Output, "vision.image-results"),
+             new("row", "最佳位置行", PortDirection.Output, "number"), new("column", "最佳位置列", PortDirection.Output, "number"),
+             new("angle", "最佳角度（度）", PortDirection.Output, "number"), new("score", "最佳评分", PortDirection.Output, "number"),
+             new("count", "匹配总数", PortDirection.Output, "number"), new("status", "匹配状态", PortDirection.Output, "inspection.result"),
+             new("overlay", "匹配图形", PortDirection.Output, "vision.match-overlay"), new("modelInfo", "模型信息", PortDirection.Output, "object")],
+            [new("templateImage", "模板图像", "imageFile", true, JsonSerializer.SerializeToElement("")),
+             new("templateRoi", "模板范围（空为整幅模板）", "roiDraw", false, JsonSerializer.SerializeToElement("")),
+             new("roi", "搜索范围（空为全图）", "roiDraw", false, JsonSerializer.SerializeToElement("")),
+             new("minimumScore", "最低匹配评分（0–1）", "number", true, JsonSerializer.SerializeToElement(.6)),
+             new("maximumMatches", "最多匹配数（1–100）", "number", true, JsonSerializer.SerializeToElement(1)),
+             new("angleStart", "起始角度（度）", "number", true, JsonSerializer.SerializeToElement(-180d)),
+             new("angleExtent", "角度范围（度）", "number", true, JsonSerializer.SerializeToElement(360d)),
+             new("maximumOverlap", "最大重叠（0–1）", "number", true, JsonSerializer.SerializeToElement(.5)),
+             new("greediness", "搜索贪婪度（0–1）", "number", true, JsonSerializer.SerializeToElement(.8)),
+             new("contrast", "建模边缘对比度", "number", true, JsonSerializer.SerializeToElement(30)),
+             new("minimumContrast", "最小对比度", "number", true, JsonSerializer.SerializeToElement(10)),
+             new("ignorePolarity", "忽略整体明暗反转", "bool", true, JsonSerializer.SerializeToElement(false)),
+             new("timeoutMs", "单图搜索超时（毫秒）", "number", true, JsonSerializer.SerializeToElement(5000))]);
         yield return new NodeDefinition(ObjectDetection, 1, "深度学习", "目标检测", "使用 HALCON rectangle1 模型在多个 ROI 中定位目标，输出原图框、类别、置信度与数量判定。",
             [new("image", "Image", PortDirection.Input, "halcon.image", Required: true),
              new("preview", "检测预览", PortDirection.Output, "halcon.image"), new("objects", "检测目标", PortDirection.Output, "vision.detection-objects"),

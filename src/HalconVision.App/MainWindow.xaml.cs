@@ -686,7 +686,7 @@ public partial class MainWindow : Window
         {
             var dialog = new OpenFileDialog
             {
-                Title = parameter.IsModelPackage ? "选择训练模型目录中的文件" : "选择 HALCON 输入图像",
+                Title = parameter.IsModelPackage ? "选择训练模型目录中的文件" : parameter.IsQuickMatchTemplate ? "选择匹配模板图像" : "选择 HALCON 输入图像",
                 Filter = parameter.IsModelPackage ? "模型目录入口|manifest.json;model.hdl|所有文件|*.*" : "图像文件|*.bmp;*.png;*.jpg;*.jpeg;*.tif;*.tiff;*.jp2|所有文件|*.*",
                 CheckFileExists = true,
                 FileName = File.Exists(parameter.ValueText) ? parameter.ValueText : string.Empty
@@ -698,6 +698,15 @@ public partial class MainWindow : Window
         selectedPath = Path.GetFullPath(selectedPath);
         parameter.ValueText = selectedPath;
         parameter.Commit();
+        if (parameter.IsQuickMatchTemplate && _vm.SelectedFlow?.SelectedNode is { } matchingNode)
+        {
+            var templateRoi = matchingNode.Parameters.Single(item => item.Definition.Id == "templateRoi");
+            templateRoi.ValueText = ""; templateRoi.Commit();
+            try { ShowQuickMatchTemplate(matchingNode); }
+            catch (Exception error) { ShowError("模板图像预览失败", error); }
+            _vm.Log("已选择模板图像，模板范围已重置，请重新绘制或使用整幅模板。");
+            return;
+        }
         if (parameter.IsModelPackage) { _vm.Log($"已选择检测模型：{selectedPath}"); return; }
         var previewPath = Directory.Exists(selectedPath)
             ? EnumerateImageFiles(selectedPath).FirstOrDefault()
@@ -795,11 +804,12 @@ public partial class MainWindow : Window
         FinishRoiDrawing();
         if (
             _vm.SelectedFlow?.SelectedNode is not { } lineNode ||
-            lineNode.TypeId is not (HalconNodeProvider.StraightLineFind or HalconNodeProvider.SemanticSegmentation or HalconNodeProvider.Classification or HalconNodeProvider.ObjectDetection)) return;
+            lineNode.TypeId is not (HalconNodeProvider.StraightLineFind or HalconNodeProvider.SemanticSegmentation or HalconNodeProvider.Classification or HalconNodeProvider.ObjectDetection or HalconNodeProvider.QuickMatch)) return;
         var flow = _vm.SelectedFlow;
+        var templateDrawing = lineNode.TypeId == HalconNodeProvider.QuickMatch && parameter.Definition.Id == "templateRoi";
         var edge = flow.Document.Edges.FirstOrDefault(item => item.ToNodeId == lineNode.Id && item.ToPortId == "image");
         var sourceNode = edge is null ? null : flow.Document.Nodes.FirstOrDefault(item => item.Id == edge.FromNodeId);
-        if (sourceNode is null)
+        if (sourceNode is null && !templateDrawing)
         {
             MessageBox.Show(this, "请先为当前检测节点连接 Image 输入。", "绘制检测范围", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
@@ -808,7 +818,12 @@ public partial class MainWindow : Window
         try
         {
             var displayed = false;
-            if (_vm.LastRun is { } run && run.FlowId == flow.Id && run.RuntimeOutputs?.TryGetValue(sourceNode.Id, out var runtime) == true &&
+            if (templateDrawing)
+            {
+                ShowQuickMatchTemplate(lineNode);
+                displayed = true;
+            }
+            else if (sourceNode is not null && _vm.LastRun is { } run && run.FlowId == flow.Id && run.RuntimeOutputs?.TryGetValue(sourceNode.Id, out var runtime) == true &&
                 runtime.TryGetValue(edge!.FromPortId, out var imageValue) && imageValue is HImage image)
             {
                 if (image.CountObj() > 1)
@@ -824,7 +839,7 @@ public partial class MainWindow : Window
                 }
                 displayed = true;
             }
-            else if (sourceNode.TypeId == HalconNodeProvider.ImageRead && sourceNode.Parameters.TryGetValue("path", out var pathValue))
+            else if (sourceNode is not null && sourceNode.TypeId == HalconNodeProvider.ImageRead && sourceNode.Parameters.TryGetValue("path", out var pathValue))
             {
                 var path = pathValue.GetString();
                 if (!string.IsNullOrWhiteSpace(path))
@@ -873,7 +888,9 @@ public partial class MainWindow : Window
         if (sender is not Button { Tag: NodeParameterViewModel parameter }) return;
         FinishRoiDrawing();
         parameter.ValueText = string.Empty; parameter.Commit();
-        DetectionSummary.Text = "矩形范围已清除 · 重新运行后使用默认范围（深度学习为全图）";
+        DetectionSummary.Text = _vm.SelectedFlow?.SelectedNode?.TypeId == HalconNodeProvider.QuickMatch
+            ? parameter.Definition.Id == "templateRoi" ? "模板范围已清除 · 下次运行使用整幅模板图像" : "搜索范围已清除 · 下次运行搜索全图"
+            : "矩形范围已清除 · 重新运行后使用节点默认范围";
         _vm.Log("已清除检测范围，请重新运行检测。");
     }
 
@@ -935,7 +952,7 @@ public partial class MainWindow : Window
         DetectionSummary.Text = "矩形范围已修改 · 请重新运行检测";
         _vm.Log($"已设置检测范围：行 {Math.Min(startRow, endRow):F0}–{Math.Max(startRow, endRow):F0}，列 {Math.Min(startColumn, endColumn):F0}–{Math.Max(startColumn, endColumn):F0}。");
         FinishRoiDrawing();
-        if (parameter.IsRoiList) SetRoiOutlineParameter(parameter);
+        if (parameter.IsRoiList || _vm.SelectedFlow?.SelectedNode?.TypeId == HalconNodeProvider.QuickMatch) SetRoiOutlineParameter(parameter);
         e.Handled = true;
     }
 
@@ -980,7 +997,7 @@ public partial class MainWindow : Window
         try
         {
             PreviewWindow.HalconWindow.GetPart(out int r1, out int c1, out int r2, out int c2);
-            foreach (var item in _roiOutlineParameter.ReadRois().Where(item => item.Enabled))
+            foreach (var item in ReadConfiguredDisplayRois(_roiOutlineParameter).Where(item => item.Enabled))
             {
                 var left = (Math.Min(item.ColumnBegin, item.ColumnEnd) - c1) * RoiDrawingOverlay.ActualWidth / (c2 - c1 + 1d);
                 var top = (Math.Min(item.RowBegin, item.RowEnd) - r1) * RoiDrawingOverlay.ActualHeight / (r2 - r1 + 1d);

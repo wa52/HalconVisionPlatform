@@ -47,7 +47,7 @@ internal static class Program
             using var cache = new DlModelSessionCache(1); using var camera = new HalconCameraManager();
             var registry = BuiltInNodeCatalog.Create(); registry.Register(new HalconNodeProvider(),
                 [new HalconImageReadExecutor(), new HalconCameraCaptureExecutor(camera), new HalconThresholdExecutor(), new HalconBlobAnalysisExecutor(),
-                 new HalconStraightLineFindExecutor(), new HalconSemanticSegmentationExecutor(cache), new HalconClassificationExecutor(cache), new HalconObjectDetectionExecutor(cache)]);
+                 new HalconStraightLineFindExecutor(), new HalconSemanticSegmentationExecutor(cache), new HalconClassificationExecutor(cache), new HalconObjectDetectionExecutor(cache), new HalconQuickMatchExecutor()]);
             var engine = new WorkflowExecutionEngine(registry, new WorkflowGraphValidator(registry));
             using var csv = new StreamWriter(Path.Combine(output, "results.csv"), false, new UTF8Encoding(true));
             using var jsonl = new StreamWriter(Path.Combine(output, "results.jsonl"));

@@ -60,7 +60,9 @@ try
 
     Console.WriteLine("STEP workflow_preview_contract: starting");
     var registry = BuiltInNodeCatalog.Create();
-    registry.Register(new HalconNodeProvider(), [new HalconImageReadExecutor(), new HalconThresholdExecutor(), new HalconBlobAnalysisExecutor()]);
+    using var camera = new HalconCameraManager();
+    registry.Register(new HalconNodeProvider(), [new HalconImageReadExecutor(), new HalconCameraCaptureExecutor(camera), new HalconThresholdExecutor(), new HalconBlobAnalysisExecutor(),
+        new HalconStraightLineFindExecutor(), new HalconSemanticSegmentationExecutor(), new HalconClassificationExecutor(), new HalconObjectDetectionExecutor(), new HalconQuickMatchExecutor()]);
     var imageNode = new NodeInstance
     {
         TypeId = HalconNodeProvider.ImageRead,

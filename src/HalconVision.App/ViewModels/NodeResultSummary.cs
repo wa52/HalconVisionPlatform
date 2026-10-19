@@ -16,6 +16,8 @@ public sealed class NodeResultSummary : IValueConverter
         if (ReadClassificationDecision(result) is { } decision) return decision.Message;
         if (!result.Outputs.TryGetValue("status", out var status) || status.ValueKind != JsonValueKind.Object ||
             !status.TryGetProperty("Code", out var code)) return "执行成功";
+        if (code.GetString() is QuickMatchStatus.Found or QuickMatchStatus.NotFound or QuickMatchStatus.Partial)
+            return "快捷匹配 · " + (status.TryGetProperty("Message", out var matchMessage) ? matchMessage.GetString() : "请查看匹配结果");
         if (code.GetString() is ClassificationStatus.Classified or ClassificationStatus.LowConfidence)
             return (code.GetString() == ClassificationStatus.LowConfidence ? "分类置信度不足 · " : "分类完成 · ") +
                 (status.TryGetProperty("Message", out var classificationMessage) ? classificationMessage.GetString() : "请查看分类数据");
@@ -35,6 +37,9 @@ public sealed class NodeResultSummary : IValueConverter
     {
         if (ReadClassificationDecision(result) is { } decision) return ClassificationColor(decision);
         var text = Describe(result);
+        if (result?.Status == NodeExecutionStatus.Success && result.Outputs.TryGetValue("status", out var status) &&
+            status.ValueKind == JsonValueKind.Object && status.TryGetProperty("Code", out var code) && code.GetString() is QuickMatchStatus.Found or QuickMatchStatus.NotFound or QuickMatchStatus.Partial)
+            return code.GetString() == QuickMatchStatus.Found ? Brushes.LimeGreen : Brushes.Red;
         return text.StartsWith("找到直线") || text.StartsWith("语义分割检出") || text.StartsWith("分类完成") ? Brushes.LightGreen
             : text.StartsWith("未找到") || text.StartsWith("未检出") || text.StartsWith("分类置信度不足") || text.StartsWith("运行错误") ? Brushes.Orange : Brushes.LightGray;
     }

@@ -18,7 +18,8 @@ public sealed class DetectionOverlayScene
     public static IReadOnlyDictionary<string, string> AdvancedFields { get; } = new Dictionary<string, string>
     {
         ["line.RowBegin"] = "起点行坐标", ["line.ColumnBegin"] = "起点列坐标",
-        ["line.RowEnd"] = "终点行坐标", ["line.ColumnEnd"] = "终点列坐标", ["classId"] = "类别 ID"
+        ["line.RowEnd"] = "终点行坐标", ["line.ColumnEnd"] = "终点列坐标", ["classId"] = "类别 ID",
+        ["row"] = "模板参考点行", ["column"] = "模板参考点列"
     };
     public List<DisplayGeometry> Geometry { get; } = [];
     public List<DisplayCaption> Captions { get; } = [];
@@ -62,6 +63,21 @@ public sealed class DetectionOverlayScene
                         new(roi.RowEnd, roi.ColumnEnd), new(roi.RowEnd, roi.ColumnBegin), new(roi.RowBegin, roi.ColumnBegin)], "Gold"));
                 if (overlay.FittedLine is { } line)
                     scene.Geometry.Add(new([new(line.RowBegin, line.ColumnBegin), new(line.RowEnd, line.ColumnEnd)], "Red"));
+                continue;
+            }
+            if (runtime.Values.OfType<QuickMatchOverlay>().FirstOrDefault() is { } matching)
+            {
+                var frame = matching.Images.FirstOrDefault(item => item.ImageIndex == settings.ImageIndex);
+                if (frame?.SearchRegion is { } search)
+                    scene.Geometry.Add(new([new(search.RowBegin, search.ColumnBegin), new(search.RowBegin, search.ColumnEnd),
+                        new(search.RowEnd, search.ColumnEnd), new(search.RowEnd, search.ColumnBegin), new(search.RowBegin, search.ColumnBegin)], "Gold"));
+                foreach (var match in frame?.Matches ?? [])
+                {
+                    foreach (var contour in match.Contours) scene.Geometry.Add(new(contour, "LimeGreen"));
+                    var pose = match.Pose;
+                    scene.Geometry.Add(new([new(pose.Row - 5, pose.Column), new(pose.Row + 5, pose.Column)], "LimeGreen"));
+                    scene.Geometry.Add(new([new(pose.Row, pose.Column - 5), new(pose.Row, pose.Column + 5)], "LimeGreen"));
+                }
                 continue;
             }
             foreach (var iconic in runtime.Values.OfType<HObject>().Distinct(ReferenceEqualityComparer.Instance))

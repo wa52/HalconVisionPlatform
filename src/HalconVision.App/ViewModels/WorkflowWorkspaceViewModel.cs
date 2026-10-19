@@ -16,6 +16,7 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
 {
     private readonly HalconCameraManager _cameraManager = new();
     private readonly DlModelSessionCache _dlSessions = new();
+    private readonly ShapeMatchModelCache _matchModels = new();
     private readonly ProjectStore _projectStore = new();
     private readonly INodeRegistry _registry;
     private readonly WorkflowGraphValidator _validator;
@@ -47,7 +48,8 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
             new HalconStraightLineFindExecutor(),
             new HalconSemanticSegmentationExecutor(_dlSessions),
             new HalconClassificationExecutor(_dlSessions),
-            new HalconObjectDetectionExecutor(_dlSessions)
+            new HalconObjectDetectionExecutor(_dlSessions),
+            new HalconQuickMatchExecutor(_matchModels)
         ]);
         _registry = registry;
         _validator = new WorkflowGraphValidator(_registry);
@@ -420,7 +422,7 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
     public void ReleaseModelSessions()
     {
         if (IsRunning) throw new InvalidOperationException("请等待当前推理结束后释放模型。");
-        _dlSessions.Clear();
+        try { _dlSessions.Clear(); } finally { _matchModels.Clear(); }
     }
     public void SetExecutionRun(WorkflowExecutionRun run)
     {
@@ -505,6 +507,6 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
         ExecutionResults.Clear();
         _imageSequenceCursors.Clear();
         try { _cameraManager.Dispose(); }
-        finally { _dlSessions.Dispose(); }
+        finally { try { _dlSessions.Dispose(); } finally { _matchModels.Dispose(); } }
     }
 }

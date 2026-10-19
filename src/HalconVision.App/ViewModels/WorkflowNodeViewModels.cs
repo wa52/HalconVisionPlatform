@@ -45,7 +45,9 @@ public sealed class NodeParameterViewModel : ObservableModel
     public NodeParameterDefinition Definition { get; }
     public string Name => Definition.Name;
     public string DataType => Definition.DataType;
-    public bool IsPath => string.Equals(DataType, "path", StringComparison.Ordinal);
+    public bool IsPath => DataType is "path" or "imageFile";
+    public bool IsImageFile => DataType == "imageFile";
+    public bool IsQuickMatchTemplate => Definition.Id == "templateImage";
     public bool IsModelPackage => Definition.Id == "modelPackage";
     public bool IsRoiDraw => string.Equals(DataType, "roiDraw", StringComparison.Ordinal);
     public bool IsRoiList => DataType == "roiList";
@@ -76,7 +78,7 @@ public sealed class NodeParameterViewModel : ObservableModel
         {
             var element = Definition.DataType switch
             {
-                "string" or "path" or "camera" or "cameraInterface" or "roiDraw" or "lineDraw" or "edgeTransition" or "lineOrientation" or "dlDevice" => JsonSerializer.SerializeToElement(ValueText),
+                "string" or "path" or "imageFile" or "camera" or "cameraInterface" or "roiDraw" or "lineDraw" or "edgeTransition" or "lineOrientation" or "dlDevice" => JsonSerializer.SerializeToElement(ValueText),
                 "number" when double.TryParse(ValueText, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) && double.IsFinite(number) => JsonSerializer.SerializeToElement(number),
                 "bool" when bool.TryParse(ValueText, out var boolean) => JsonSerializer.SerializeToElement(boolean),
                 "roiList" => JsonSerializer.SerializeToElement(DetectionRoi.Parse(JsonSerializer.Deserialize<JsonElement>(ValueText))),
