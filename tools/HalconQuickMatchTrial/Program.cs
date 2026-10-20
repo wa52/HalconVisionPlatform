@@ -22,6 +22,7 @@ internal static class Program
         Directory.CreateDirectory(output);
         try
         {
+            CheckPolicy();
             var input = Path.Combine(output, "input"); Directory.CreateDirectory(input);
             var templatePath = Path.Combine(output, "template.png");
             using var blank = new HImage(); blank.GenImageConst("byte", 600, 480);
@@ -43,6 +44,8 @@ internal static class Program
             using var targetFull = target.FullDomain(); using var secondFull = second.FullDomain();
             using var multi = targetFull.MaxImage(secondFull);
             var multiPath = Path.Combine(output, "multiple.png"); multi.WriteImage("png", 0, multiPath);
+            using var timeoutImage = multi.ZoomImageFactor(8, 8, "constant");
+            var timeoutPath = Path.Combine(output,"timeout-input.png"); timeoutImage.WriteImage("png",0,timeoutPath);
 
             using var cache = new ShapeMatchModelCache(2); using var camera = new HalconCameraManager();
             var registry = BuiltInNodeCatalog.Create();
@@ -92,6 +95,15 @@ internal static class Program
             var many = Run(multiPath, ("maximumMatches", 2));
             File.WriteAllText(Path.Combine(output, "multiple-result.json"), JsonSerializer.Serialize(Result(many), new JsonSerializerOptions { WriteIndented = true }));
             Check(Result(many).Outputs["count"].GetInt32() == 2, "多个目标匹配"); DisposeRun(many);
+            var ambiguous = Run(multiPath); var rejected = Result(ambiguous);
+            Check(rejected.Outputs["status"].Deserialize<QuickMatchStatus>()!.Code == QuickMatchStatus.Ambiguous &&
+                rejected.Outputs["rawCandidates"].GetArrayLength() >= 2 && rejected.Outputs["matches"].GetArrayLength() == 0 &&
+                rejected.Outputs["row"].ValueKind == JsonValueKind.Null && ((PoseSet)ambiguous.RuntimeOutputs![match.Id]["poses"]!).Images.Single().Matches.Count == 0,
+                "双目标保留候选但无可信位姿及标量");
+            File.WriteAllText(Path.Combine(output,"ambiguous-result.json"),JsonSerializer.Serialize(rejected,new JsonSerializerOptions{WriteIndented=true})); DisposeRun(ambiguous);
+            var outside = Run(targetPath,("acceptanceRoi","0,0,100,100"));
+            Check(Result(outside).Outputs["status"].Deserialize<QuickMatchStatus>()!.Code == QuickMatchStatus.OutOfRange &&
+                Result(outside).Outputs["count"].GetInt32() == 0,"实际匹配位置越界拒绝"); DisposeRun(outside);
             var excluded = Run(targetPath, ("roi", "0,0,80,80"));
             Check(Result(excluded).Outputs["count"].GetInt32() == 0, "搜索范围排除目标"); DisposeRun(excluded);
             var included = Run(targetPath, ("roi", "220,300,350,470"));
@@ -100,6 +112,9 @@ internal static class Program
             Check(batches.Outputs["imageResults"].GetArrayLength() == 2 && batches.Outputs["row"].ValueKind == JsonValueKind.Null, "逐图结果与多图标量为空");
             Check(((HImage)batch.RuntimeOutputs![match.Id]["preview"]!).CountObj() == 2, "批量预览数量"); DisposeRun(batch);
             Check(cache.ModelLoads == 1, "参数调整与多轮执行复用模型");
+            var modern=match;
+            match=match with{Parameters=match.Parameters.Where(p=>p.Key is not ("candidateLimit" or "candidateMinimumScore" or "acceptanceRoi" or "minimumScoreGap" or "candidatePositionTolerance" or "candidateAngleTolerance")).ToDictionary(p=>p.Key,p=>p.Value)};
+            var legacy=Run(targetPath); Check(Result(legacy).Outputs["matches"].GetArrayLength()==1,"旧项目未存可靠性参数时使用兼容默认值");DisposeRun(legacy);match=modern;
             for (var index = 0; index < 50; index++)
             {
                 var repeated = Run(targetPath); var value = Result(repeated);
@@ -124,12 +139,26 @@ internal static class Program
             using var pcb = new HImage(realPath); pcb.GetImageSize(out int pcbWidth, out int pcbHeight);
             var top = pcbHeight / 5; var left = pcbWidth / 5; var bottom = pcbHeight * 3 / 5; var right = pcbWidth * 3 / 5;
             var real = Run(realPath, ("templateImage", realPath), ("templateRoi", $"{top},{left},{bottom},{right}"), ("angleStart", -15d), ("angleExtent", 30d));
+            var realInitial=Result(real);
+            File.WriteAllText(Path.Combine(output,"pcb-full-search.json"),JsonSerializer.Serialize(realInitial,new JsonSerializerOptions{WriteIndented=true}));
+            DisposeRun(real);
+            var centerRow=(top+bottom)/2d; var centerCol=(left+right)/2d;
+            real = Run(realPath, ("templateImage",realPath),("templateRoi",$"{top},{left},{bottom},{right}"),
+                ("roi",$"{centerRow-15},{centerCol-15},{centerRow+15},{centerCol+15}"),("angleStart",-15d),("angleExtent",30d));
+            File.WriteAllText(Path.Combine(output,"pcb-scoped-result.json"),JsonSerializer.Serialize(Result(real),new JsonSerializerOptions{WriteIndented=true}));
             var realPose = Result(real).Outputs["matches"].Deserialize<QuickMatchPose[]>()!.Single();
             Check(Math.Abs(realPose.Row - (top + bottom) / 2d) < 3 && Math.Abs(realPose.Column - (left + right) / 2d) < 3 && Math.Abs(realPose.AngleDegrees) < 2,
                 "HALCON 官方 PCB 真实图像定位");
             ((HImage)real.RuntimeOutputs![match.Id]["preview"]!).WriteImage("png", 0, Path.Combine(output, "pcb-preview.png"));
             File.WriteAllText(Path.Combine(output, "pcb-result.json"), JsonSerializer.Serialize(real.NodeResults.Single(item => item.NodeId == match.Id), new JsonSerializerOptions { WriteIndented = true }));
-            DisposeRun(real); cache.Clear(); Check(cache.Count == 0, "全部用例结束后模型清空");
+            DisposeRun(real); Check(cache.Count == 1, "有效模板仍在缓存供下一轮复用");
+            var missingModel=Run(targetPath,("templateImage",Path.Combine(output,"does-not-exist.png")));
+            Check(Result(missingModel).Outputs["status"].Deserialize<QuickMatchStatus>()!.Code==QuickMatchStatus.ModelInvalid&&
+                Result(missingModel).Outputs["row"].ValueKind==JsonValueKind.Null&&cache.Count==0,"缺失模板结构化拒绝且不复用旧位姿"); DisposeRun(missingModel);
+            var timeoutRun=Run(timeoutPath,("timeoutMs",1));
+            File.WriteAllText(Path.Combine(output,"timeout-result.json"),JsonSerializer.Serialize(Result(timeoutRun),new JsonSerializerOptions{WriteIndented=true}));
+            Check(Result(timeoutRun).Outputs["status"].Deserialize<QuickMatchStatus>()!.Code==QuickMatchStatus.Timeout&&
+                Result(timeoutRun).Outputs["row"].ValueKind==JsonValueKind.Null&&cache.Count==0,"真实 HALCON 超时不输出位姿并清理模型");DisposeRun(timeoutRun);
 
             var store = new ProjectStore(); var projectPath = Path.Combine(output, "快捷匹配检查.hvproj");
             var workspace = store.CreateProject(projectPath, "快捷匹配检查");
@@ -143,5 +172,29 @@ internal static class Program
             return 0;
         }
         catch (Exception error) { File.WriteAllText(Path.Combine(output, "error.txt"), error.ToString()); Console.Error.WriteLine(error); return 1; }
+    }
+
+    private static void CheckPolicy()
+    {
+        var policy=new MatchCandidatePolicy(.6,1,5,2,2,.05,-180,360);
+        QuickMatchPose P(double score=.9,double row=100,double col=100,double angle=0)=>new(row,col,angle,score);
+        QuickMatchImageResult E(params QuickMatchPose[] p)=>MatchCandidateEvaluator.Evaluate(1,p,policy,600,480);
+        void Reject(QuickMatchImageResult r,string code,string label)=>Check(r.Status!.Code==code&&r.Matches.Count==0,label);
+        Check(E(P()).Matches.Count==1,"独立可靠候选接受");
+        Reject(E(),QuickMatchStatus.NotFound,"空候选拒绝");
+        Reject(E(P(.59)),QuickMatchStatus.NotFound,"低评分拒绝");
+        Reject(E(P(),P(.88,200)),QuickMatchStatus.Ambiguous,"相似干扰候选拒绝");
+        Reject(E(P(),P(.65,200)),QuickMatchStatus.Ambiguous,"额外合格目标即使评分差大也拒绝");
+        Reject(E(P(.62),P(.59,200)),QuickMatchStatus.Ambiguous,"阈值附近竞争候选拒绝");
+        Check(E(P(),P(.5,200)).Matches.Count==1,"低质量弱候选不干扰");
+        Check(E(P(),P(.88,101,101,1)).Matches.Count==1,"同位置近角度重复候选合并");
+        Reject(E(P(),P(.88,100,100,180)),QuickMatchStatus.Ambiguous,"同位置对称方向拒绝");
+        Check(MatchCandidateEvaluator.AngleDistance(-179,179)==2,"跨正负180度角差正确");
+        Reject(E(P(row:-1)),QuickMatchStatus.OutOfRange,"图像外坐标拒绝");
+        Reject(E(P(row:double.NaN)),QuickMatchStatus.Rejected,"无效原始候选不进入序列化");
+        Reject(MatchCandidateEvaluator.Evaluate(1,[P(angle:11)],policy with{AngleStart=-10,AngleExtent=20},600,480),QuickMatchStatus.OutOfRange,"原生细化越出搜索角度再次检查");
+        Reject(MatchCandidateEvaluator.Evaluate(1,[P(),P(.9,200)],policy with{ExpectedCount=3},600,480),QuickMatchStatus.NotFound,"目标数量不足拒绝");
+        Reject(MatchCandidateEvaluator.Evaluate(1,[P(),P(.9,100,100,180)],policy with{ExpectedCount=2},600,480),QuickMatchStatus.Ambiguous,"多个方向不能当两个实体");
+        Reject(MatchCandidateEvaluator.Evaluate(1,[P(),P(.5,200)],policy with{CandidateLimit=2},600,480),QuickMatchStatus.Ambiguous,"搜索截断不能证明唯一");
     }
 }

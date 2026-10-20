@@ -77,6 +77,9 @@ public sealed class HalconPositionCorrectionExecutor : INodeExecutor
     {
         if (poses.Images.Count != 1 || poses.Images[0].ImageIndex != 1) throw Error("SINGLE_IMAGE_REQUIRED", "基准示教和矫正每轮需要一张图像。");
         var matches = poses.Images[0].Matches;
+        if (matches.Count == 0 && poses.Images[0].Status is { Code: var code, Message: var reason })
+            throw Error(code switch { QuickMatchStatus.Ambiguous => "POSE_AMBIGUOUS", QuickMatchStatus.OutOfRange => "POSE_OUT_OF_RANGE",
+                QuickMatchStatus.Timeout => "POSE_TIMEOUT", QuickMatchStatus.ModelInvalid => "POSE_MODEL_INVALID", _ => "POSE_NOT_FOUND" }, reason);
         if (matches.Count == 0) throw Error("POSE_NOT_FOUND", "未找到匹配目标，本轮不进行矫正。");
         if (matches.Count != 1) throw Error("POSE_AMBIGUOUS", "找到多个目标，请缩小匹配范围，确保目标唯一。");
         ValidatePose(matches[0]); return matches[0];

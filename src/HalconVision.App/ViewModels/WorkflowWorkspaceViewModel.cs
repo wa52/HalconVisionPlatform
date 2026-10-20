@@ -119,7 +119,10 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
     public bool CanConfigureCamera => !IsRunning && !IsContinuousRunning && !_shuttingDown && _cameraOperations.Count == 0;
     public string LogText { get => _logText; private set => Set(ref _logText, value); }
     public WorkflowExecutionRun? LastRun { get => _lastRun; private set { if (Set(ref _lastRun, value)) { Raise(nameof(RunStateText)); Raise(nameof(RunElapsedText)); } } }
-    public string RunStateText => IsContinuousRunning ? "连续运行中" : IsRunning ? "执行中" : LastRun?.Status.ToString() ?? "未运行";
+    public string RunStateText => IsContinuousRunning ? "连续运行中" : IsRunning ? "执行中" :
+        LastRun?.Status == WorkflowRunStatus.Success && LastRun.NodeResults.Any(r => r.Outputs.TryGetValue("status",out var s) &&
+            s.ValueKind == JsonValueKind.Object && s.TryGetProperty("Code",out var c) && QuickMatchStatus.IsKnown(c.GetString()) && c.GetString() is not (QuickMatchStatus.Found or "MATCH_FOUND"))
+            ? "执行完成 · 匹配未通过" : LastRun?.Status.ToString() ?? "未运行";
     public string RunElapsedText => LastRun is null ? "—" : $"{(LastRun.EndedAtUtc - LastRun.StartedAtUtc).TotalMilliseconds:F1} ms";
     public const int MaximumLogEntries = 500;
     public void Log(string message)

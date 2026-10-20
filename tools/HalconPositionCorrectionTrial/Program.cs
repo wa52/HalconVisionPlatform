@@ -111,7 +111,15 @@ internal static class Program
             catch (InvalidDataException error) { Check(error.Message.Contains("POSE_INVALID"), "非有限位姿拒绝"); }
             DisposeRun(moved);
             Fails(Run(blankPath), "POSE_NOT_FOUND");
+            Fails(Run(Path.Combine(Path.GetFullPath(args[0]), "multiple.png")), "POSE_AMBIGUOUS");
             var saved = flow;
+            flow = flow with { Nodes = flow.Nodes.Select(n => n.Id == matcher.Id ? With(n, "acceptanceRoi", "0,0,100,100") : n).ToList() };
+            Fails(Run(rotatedPath), "POSE_OUT_OF_RANGE"); flow = saved;
+            flow = flow with { Nodes = flow.Nodes.Select(n => n.Id == matcher.Id ? With(n, "timeoutMs", 1) : n).ToList() };
+            Fails(Run(Path.Combine(Path.GetFullPath(args[0]),"timeout-input.png")), "POSE_TIMEOUT"); flow = saved;
+            flow = flow with { Nodes = flow.Nodes.Select(n => n.Id == matcher.Id ? With(n, "templateImage", Path.Combine(output,"missing-template.png")) : n).ToList() };
+            Fails(Run(rotatedPath), "POSE_MODEL_INVALID"); flow = saved;
+            var resumed = Run(rotatedPath); Check(resumed.Status == WorkflowRunStatus.Success,"拒绝和超时后可恢复新帧完整链路"); DisposeRun(resumed);
             flow = flow with { Nodes = flow.Nodes.Select(n => n.Id == correction.Id ? With(n, "limitMotion", true) : n).ToList() };
             Fails(Run(rotatedPath), "POSE_OUT_OF_RANGE"); flow = saved;
             flow = flow with { Nodes = flow.Nodes.Select(n => n.Id == matcher.Id ? With(n, "templateRoi", "92,102,213,223") : n).ToList() };

@@ -63,7 +63,12 @@ public sealed class ShapeMatchModelCache(int capacity = 4) : IDisposable
                 finally { _gate.Release(); }
             });
         }
-        catch { _gate.Release(); throw; }
+        catch
+        {
+            try { Remove(context.Node.Id); }
+            finally { _gate.Release(); }
+            throw;
+        }
     }
 
     private static string Fingerprint(string path, NodeExecutionContext context)

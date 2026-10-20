@@ -77,6 +77,26 @@ internal static class Program
       var a = teach.TranslatePoint(new Point(), boundary); var b = clear.TranslatePoint(new Point(), boundary);
       if (new Rect(a, teach.RenderSize).IntersectsWith(new Rect(b, clear.RenderSize))) failures.Add("示教与清除控件重叠");
   }
+  var quickRegistry = new NodeRegistry(); quickRegistry.Register(new QuickDefinition(), [new HalconQuickMatchExecutor()]);
+  var quickDefinition=quickRegistry.Definitions.Single();
+  var quickNode=new NodeInstance{TypeId=quickDefinition.TypeId,DisplayName="快捷匹配",Parameters=quickDefinition.Parameters.ToDictionary(p=>p.Id,p=>p.DefaultValue!.Value)};
+  var quickFlow=new FlowTabViewModel(new FlowDocument{Nodes=[quickNode]},quickRegistry,new WorkflowGraphValidator(quickRegistry));
+  workspaceVm.Flows.Add(quickFlow);workspaceVm.SelectedFlow=quickFlow;quickFlow.SelectNode(quickNode.Id,false);
+  foreach(var width in new[]{1180d,1366d,1580d})
+  {
+      root.Measure(new Size(width,680));root.Arrange(new Rect(0,0,width,680));root.UpdateLayout();
+      var node=quickFlow.SelectedNode!;
+      checks++;if(node.PrimaryParameters.Count()!=5||node.AdvancedParameters.Count()!=14)failures.Add("快捷匹配基础/高级参数分组异常");
+      var advanced=Descendants(root).OfType<Expander>().Single(e=>System.Windows.Automation.AutomationProperties.GetName(e)=="高级匹配参数");
+      checks++;if(advanced.IsExpanded)failures.Add("高级匹配参数未默认折叠");
+      advanced.IsExpanded=true;root.UpdateLayout();
+      var boundary=(FrameworkElement)window.FindName("RightPanel");var scroller=Descendants(boundary).OfType<ScrollViewer>().First();
+      scroller.ScrollToEnd();root.UpdateLayout();
+      foreach(var button in Descendants(advanced).OfType<Button>().Where(b=>InVisibleBranch(b)&&b.ActualWidth>0))
+      {checks++;var point=button.TranslatePoint(new Point(),boundary);if(point.X<-.5||point.X+button.ActualWidth>boundary.ActualWidth+.5)failures.Add("高级匹配按钮横向越界");}
+      checks++;if(scroller.ScrollableHeight<=0)failures.Add("高级参数缺少滚动空间");
+      advanced.IsExpanded=false;scroller.ScrollToHome();root.UpdateLayout();
+  }
   var viewer = new ImageViewerWindow("layout-check.png");
   ((TextBlock)viewer.FindName("ImageNameText")).Text = new string('长', 100);
   var viewerRoot = (FrameworkElement)viewer.Content;
@@ -107,6 +127,10 @@ internal static class Program
  private sealed class PositionDefinition : INodeDefinitionProvider
  {
      public IEnumerable<NodeDefinition> GetDefinitions() => new HalconNodeProvider().GetDefinitions().Where(d => d.TypeId == HalconNodeProvider.PositionCorrection);
+ }
+ private sealed class QuickDefinition : INodeDefinitionProvider
+ {
+     public IEnumerable<NodeDefinition> GetDefinitions()=>new HalconNodeProvider().GetDefinitions().Where(d=>d.TypeId==HalconNodeProvider.QuickMatch);
  }
  private static bool InVisibleBranch(DependencyObject element)
  {

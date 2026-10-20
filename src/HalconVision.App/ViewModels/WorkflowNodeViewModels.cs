@@ -183,6 +183,12 @@ public sealed class FlowNodeViewModel : ObservableModel
     public ObservableCollection<NodePortViewModel> InputPorts { get; }
     public ObservableCollection<NodePortViewModel> OutputPorts { get; }
     public ObservableCollection<NodeParameterViewModel> Parameters { get; }
+    private static readonly HashSet<string> QuickMatchBasic = ["templateImage", "templateRoi", "roi", "minimumScore", "maximumMatches"];
+    public IEnumerable<NodeParameterViewModel> PrimaryParameters => TypeId == HalconNodeProvider.QuickMatch
+        ? Parameters.Where(p => QuickMatchBasic.Contains(p.Definition.Id)) : Parameters;
+    public IEnumerable<NodeParameterViewModel> AdvancedParameters => TypeId == HalconNodeProvider.QuickMatch
+        ? Parameters.Where(p => !QuickMatchBasic.Contains(p.Definition.Id)) : [];
+    public bool HasAdvancedParameters => TypeId == HalconNodeProvider.QuickMatch;
     public double X { get => _x; private set => Set(ref _x, value); }
     public double Y { get => _y; private set => Set(ref _y, value); }
     public string DisplayName { get => _displayName; set { if (Set(ref _displayName, value)) _owner.RenameNode(Id, value); } }

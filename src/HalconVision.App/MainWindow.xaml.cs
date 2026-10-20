@@ -889,7 +889,8 @@ public partial class MainWindow : Window
         FinishRoiDrawing();
         parameter.ValueText = string.Empty; parameter.Commit();
         DetectionSummary.Text = _vm.SelectedFlow?.SelectedNode?.TypeId == HalconNodeProvider.QuickMatch
-            ? parameter.Definition.Id == "templateRoi" ? "模板范围已清除 · 下次运行使用整幅模板图像" : "搜索范围已清除 · 下次运行搜索全图"
+            ? parameter.Definition.Id switch { "templateRoi" => "模板范围已清除 · 下次运行使用整幅模板图像",
+                "acceptanceRoi" => "允许位置范围已清除 · 仍按评分、角度及目标数量验证", _ => "搜索范围已清除 · 下次运行搜索全图" }
             : "矩形范围已清除 · 重新运行后使用节点默认范围";
         _vm.Log("已清除检测范围，请重新运行检测。");
     }
