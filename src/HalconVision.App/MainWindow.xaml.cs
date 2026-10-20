@@ -532,6 +532,7 @@ public partial class MainWindow : Window
         try
         {
             var flow = _vm.SelectedFlow;
+            if (await PrepareMissingQuickMatchTemplateAsync(flow)) return;
             var hasCameraSource = flow.Document.Nodes.Any(node => node.TypeId == HalconVision.Halcon.HalconNodeProvider.CameraCapture);
             if (hasCameraSource && !_vm.IsCameraConnected)
             {
@@ -546,14 +547,17 @@ public partial class MainWindow : Window
                 return;
             }
             if (hasSequence) _vm.Log($"单次运行：{Path.GetFileName(imagePath)}");
+            _vm.ProjectStatus = "单次运行中";
             var run = await _vm.RunSelectedFlowAsync(progress, runFlow);
             _vm.SetExecutionRun(run);
+            _vm.ProjectStatus = run.Status == WorkflowRunStatus.Success ? "单次运行完成 · 结果见检测结论" : "单次运行未完成 · 请查看错误";
             _vm.Log($"流程执行结束：{run.Status}，耗时 {(run.EndedAtUtc - run.StartedAtUtc).TotalMilliseconds:F1} ms。");
             if (run.Status == WorkflowRunStatus.Success) DisplayLastSuccessfulNode(flow);
             else { _vm.ReturnImageToSequence(imagePath); DisplaySelectedNodePreview(); }
             if (run.Errors.Count > 0) MessageBox.Show(this, string.Join(Environment.NewLine, run.Errors), "流程执行错误", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
-        catch (Exception ex) { ShowError("流程执行失败", ex); }
+        catch (OperationCanceledException) { _vm.ProjectStatus = "流程执行已取消"; _vm.Log("流程执行已取消。"); }
+        catch (Exception ex) { if (!_closing) ShowError("流程执行失败", ex); }
     }
 
     private async void ContinuousRun_Click(object sender, RoutedEventArgs e)
@@ -574,6 +578,7 @@ public partial class MainWindow : Window
         try
         {
             var flow = _vm.SelectedFlow;
+            if (await PrepareMissingQuickMatchTemplateAsync(flow)) return;
             var hasCameraSource = flow.Document.Nodes.Any(node => node.TypeId == HalconVision.Halcon.HalconNodeProvider.CameraCapture);
             if (hasCameraSource && !_vm.IsCameraConnected)
             {
@@ -581,6 +586,7 @@ public partial class MainWindow : Window
                 return;
             }
             var progress = new Progress<NodeExecutionResult>(result => { flow.ApplyNodeResult(result); _vm.Log($"节点 {result.Status}: {result.NodeId}"); });
+            _vm.ProjectStatus = "连续运行中";
             var first = true;
             while (!_continuousCancellation.IsCancellationRequested)
             {
@@ -635,6 +641,7 @@ public partial class MainWindow : Window
         {
             _continuousCancellation.Dispose();
             _continuousCancellation = null;
+            if (_vm.ProjectStatus == "连续运行中") _vm.ProjectStatus = "连续运行已停止";
             // The last run remains available for inspection; acquisition is no longer active.
             try { _vm.ReleaseModelSessions(); }
             finally { await _vm.DisconnectCameraAsync(); }
@@ -817,9 +824,22 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
-    private void DrawRoi_Click(object sender, RoutedEventArgs e)
+    private async void DrawRoi_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button { Tag: NodeParameterViewModel parameter }) BeginRoiDrawing(parameter, null);
+        if (sender is not Button { Tag: NodeParameterViewModel parameter }) return;
+        if (parameter.IsQuickMatchTemplateRoi && _vm.SelectedFlow is { } flow && flow.SelectedNode is { } node &&
+            string.IsNullOrWhiteSpace(node.Parameters.Single(p => p.IsQuickMatchTemplate).ValueText))
+        {
+            if (_closing || _switchingProject || _executionTask is not null || _vm.IsRunning) return;
+            var prepare = PrepareMissingQuickMatchTemplateAsync(flow);
+            _executionTask = prepare;
+            try { await prepare; }
+            catch (OperationCanceledException) { _vm.Log("模板示教已取消。"); }
+            catch (Exception error) { if (!_closing) ShowError("模板示教失败", error); }
+            finally { if (ReferenceEquals(_executionTask, prepare)) _executionTask = null; }
+            return;
+        }
+        BeginRoiDrawing(parameter, null);
     }
 
     private void RoiList_DrawRequested(object sender, RoutedEventArgs e)
@@ -827,9 +847,9 @@ public partial class MainWindow : Window
         if (e is RoiDrawRequestedEventArgs request) { BeginRoiDrawing(request.Parameter, request.RoiId); e.Handled = true; }
     }
 
-    private void BeginRoiDrawing(NodeParameterViewModel parameter, Guid? roiId)
+    private void BeginRoiDrawing(NodeParameterViewModel parameter, Guid? roiId, bool preparingTemplate = false)
     {
-        if (_vm.IsRunning || _executionTask is not null)
+        if (_vm.IsRunning || (_executionTask is not null && !preparingTemplate))
         {
             MessageBox.Show(this, "请先停止运行，再编辑 ROI。", "绘制检测范围", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
@@ -896,6 +916,10 @@ public partial class MainWindow : Window
                 return;
             }
 
+            if (templateDrawing) ShowTemplateDrawingArea();
+            RoiDrawingHintText.Text = templateDrawing
+                ? "在下方图像上拖动框选模板，松开完成；Esc 取消"
+                : "拖动绘制矩形范围，松开完成；Esc 取消";
             PreviewEmptyText.Visibility = Visibility.Collapsed;
             _roiParameter = parameter;
             _roiEditId = roiId;
@@ -983,7 +1007,8 @@ public partial class MainWindow : Window
             }
         }
         catch (Exception ex) { ShowError("保存 ROI 失败", ex); FinishRoiDrawing(); return; }
-        DetectionSummary.Text = "矩形范围已修改 · 请重新运行检测";
+        DetectionSummary.Text = parameter.IsQuickMatchTemplateRoi ? "模板区域已设置 · 点击运行开始匹配" : "矩形范围已修改 · 请重新运行检测";
+        if (parameter.IsQuickMatchTemplateRoi) _vm.ProjectStatus = "模板已设置 · 可以运行匹配";
         _vm.Log($"已设置检测范围：行 {Math.Min(startRow, endRow):F0}–{Math.Max(startRow, endRow):F0}，列 {Math.Min(startColumn, endColumn):F0}–{Math.Max(startColumn, endColumn):F0}。");
         FinishRoiDrawing();
         if (parameter.IsRoiList || _vm.SelectedFlow?.SelectedNode?.TypeId == HalconNodeProvider.QuickMatch) SetRoiOutlineParameter(parameter);
@@ -1001,6 +1026,7 @@ public partial class MainWindow : Window
         RoiDrawingOverlay.Cursor = Cursors.Arrow;
         RoiPreviewRectangle.Visibility = Visibility.Collapsed;
         RoiDrawingHint.Visibility = Visibility.Collapsed;
+        RestoreTemplateDrawingArea();
     }
 
     private void ClearConfiguredRois()

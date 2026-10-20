@@ -48,6 +48,7 @@ public sealed class NodeParameterViewModel : ObservableModel
     public bool IsPath => DataType is "path" or "imageFile";
     public bool IsImageFile => DataType == "imageFile";
     public bool IsQuickMatchTemplate => Definition.Id == "templateImage";
+    public bool IsQuickMatchTemplateRoi => Definition.Id == "templateRoi";
     public bool IsPositionReference => DataType == "positionReference";
     public string ReferenceSummary
     {
@@ -183,11 +184,11 @@ public sealed class FlowNodeViewModel : ObservableModel
     public ObservableCollection<NodePortViewModel> InputPorts { get; }
     public ObservableCollection<NodePortViewModel> OutputPorts { get; }
     public ObservableCollection<NodeParameterViewModel> Parameters { get; }
-    private static readonly HashSet<string> QuickMatchBasic = ["templateImage", "templateRoi", "roi", "minimumScore", "maximumMatches"];
+    private static readonly HashSet<string> QuickMatchBasic = ["templateRoi", "roi", "minimumScore", "maximumMatches"];
     public IEnumerable<NodeParameterViewModel> PrimaryParameters => TypeId == HalconNodeProvider.QuickMatch
         ? Parameters.Where(p => QuickMatchBasic.Contains(p.Definition.Id)) : Parameters;
     public IEnumerable<NodeParameterViewModel> AdvancedParameters => TypeId == HalconNodeProvider.QuickMatch
-        ? Parameters.Where(p => !QuickMatchBasic.Contains(p.Definition.Id)) : [];
+        ? Parameters.Where(p => !QuickMatchBasic.Contains(p.Definition.Id) && !p.IsQuickMatchTemplate) : [];
     public bool HasAdvancedParameters => TypeId == HalconNodeProvider.QuickMatch;
     public double X { get => _x; private set => Set(ref _x, value); }
     public double Y { get => _y; private set => Set(ref _y, value); }

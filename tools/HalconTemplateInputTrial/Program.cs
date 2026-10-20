@@ -39,7 +39,7 @@ internal static class Program
             Check(vm.LastRun!.NodeResults.Count==1&&vm.LastRun.NodeResults.Single().NodeId==readerId,"无模板时能够独立运行上游子图");
             var prepared=vm.PrepareNextImageFlow(out _,out _,out _)!;Run(prepared with {Nodes=prepared.Nodes.Where(n=>n.Id==readerId).ToList(),Edges=[]});
             using(var current=(HImage)copy.Invoke(window,[flow,flow.SelectedNode!])!)Check(current.GetGrayval(0,0).D==200,"模板接收上游第二帧，而非文件夹第一张");
-            window.UpdateLayout();var capture=Descendants(window).OfType<Button>().Single(b=>b.Tag is NodeParameterViewModel {IsQuickMatchTemplate:true} && b.Content as string=="取当前图像为模板");
+            window.UpdateLayout();var capture=Descendants(window).OfType<Button>().Single(b=>b.Tag is NodeParameterViewModel {IsQuickMatchTemplateRoi:true} && b.Content as string=="取当前图像为模板");
             capture.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));PumpUntil(()=>flow.SelectedNode!.Parameters.Single(p=>p.IsQuickMatchTemplate).ValueText.Length>0);
             var path=flow.SelectedNode!.Parameters.Single(p=>p.IsQuickMatchTemplate).ValueText;
             Check(File.Exists(path)&&Path.GetFullPath(path).StartsWith(output+Path.DirectorySeparatorChar),"模板自动保存在项目内，无另存对话框");
@@ -48,7 +48,7 @@ internal static class Program
             var source=flow.Nodes.Single(n=>n.Id==readerId).Parameters.Single(p=>p.Definition.Id=="path");source.ValueText=Path.Combine(input,"01.png");source.Commit();
             try {using var stale=(HImage)copy.Invoke(window,[flow,flow.SelectedNode!])!;Check(false,"配置变化后不能接受旧帧");}
             catch(TargetInvocationException e) when(e.InnerException is InvalidOperationException){Check(true,"配置变化后拒绝旧运行帧");}
-            window.UpdateLayout();capture=Descendants(window).OfType<Button>().Single(b=>b.Tag is NodeParameterViewModel {IsQuickMatchTemplate:true} && b.Content as string=="取当前图像为模板");
+            window.UpdateLayout();capture=Descendants(window).OfType<Button>().Single(b=>b.Tag is NodeParameterViewModel {IsQuickMatchTemplateRoi:true} && b.Content as string=="取当前图像为模板");
             capture.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));PumpUntil(()=>!vm.IsRunning&&flow.SelectedNode!.Parameters.Single(p=>p.IsQuickMatchTemplate).ValueText!=path);
             var refreshed=flow.SelectedNode!.Parameters.Single(p=>p.IsQuickMatchTemplate).ValueText;
             Check(vm.LastRun!.NodeResults.All(n=>n.NodeId==readerId),"首次或失效帧仅执行真实上游子图，不运行未示教的匹配节点");
@@ -60,6 +60,27 @@ internal static class Program
             source.ValueText=Path.Combine(output,"missing.png");source.Commit();
             var failed=vm.RunTemplateUpstreamAsync(matchId);PumpUntil(()=>failed.IsCompleted);
             try{failed.GetAwaiter().GetResult();Check(false,"上游读取失败不能继续示教");}catch(InvalidOperationException){Check(vm.LastRun!.NodeResults.All(n=>n.Status!=HalconVision.Domain.NodeExecutionStatus.Success),"上游失败替换旧结果，不保留旧图像供示教");}
+            source.ValueText=Path.Combine(input,"01.png");source.Commit();
+            Check(!flow.SelectedNode!.PrimaryParameters.Concat(flow.SelectedNode.AdvancedParameters).Any(p=>p.IsQuickMatchTemplate),"界面没有需要手选的模板图像参数");
+            var taskField=typeof(MainWindow).GetField("_executionTask",BindingFlags.NonPublic|BindingFlags.Instance)!;
+            var finish=typeof(MainWindow).GetMethod("FinishRoiDrawing",BindingFlags.NonPublic|BindingFlags.Instance)!;
+            foreach(var action in new[]{"单次运行","连续运行","绘制模板"})
+            {
+                var template=flow.SelectedNode!.Parameters.Single(p=>p.IsQuickMatchTemplate);template.ValueText="";template.Commit();window.UpdateLayout();
+                var button=Descendants(window).OfType<Button>().Single(b=>b.Content as string==action&&(action!="绘制模板"||b.Tag is NodeParameterViewModel {IsQuickMatchTemplateRoi:true}));
+                button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                PumpUntil(()=>taskField.GetValue(window) is null&&template.ValueText.Length>0);
+                Check(File.Exists(template.ValueText)&&vm.ProjectStatus.StartsWith("等待模板示教"),action+"：空模板自动获取上游，不弹必填参数错误");
+                Check(vm.LastRun!.NodeResults.All(n=>n.NodeId==readerId),action+"：准备模板不执行自身匹配、不报告检测通过");
+                Check(((UIElement)window.FindName("RoiDrawingOverlay")).IsHitTestVisible,action+"：自动进入可交互框选状态");
+                Check(!vm.IsRunning&&!vm.IsContinuousRunning,action+"：准备完成后没有后台循环");
+                Check(Grid.GetColumnSpan((UIElement)window.FindName("RuntimeImagePanel"))==3&&((UIElement)window.FindName("RuntimeResultsPanel")).Visibility==Visibility.Collapsed,action+"：显示放大的独立模板绘制区");
+                finish.Invoke(window,null);
+                Check(Grid.GetColumnSpan((UIElement)window.FindName("RuntimeImagePanel"))==1&&((UIElement)window.FindName("RuntimeResultsPanel")).Visibility==Visibility.Visible,action+"：结束绘制恢复原布局");
+            }
+            var finalRun=Descendants(window).OfType<Button>().Single(b=>b.Content as string=="单次运行");
+            finalRun.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));PumpUntil(()=>taskField.GetValue(window) is null);
+            Check(vm.ProjectStatus.StartsWith("单次运行完成")&&!vm.ProjectStatus.StartsWith("等待模板示教"),"执行匹配后状态栏不残留模板准备提示");
             File.WriteAllText(Path.Combine(output,"checks.txt"),string.Join(Environment.NewLine,checks));Console.WriteLine($"PASS {checks.Count} 项上游模板检查");return 0;
             void Run(HalconVision.Domain.FlowDocument document){var task=vm.RunSelectedFlowAsync(flowOverride:document);PumpUntil(()=>task.IsCompleted);vm.SetExecutionRun(task.GetAwaiter().GetResult());}
             void PumpUntil(Func<bool> done){var end=DateTime.UtcNow.AddSeconds(20);while(!done()){if(DateTime.UtcNow>end)throw new TimeoutException("上游模板操作未完成");window.Dispatcher.Invoke(()=>{},DispatcherPriority.ApplicationIdle);Thread.Sleep(5);}window.Dispatcher.Invoke(()=>{},DispatcherPriority.ApplicationIdle);}

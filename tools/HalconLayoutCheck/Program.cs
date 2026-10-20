@@ -86,7 +86,7 @@ internal static class Program
   {
       root.Measure(new Size(width,680));root.Arrange(new Rect(0,0,width,680));root.UpdateLayout();
       var node=quickFlow.SelectedNode!;
-      checks++;if(node.PrimaryParameters.Count()!=5||node.AdvancedParameters.Count()!=14)failures.Add("快捷匹配基础/高级参数分组异常");
+      checks++;if(node.PrimaryParameters.Count()!=4||node.AdvancedParameters.Count()!=14||node.PrimaryParameters.Concat(node.AdvancedParameters).Any(p=>p.IsQuickMatchTemplate))failures.Add("快捷匹配应隐藏内部模板路径，仅显示四项基础参数与高级参数");
       var advanced=Descendants(root).OfType<Expander>().Single(e=>System.Windows.Automation.AutomationProperties.GetName(e)=="高级匹配参数");
       checks++;if(advanced.IsExpanded)failures.Add("高级匹配参数未默认折叠");
       advanced.IsExpanded=true;root.UpdateLayout();

@@ -12,6 +12,35 @@ namespace HalconVision.App;
 public partial class MainWindow
 {
     private bool _capturingTemplate;
+    private GridLength? _templateDrawingBottomHeight;
+    private double _templateDrawingFlowMinimum;
+
+    private void ShowTemplateDrawingArea()
+    {
+        if (!_bottomVisible) ToggleBottom_Click(this, new RoutedEventArgs());
+        _templateDrawingBottomHeight = BottomRow.Height;
+        _templateDrawingFlowMinimum = WorkspaceGrid.RowDefinitions[0].MinHeight;
+        WorkspaceGrid.RowDefinitions[0].MinHeight = 120;
+        BottomRow.Height = new GridLength(Math.Max(150, WorkspaceGrid.ActualHeight * .68));
+        RuntimeResultsPanel.Visibility = RuntimeSplitter.Visibility = Visibility.Collapsed;
+        Grid.SetColumnSpan(RuntimeImagePanel, 3);
+        ImageAreaTitle.Text = "模板绘制区";
+        WorkspaceGrid.UpdateLayout();
+        ImageFit_Click(this, new RoutedEventArgs());
+    }
+
+    private void RestoreTemplateDrawingArea()
+    {
+        if (_templateDrawingBottomHeight is not { } height) return;
+        _templateDrawingBottomHeight = null;
+        BottomRow.Height = height;
+        WorkspaceGrid.RowDefinitions[0].MinHeight = _templateDrawingFlowMinimum;
+        RuntimeResultsPanel.Visibility = RuntimeSplitter.Visibility = Visibility.Visible;
+        Grid.SetColumnSpan(RuntimeImagePanel, 1);
+        ImageAreaTitle.Text = "节点图像";
+        WorkspaceGrid.UpdateLayout();
+        ImageFit_Click(this, new RoutedEventArgs());
+    }
     private static IReadOnlyList<DetectionRoi> ReadConfiguredDisplayRois(NodeParameterViewModel parameter)
     {
         if (parameter.IsRoiList) return parameter.ReadRois();
@@ -23,7 +52,7 @@ public partial class MainWindow
     }
     private async void CaptureTemplate_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button { Tag: NodeParameterViewModel { IsQuickMatchTemplate: true } parameter } ||
+        if (sender is not Button { Tag: NodeParameterViewModel parameter } || !parameter.IsQuickMatchTemplateRoi ||
             _capturingTemplate || _closing || _switchingProject || _vm.SelectedFlow is not { } flow || flow.SelectedNode is not { TypeId: HalconNodeProvider.QuickMatch } node) return;
         _capturingTemplate = true;
         ((Button)sender).IsEnabled = false;
@@ -40,25 +69,59 @@ public partial class MainWindow
                 finally { if (ReferenceEquals(_executionTask, upstreamTask)) _executionTask = null; }
                 if (_closing || _switchingProject || !ReferenceEquals(_vm.SelectedFlow, flow) || flow.SelectedNode?.Id != node.Id) return;
             }
-            using var image = CopyQuickMatchInput(flow, node);
-            var workspace = _vm.Workspace ?? throw new InvalidOperationException("请先打开项目。");
-            var relative = $"assets/templates/{workspace.Project.Id:N}/{Guid.NewGuid():N}.png";
-            var path = Path.Combine(workspace.RootPath, relative.Replace('/', Path.DirectorySeparatorChar));
-            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-            if (File.Exists(path)) throw new IOException("模板快照路径已存在，请重新示教。");
-            image.WriteImage("png", 0, path);
-            flow.SetAssetReferences(flow.Document.AssetReferences.Append(relative).ToArray());
-            parameter.ValueText = path; parameter.Commit();
-            var roi = node.Parameters.Single(item => item.Definition.Id == "templateRoi");
-            roi.ValueText = ""; roi.Commit();
-            _vm.ReleaseModelSessions();
-            ShowQuickMatchTemplate(node);
-            _vm.RefreshProjectTree();
-            _vm.Log("已接收上游当前帧并固定为项目模板；模板范围已重置，请绘制范围。切换待检图片不会自动更换模板。");
+            SaveQuickMatchInputAsTemplate(flow, node);
         }
         catch (OperationCanceledException) { _vm.Log("模板示教已取消。"); }
         catch (Exception error) { if (!_closing) ShowError("采集模板失败", error); }
         finally { _capturingTemplate = false; ((Button)sender).IsEnabled = true; }
+    }
+
+    private void SaveQuickMatchInputAsTemplate(FlowTabViewModel flow, FlowNodeViewModel node)
+    {
+        using var image = CopyQuickMatchInput(flow, node);
+        var workspace = _vm.Workspace ?? throw new InvalidOperationException("请先打开项目。");
+        var relative = $"assets/templates/{workspace.Project.Id:N}/{Guid.NewGuid():N}.png";
+        var path = Path.Combine(workspace.RootPath, relative.Replace('/', Path.DirectorySeparatorChar));
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        if (File.Exists(path)) throw new IOException("模板快照路径已存在，请重新示教。");
+        image.WriteImage("png", 0, path);
+        flow.SetAssetReferences(flow.Document.AssetReferences.Append(relative).ToArray());
+        var parameter = node.Parameters.Single(item => item.IsQuickMatchTemplate);
+        parameter.ValueText = path; parameter.Commit();
+        var roi = node.Parameters.Single(item => item.Definition.Id == "templateRoi");
+        roi.ValueText = ""; roi.Commit();
+        _vm.ReleaseModelSessions();
+        ShowQuickMatchTemplate(node);
+        _vm.RefreshProjectTree();
+        _vm.Log("已接收上游当前帧并固定为项目模板；模板范围已重置，请绘制范围。切换待检图片不会自动更换模板。");
+    }
+
+    // The first run prepares teaching only. Never report self-matching the template frame as a detection pass.
+    private async Task<bool> PrepareMissingQuickMatchTemplateAsync(FlowTabViewModel flow)
+    {
+        var missing = flow.Nodes.Where(n => n.Enabled && n.TypeId == HalconNodeProvider.QuickMatch &&
+            string.IsNullOrWhiteSpace(n.Parameters.Single(p => p.IsQuickMatchTemplate).ValueText)).ToArray();
+        if (missing.Length == 0) return false;
+        var missingIds = missing.Select(n => n.Id).ToHashSet();
+        bool HasMissingAncestor(Guid nodeId, HashSet<Guid> visited)
+        {
+            if (!visited.Add(nodeId)) throw new InvalidDataException("上游图像连接存在循环。");
+            foreach (var edge in flow.Document.Edges.Where(e => e.ToNodeId == nodeId))
+                if (missingIds.Contains(edge.FromNodeId) || HasMissingAncestor(edge.FromNodeId, new(visited))) return true;
+            return false;
+        }
+        var node = missing.FirstOrDefault(n => !HasMissingAncestor(n.Id, []))
+            ?? throw new InvalidDataException("未配置模板的匹配节点存在循环依赖。");
+        flow.SelectNode(node.Id, false);
+        DetectionSummary.Text = "首次运行 · 正在接收上游图像以示教模板…";
+        if (!HasCurrentQuickMatchInput(flow, node)) await _vm.RunTemplateUpstreamAsync(node.Id);
+        if (_closing || _switchingProject || !ReferenceEquals(_vm.SelectedFlow, flow)) return true;
+        SaveQuickMatchInputAsTemplate(flow, node);
+        BeginRoiDrawing(node.Parameters.Single(p => p.Definition.Id == "templateRoi"), null, preparingTemplate: true);
+        DetectionSummary.Text = "已接收上游图像 · 拖动框选模板范围，完成后再次运行匹配";
+        _vm.ProjectStatus = "等待模板示教 · 当前仅获取图像，尚未执行匹配";
+        _vm.Log("首次运行已获取上游模板；请框选模板范围，再次运行。未执行本帧匹配。");
+        return true;
     }
 
     private bool HasCurrentQuickMatchInput(FlowTabViewModel flow, FlowNodeViewModel node)
