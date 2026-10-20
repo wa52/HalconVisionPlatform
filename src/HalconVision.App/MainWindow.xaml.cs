@@ -115,10 +115,13 @@ public partial class MainWindow : Window
     private Point _lastCanvasPointer;
     private ScrollViewer? _canvasScrollViewer;
     private readonly string? _startupProjectPath;
+    private readonly Func<Window, string?> _chooseNewProjectPath;
+    private bool _addingCatalogNode;
 
-    public MainWindow(string? startupProjectPath = null)
+    public MainWindow(string? startupProjectPath = null, Func<Window, string?>? chooseNewProjectPath = null)
     {
         _startupProjectPath = startupProjectPath;
+        _chooseNewProjectPath = chooseNewProjectPath ?? ChooseNewProjectPath;
         InitializeComponent(); DataContext = _vm;
         RoiDrawingOverlay.SizeChanged += (_, _) => RenderConfiguredRois();
     }
@@ -137,12 +140,24 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void NewProject_Click(object sender, RoutedEventArgs e)
+    private async void NewProject_Click(object sender, RoutedEventArgs e) => await CreateNewProjectAsync();
+
+    // Shared by the file menu and first-use node addition; path choice is a presentation dependency.
+    private async Task<bool> CreateNewProjectAsync()
     {
-        if (_closing || _switchingProject) return;
+        if (_closing || _switchingProject) return false;
         await PrepareProjectSwitchAsync();
-        if (_closing) return;
-        if (!ConfirmSaveBeforeSwitch()) return;
+        if (_closing || !ConfirmSaveBeforeSwitch()) return false;
+        var selectedPath = _chooseNewProjectPath(this);
+        if (string.IsNullOrWhiteSpace(selectedPath)) return false;
+        var projectPath = Path.ChangeExtension(selectedPath, ".hvproj");
+        var name = Path.GetFileNameWithoutExtension(projectPath);
+        try { _vm.CreateProject(projectPath, name); ClearPreview(); _vm.Log($"已新建空白项目：{projectPath}"); return true; }
+        catch (Exception ex) { ShowError("创建项目失败", ex); return false; }
+    }
+
+    private static string? ChooseNewProjectPath(Window owner)
+    {
         var dialog = new SaveFileDialog
         {
             Title = "新建 HALCON 项目",
@@ -152,11 +167,7 @@ public partial class MainWindow : Window
             FileName = "新建项目.hvproj",
             OverwritePrompt = false
         };
-        if (dialog.ShowDialog(this) != true) return;
-        var projectPath = Path.ChangeExtension(dialog.FileName, ".hvproj");
-        var name = Path.GetFileNameWithoutExtension(projectPath);
-        try { _vm.CreateProject(projectPath, name); ClearPreview(); _vm.Log($"已新建空白项目：{projectPath}"); }
-        catch (Exception ex) { ShowError("创建项目失败", ex); }
+        return dialog.ShowDialog(owner) == true ? dialog.FileName : null;
     }
 
     private async void OpenProject_Click(object sender, RoutedEventArgs e)
@@ -274,12 +285,34 @@ public partial class MainWindow : Window
         if (dialog.ShowDialog(this) == true) try { _vm.ExportFlow(_vm.SelectedFlow, dialog.FileName); _vm.Log("流程已导出。"); } catch (Exception ex) { ShowError("导出流程失败", ex); }
     }
 
-    private void AddNode_Click(object sender, RoutedEventArgs e)
+    private async void AddNode_Click(object sender, RoutedEventArgs e)
     {
-        if (_vm.SelectedFlow is null || NodeCatalogList.SelectedItem is not NodeDefinition definition) return;
-        _vm.SelectedFlow.AddNode(definition); _vm.Log($"已添加节点：{definition.DisplayName}");
+        if (_closing || _switchingProject || _addingCatalogNode) return;
+        if (NodeCatalogList.SelectedItem is not NodeDefinition definition)
+        { _vm.ProjectStatus = "请先在左侧节点库选择要添加的节点。"; _vm.Log(_vm.ProjectStatus); return; }
+        _addingCatalogNode = true;
+        try
+        {
+            if (!_vm.HasProject && !await CreateNewProjectAsync())
+            { _vm.ProjectStatus = "已取消添加节点；再次双击节点可选择项目保存位置。"; _vm.Log(_vm.ProjectStatus); return; }
+            if (_closing) return;
+            var flow = _vm.SelectedFlow ?? _vm.Flows.FirstOrDefault() ?? _vm.CreateFlow("主流程");
+            _vm.SelectedFlow = flow;
+            flow.AddNode(definition);
+            _vm.ProjectStatus = $"已添加节点：{definition.DisplayName}";
+            _vm.Log(_vm.ProjectStatus);
+        }
+        catch (Exception error) { ShowError("添加节点失败", error); }
+        finally { _addingCatalogNode = false; }
     }
-    private void NodeCatalog_DoubleClick(object sender, MouseButtonEventArgs e) => AddNode_Click(sender, e);
+    private void NodeCatalog_DoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (e.OriginalSource is not DependencyObject source ||
+            ItemsControl.ContainerFromElement(NodeCatalogList, source) is not ListBoxItem { DataContext: NodeDefinition definition }) return;
+        NodeCatalogList.SelectedItem = definition;
+        AddNode_Click(sender, e);
+        e.Handled = true;
+    }
     private void Undo_Click(object sender, RoutedEventArgs e) => _vm.SelectedFlow?.Undo();
     private void Redo_Click(object sender, RoutedEventArgs e) => _vm.SelectedFlow?.Redo();
 
