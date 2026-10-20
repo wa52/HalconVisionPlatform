@@ -5,12 +5,13 @@ using System.Windows.Controls;
 using HalconDotNet;
 using HalconVision.Halcon;
 using HalconVision.Domain;
-using Microsoft.Win32;
+using HalconVision.Application;
 
 namespace HalconVision.App;
 
 public partial class MainWindow
 {
+    private bool _capturingTemplate;
     private static IReadOnlyList<DetectionRoi> ReadConfiguredDisplayRois(NodeParameterViewModel parameter)
     {
         if (parameter.IsRoiList) return parameter.ReadRois();
@@ -23,40 +24,62 @@ public partial class MainWindow
     private async void CaptureTemplate_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: NodeParameterViewModel { IsQuickMatchTemplate: true } parameter } ||
-            _vm.SelectedFlow is not { } flow || flow.SelectedNode is not { TypeId: HalconNodeProvider.QuickMatch } node) return;
+            _capturingTemplate || _closing || _switchingProject || _vm.SelectedFlow is not { } flow || flow.SelectedNode is not { TypeId: HalconNodeProvider.QuickMatch } node) return;
+        _capturingTemplate = true;
+        ((Button)sender).IsEnabled = false;
         try
         {
             await StopExecutionAsync();
-            if (_closing || !ReferenceEquals(_vm.SelectedFlow, flow) || flow.SelectedNode?.Id != node.Id) return;
+            if (_closing || _switchingProject || !ReferenceEquals(_vm.SelectedFlow, flow) || flow.SelectedNode?.Id != node.Id) return;
+            if (!HasCurrentQuickMatchInput(flow, node))
+            {
+                DetectionSummary.Text = "正在执行上游节点，获取模板图像…";
+                var upstreamTask = _vm.RunTemplateUpstreamAsync(node.Id);
+                _executionTask = upstreamTask;
+                try { await upstreamTask; }
+                finally { if (ReferenceEquals(_executionTask, upstreamTask)) _executionTask = null; }
+                if (_closing || _switchingProject || !ReferenceEquals(_vm.SelectedFlow, flow) || flow.SelectedNode?.Id != node.Id) return;
+            }
             using var image = CopyQuickMatchInput(flow, node);
-            var dialog = new SaveFileDialog { Title = "保存当前图像作为匹配模板", Filter = "PNG 模板图像|*.png", DefaultExt = ".png", AddExtension = true, FileName = "匹配模板.png" };
-            if (dialog.ShowDialog(this) != true) return;
-            image.WriteImage("png", 0, dialog.FileName);
-            parameter.ValueText = Path.GetFullPath(dialog.FileName); parameter.Commit();
+            var workspace = _vm.Workspace ?? throw new InvalidOperationException("请先打开项目。");
+            var relative = $"assets/templates/{workspace.Project.Id:N}/{Guid.NewGuid():N}.png";
+            var path = Path.Combine(workspace.RootPath, relative.Replace('/', Path.DirectorySeparatorChar));
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            if (File.Exists(path)) throw new IOException("模板快照路径已存在，请重新示教。");
+            image.WriteImage("png", 0, path);
+            flow.SetAssetReferences(flow.Document.AssetReferences.Append(relative).ToArray());
+            parameter.ValueText = path; parameter.Commit();
             var roi = node.Parameters.Single(item => item.Definition.Id == "templateRoi");
             roi.ValueText = ""; roi.Commit();
             _vm.ReleaseModelSessions();
             ShowQuickMatchTemplate(node);
-            _vm.Log("已保存模板图像；模板范围已重置，可绘制模板范围后运行匹配。");
+            _vm.RefreshProjectTree();
+            _vm.Log("已接收上游当前帧并固定为项目模板；模板范围已重置，请绘制范围。切换待检图片不会自动更换模板。");
         }
-        catch (Exception error) { ShowError("采集模板失败", error); }
+        catch (OperationCanceledException) { _vm.Log("模板示教已取消。"); }
+        catch (Exception error) { if (!_closing) ShowError("采集模板失败", error); }
+        finally { _capturingTemplate = false; ((Button)sender).IsEnabled = true; }
+    }
+
+    private bool HasCurrentQuickMatchInput(FlowTabViewModel flow, FlowNodeViewModel node)
+    {
+        var edge = flow.Document.Edges.SingleOrDefault(item => item.ToNodeId == node.Id && item.ToPortId == "image");
+        return edge is not null && _vm.LastRun is { } run && run.FlowId == flow.Id &&
+            run.NodeResults.Any(result => result.NodeId == edge.FromNodeId && result.Status == NodeExecutionStatus.Success) &&
+            run.SpatialOutputs?.GetValueOrDefault(edge.FromNodeId)?.GetValueOrDefault(edge.FromPortId) is { } frame &&
+            frame.RunId == run.Id && frame.ConfigurationIdentity == WorkflowConfiguration.NodeSignature(flow.Document, edge.FromNodeId) &&
+            run.RuntimeOutputs?.GetValueOrDefault(edge.FromNodeId)?.GetValueOrDefault(edge.FromPortId) is HImage image &&
+            image.IsInitialized() && image.CountObj() == 1;
     }
 
     private HImage CopyQuickMatchInput(FlowTabViewModel flow, FlowNodeViewModel node)
     {
         var edge = flow.Document.Edges.SingleOrDefault(item => item.ToNodeId == node.Id && item.ToPortId == "image")
             ?? throw new InvalidOperationException("请先连接快捷匹配的 Image 输入。");
-        if (_vm.LastRun is { } run && run.FlowId == flow.Id && run.RuntimeOutputs?.TryGetValue(edge.FromNodeId, out var outputs) == true &&
+        if (HasCurrentQuickMatchInput(flow, node) && _vm.LastRun is { } run && run.RuntimeOutputs?.TryGetValue(edge.FromNodeId, out var outputs) == true &&
             outputs.TryGetValue(edge.FromPortId, out var value) && value is HImage image && image.IsInitialized() && image.CountObj() > 0)
             return image.SelectObj(1);
-        var source = flow.Document.Nodes.Single(item => item.Id == edge.FromNodeId);
-        if (source.TypeId == HalconNodeProvider.ImageRead && source.Parameters.TryGetValue("path", out var pathValue))
-        {
-            var path = pathValue.GetString();
-            var selected = !string.IsNullOrWhiteSpace(path) && Directory.Exists(path) ? EnumerateImageFiles(path).FirstOrDefault() : path;
-            if (!string.IsNullOrWhiteSpace(selected) && File.Exists(selected)) return new HImage(selected);
-        }
-        throw new InvalidOperationException("请先运行上游节点生成图像；文件图像也可先配置有效路径。");
+        throw new InvalidOperationException("没有与当前配置一致的上游单帧图像，请重新执行上游后示教模板。");
     }
 
     private void ShowQuickMatchTemplate(FlowNodeViewModel node)
@@ -69,6 +92,7 @@ public partial class MainWindow
         _previewImageWidth = dimensions.Width; _previewImageHeight = dimensions.Height;
         PreviewEmptyText.Visibility = Visibility.Collapsed;
         ImageFit_Click(this, new RoutedEventArgs());
-        DetectionSummary.Text = "模板图像 · 拖动绘制模板范围；搜索范围在输入图像上绘制";
+        DetectionSummary.Text = "固定模板 · 拖动绘制模板范围；更换模板请取上游当前帧";
+        DetectionSummary.Foreground = System.Windows.Media.Brushes.LightGray;
     }
 }

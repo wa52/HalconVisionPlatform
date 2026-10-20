@@ -342,13 +342,16 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
     }
 
     public FlowDocument? PrepareNextImageFlow(out string? imagePath, out bool hasImageSequence, out bool sequenceEnded)
+        => PrepareNextImageFlow(SelectedFlow?.Document, out imagePath, out hasImageSequence, out sequenceEnded);
+
+    private FlowDocument? PrepareNextImageFlow(FlowDocument? sourceFlow, out string? imagePath, out bool hasImageSequence, out bool sequenceEnded)
     {
         imagePath = null;
         hasImageSequence = false;
         sequenceEnded = false;
-        if (SelectedFlow is null) return null;
+        if (SelectedFlow is null || sourceFlow is null) return null;
         SelectedFlow.EnsureRoiEditsValid();
-        var flow = SelectedFlow.Document;
+        var flow = sourceFlow;
         var nodes = flow.Nodes.ToList();
         foreach (var node in flow.Nodes.Where(node => node.TypeId == HalconNodeProvider.ImageRead))
         {
@@ -386,6 +389,33 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
             nodes[nodes.FindIndex(item => item.Id == node.Id)] = node with { Parameters = parameters };
         }
         return flow with { Nodes = nodes };
+    }
+
+    /// <summary>Execute only the connected image producer and its dependencies, never the untrained matcher.</summary>
+    public async Task RunTemplateUpstreamAsync(Guid matchingNodeId)
+    {
+        var flow = SelectedFlow?.Document ?? throw new InvalidOperationException("请先选择流程。");
+        var edge = flow.Edges.SingleOrDefault(e => e.ToNodeId == matchingNodeId && e.ToPortId == "image")
+            ?? throw new InvalidOperationException("请先连接快捷匹配的图像输入。");
+        var ancestors = new HashSet<Guid>();
+        void Visit(Guid id)
+        {
+            if (!ancestors.Add(id)) return;
+            foreach (var input in flow.Edges.Where(e => e.ToNodeId == id)) Visit(input.FromNodeId);
+        }
+        Visit(edge.FromNodeId);
+        if (ancestors.Contains(matchingNodeId)) throw new InvalidDataException("上游图像连接存在循环。");
+        var upstream = flow with { Nodes = flow.Nodes.Where(n => ancestors.Contains(n.Id)).ToList(),
+            Edges = flow.Edges.Where(e => ancestors.Contains(e.FromNodeId) && ancestors.Contains(e.ToNodeId)).ToList(), DetectionPanels = [] };
+        var prepared = PrepareNextImageFlow(upstream, out _, out _, out var ended);
+        if (ended) prepared = PrepareNextImageFlow(upstream, out _, out _, out _);
+        if (prepared is null) throw new InvalidOperationException("未能获取上游图像。");
+        Log("模板示教：正在执行连接的上游节点。");
+        var run = await RunSelectedFlowAsync(flowOverride: prepared);
+        if (_shuttingDown || SelectedFlow?.Id != flow.Id) { run.Dispose(); throw new OperationCanceledException("模板示教已取消。"); }
+        SetExecutionRun(run);
+        if (run.Status == WorkflowRunStatus.Cancelled) throw new OperationCanceledException("模板示教已取消。");
+        if (run.Status != WorkflowRunStatus.Success) throw new InvalidOperationException("上游图像执行失败：" + string.Join("；", run.Errors));
     }
 
     public void ReturnImageToSequence(string? imagePath)
