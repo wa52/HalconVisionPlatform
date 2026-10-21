@@ -1,0 +1,14 @@
+[
+  {
+    "path": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\结果\\run_20261020_182230_e5db1fd3\\model.hdl",
+    "sha256": "200BACCD3143B293039E793927A13A4CBEC920C9621E2E033144E7C9C8207FF3"
+  },
+  {
+    "path": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\结果\\run_20261020_182230_e5db1fd3\\preprocess.hdict",
+    "sha256": "9702F7AF480704633E6EF730BF76FFAF7D66E1467CA6F32EFD937DE0CC61C481"
+  },
+  {
+    "path": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\结果\\run_20261020_182230_e5db1fd3\\manifest.json",
+    "sha256": "0C0ABC1319B6A955CA3287CD2D94D406CD8483DCB6E675B832C6CE94AE64B62C"
+  }
+]

@@ -1,0 +1,74 @@
+{
+  "completed": 12,
+  "errors": [],
+  "roiPredictions": 72,
+  "confidence": 0.5,
+  "model": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3",
+  "sourceProject": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\detection-p1-p6-accepted\\\u539F\u56FE\u516D\u4F4D\u7F6E\u76EE\u6807\u68C0\u6D4B.hvproj",
+  "cacheAfterClear": 0,
+  "projectRoundTrip": true,
+  "lifecycle": {
+    "cancelBeforeRun": true,
+    "emptyClearsOldObjects": true,
+    "thresholdResetOnCachedModel": true,
+    "failureNoStaleOutputAndEvictsSession": true,
+    "cacheCleared": true
+  },
+  "averageWallMs": 5982.308133333333,
+  "steadyWallMs": 1940.6727999999996,
+  "groups": [
+    {
+      "roi": "P1",
+      "count": 12,
+      "decisions": {
+        "NOT_DETECTED": 1,
+        "OK": 11
+      },
+      "accepted": 11
+    },
+    {
+      "roi": "P2",
+      "count": 12,
+      "decisions": {
+        "OK": 12
+      },
+      "accepted": 12
+    },
+    {
+      "roi": "P3",
+      "count": 12,
+      "decisions": {
+        "OK": 12
+      },
+      "accepted": 12
+    },
+    {
+      "roi": "P4",
+      "count": 12,
+      "decisions": {
+        "NOT_DETECTED": 1,
+        "OK": 11
+      },
+      "accepted": 11
+    },
+    {
+      "roi": "P5",
+      "count": 12,
+      "decisions": {
+        "NOT_DETECTED": 1,
+        "OK": 11
+      },
+      "accepted": 11
+    },
+    {
+      "roi": "P6",
+      "count": 12,
+      "decisions": {
+        "NOT_DETECTED": 1,
+        "OK": 11
+      },
+      "accepted": 11
+    }
+  ],
+  "note": "\u5B9E\u9645\u8282\u70B9\u94FE\u8DEF\u4E0EROI\u7ED3\u679C\uFF0C\u4E0D\u662F\u72EC\u7ACB\u7CBE\u5EA6\u62A5\u544A\uFF1B\u53EF\u80FD\u5305\u542B\u8BAD\u7EC3\u540C\u6E90\u56FE\u3002"
+}

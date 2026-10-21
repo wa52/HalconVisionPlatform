@@ -1,0 +1,362 @@
+{
+  "checks": 36,
+  "passed": [
+    "\u9A8C\u8BC1\u65B9\u6848\u6070\u597D\u5305\u542B\u539F\u56FE\u3001\u5339\u914D\u3001\u77EB\u6B63\u548C\u68C0\u6D4B\u56DB\u8282\u70B9",
+    "\u542F\u7528\u516D\u4E2A\u547D\u540D\u68C0\u6D4B\u533A\u57DF",
+    "\u5B8C\u6574\u65B9\u6848\u56FE\u6821\u9A8C\u901A\u8FC7",
+    "\u5B58\u5728\u771F\u5B9E\u539F\u56FE\u8F93\u5165",
+    "\u56DB\u8282\u70B9\u6267\u884C\u5B8C\u6210\uFF1AOR_1_N05A00522B_18_37_41",
+    "\u68C0\u6D4B\u8F93\u5165\u4F7F\u7528\u5DF2\u77EB\u6B63\u5750\u6807\u7A7A\u95F4",
+    "\u516DROI\u8EAB\u4EFD\u53CA\u987A\u5E8F\u4FDD\u6301",
+    "\u9010ROI\u5339\u914D\u5BF9\u5E94\u671F\u671B\u7C7B\u522B",
+    "\u68C0\u6D4B\u6846\u5728\u77EB\u6B63\u56FE\u5BF9\u5E94ROI\u50CF\u7D20\u8FB9\u754C\u5185",
+    "\u9010\u5E27\u539F\u751F\u8F93\u51FA\u91CA\u653E",
+    "\u56DB\u8282\u70B9\u6267\u884C\u5B8C\u6210\uFF1AOR_1_N05A00522B_18_37_50",
+    "\u68C0\u6D4B\u8F93\u5165\u4F7F\u7528\u5DF2\u77EB\u6B63\u5750\u6807\u7A7A\u95F4",
+    "\u516DROI\u8EAB\u4EFD\u53CA\u987A\u5E8F\u4FDD\u6301",
+    "\u9010ROI\u5339\u914D\u5BF9\u5E94\u671F\u671B\u7C7B\u522B",
+    "\u68C0\u6D4B\u6846\u5728\u77EB\u6B63\u56FE\u5BF9\u5E94ROI\u50CF\u7D20\u8FB9\u754C\u5185",
+    "\u9010\u5E27\u539F\u751F\u8F93\u51FA\u91CA\u653E",
+    "\u56DB\u8282\u70B9\u6267\u884C\u5B8C\u6210\uFF1AOR_1_N05A00522B_18_37_59",
+    "\u68C0\u6D4B\u8F93\u5165\u4F7F\u7528\u5DF2\u77EB\u6B63\u5750\u6807\u7A7A\u95F4",
+    "\u516DROI\u8EAB\u4EFD\u53CA\u987A\u5E8F\u4FDD\u6301",
+    "\u9010ROI\u5339\u914D\u5BF9\u5E94\u671F\u671B\u7C7B\u522B",
+    "\u68C0\u6D4B\u6846\u5728\u77EB\u6B63\u56FE\u5BF9\u5E94ROI\u50CF\u7D20\u8FB9\u754C\u5185",
+    "\u9010\u5E27\u539F\u751F\u8F93\u51FA\u91CA\u653E",
+    "\u7A7A\u56FE\u65E0\u4F4D\u59FF\u65F6\u4F4D\u7F6E\u77EB\u6B63\u660E\u786E\u5931\u8D25",
+    "\u4F4D\u59FF\u5931\u8D25\u963B\u65AD\u771F\u5B9E\u68C0\u6D4B\u8282\u70B9\uFF0C\u68C0\u6D4B\u65E0\u65E7\u6846\u8F93\u51FA",
+    "\u9010\u5E27\u539F\u751F\u8F93\u51FA\u91CA\u653E",
+    "\u56DB\u8282\u70B9\u6267\u884C\u5B8C\u6210\uFF1Arecovered",
+    "\u68C0\u6D4B\u8F93\u5165\u4F7F\u7528\u5DF2\u77EB\u6B63\u5750\u6807\u7A7A\u95F4",
+    "\u516DROI\u8EAB\u4EFD\u53CA\u987A\u5E8F\u4FDD\u6301",
+    "\u9010ROI\u5339\u914D\u5BF9\u5E94\u671F\u671B\u7C7B\u522B",
+    "\u68C0\u6D4B\u6846\u5728\u77EB\u6B63\u56FE\u5BF9\u5E94ROI\u50CF\u7D20\u8FB9\u754C\u5185",
+    "\u9010\u5E27\u539F\u751F\u8F93\u51FA\u91CA\u653E",
+    "\u6062\u590D\u540E\u6A21\u578B\u7F13\u5B58\u6709\u754C",
+    "\u542F\u52A8\u524D\u53D6\u6D88\u65E0\u8F93\u51FA",
+    "\u4FDD\u5B58\u6062\u590D\u516DROI\u4E0E\u4F4D\u7F6E\u57FA\u51C6",
+    "\u68C0\u67E5\u7ED3\u675F\u6E05\u7A7A\u4E24\u7C7B\u6A21\u578B\u7F13\u5B58",
+    "\u6E90\u65B9\u6848\u53CA\u6A21\u578B\u6587\u4EF6\u672A\u6539\u5199"
+  ],
+  "observations": [
+    {
+      "image": "OR_1_N05A00522B_18_37_41",
+      "Status": 0,
+      "milliseconds": 63824.8034,
+      "offsets": {
+        "current": {
+          "Row": 941.6171116688952,
+          "Column": 1685.266280377664,
+          "AngleDegrees": 0.18173322434017375,
+          "Score": 0.9891546432772884
+        },
+        "reference": {
+          "Row": 941.6171116688952,
+          "Column": 1685.266280377664,
+          "AngleDegrees": 0.18173322434017375,
+          "Score": 0.9891546432772884
+        },
+        "rowOffset": 0,
+        "columnOffset": 0,
+        "angleOffset": 0,
+        "score": 0.9891546432772884
+      },
+      "regions": [
+        {
+          "RoiName": "P1",
+          "Decision": {
+            "Code": "NOT_DETECTED",
+            "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+          },
+          "accepted": 0,
+          "candidates": 0
+        },
+        {
+          "RoiName": "P2",
+          "Decision": {
+            "Code": "OK",
+            "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+          },
+          "accepted": 1,
+          "candidates": 1
+        },
+        {
+          "RoiName": "P3",
+          "Decision": {
+            "Code": "OK",
+            "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+          },
+          "accepted": 1,
+          "candidates": 1
+        },
+        {
+          "RoiName": "P4",
+          "Decision": {
+            "Code": "NOT_DETECTED",
+            "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+          },
+          "accepted": 0,
+          "candidates": 0
+        },
+        {
+          "RoiName": "P5",
+          "Decision": {
+            "Code": "NOT_DETECTED",
+            "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+          },
+          "accepted": 0,
+          "candidates": 0
+        },
+        {
+          "RoiName": "P6",
+          "Decision": {
+            "Code": "NOT_DETECTED",
+            "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+          },
+          "accepted": 0,
+          "candidates": 0
+        }
+      ]
+    },
+    {
+      "image": "OR_1_N05A00522B_18_37_50",
+      "Status": 0,
+      "milliseconds": 2342.6953,
+      "offsets": {
+        "current": {
+          "Row": 941.3988216167145,
+          "Column": 1706.5743840084876,
+          "AngleDegrees": 0.05368789062465092,
+          "Score": 0.9883634894476927
+        },
+        "reference": {
+          "Row": 941.6171116688952,
+          "Column": 1685.266280377664,
+          "AngleDegrees": 0.18173322434017375,
+          "Score": 0.9891546432772884
+        },
+        "rowOffset": -0.21829005218069142,
+        "columnOffset": 21.308103630823553,
+        "angleOffset": -0.12804533371547677,
+        "score": 0.9883634894476927
+      },
+      "regions": [
+        {
+          "RoiName": "P1",
+          "Decision": {
+            "Code": "NOT_DETECTED",
+            "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+          },
+          "accepted": 0,
+          "candidates": 0
+        },
+        {
+          "RoiName": "P2",
+          "Decision": {
+            "Code": "OK",
+            "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+          },
+          "accepted": 1,
+          "candidates": 1
+        },
+        {
+          "RoiName": "P3",
+          "Decision": {
+            "Code": "OK",
+            "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+          },
+          "accepted": 1,
+          "candidates": 1
+        },
+        {
+          "RoiName": "P4",
+          "Decision": {
+            "Code": "NOT_DETECTED",
+            "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+          },
+          "accepted": 0,
+          "candidates": 0
+        },
+        {
+          "RoiName": "P5",
+          "Decision": {
+            "Code": "NOT_DETECTED",
+            "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+          },
+          "accepted": 0,
+          "candidates": 0
+        },
+        {
+          "RoiName": "P6",
+          "Decision": {
+            "Code": "NOT_DETECTED",
+            "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+          },
+          "accepted": 0,
+          "candidates": 0
+        }
+      ]
+    },
+    {
+      "image": "OR_1_N05A00522B_18_37_59",
+      "Status": 0,
+      "milliseconds": 2342.7667,
+      "offsets": {
+        "current": {
+          "Row": 942.6443981986516,
+          "Column": 1684.134384989072,
+          "AngleDegrees": 0.15643162669281108,
+          "Score": 0.9879483352183343
+        },
+        "reference": {
+          "Row": 941.6171116688952,
+          "Column": 1685.266280377664,
+          "AngleDegrees": 0.18173322434017375,
+          "Score": 0.9891546432772884
+        },
+        "rowOffset": 1.0272865297564522,
+        "columnOffset": -1.1318953885920564,
+        "angleOffset": -0.02530159764739892,
+        "score": 0.9879483352183343
+      },
+      "regions": [
+        {
+          "RoiName": "P1",
+          "Decision": {
+            "Code": "NOT_DETECTED",
+            "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+          },
+          "accepted": 0,
+          "candidates": 0
+        },
+        {
+          "RoiName": "P2",
+          "Decision": {
+            "Code": "OK",
+            "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+          },
+          "accepted": 1,
+          "candidates": 1
+        },
+        {
+          "RoiName": "P3",
+          "Decision": {
+            "Code": "OK",
+            "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+          },
+          "accepted": 1,
+          "candidates": 1
+        },
+        {
+          "RoiName": "P4",
+          "Decision": {
+            "Code": "NOT_DETECTED",
+            "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+          },
+          "accepted": 0,
+          "candidates": 0
+        },
+        {
+          "RoiName": "P5",
+          "Decision": {
+            "Code": "NOT_DETECTED",
+            "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+          },
+          "accepted": 0,
+          "candidates": 0
+        },
+        {
+          "RoiName": "P6",
+          "Decision": {
+            "Code": "NOT_DETECTED",
+            "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+          },
+          "accepted": 0,
+          "candidates": 0
+        }
+      ]
+    },
+    {
+      "image": "recovered",
+      "Status": 0,
+      "milliseconds": 2319.5153,
+      "offsets": {
+        "current": {
+          "Row": 941.6171116688952,
+          "Column": 1685.266280377664,
+          "AngleDegrees": 0.18173322434017375,
+          "Score": 0.9891546432772884
+        },
+        "reference": {
+          "Row": 941.6171116688952,
+          "Column": 1685.266280377664,
+          "AngleDegrees": 0.18173322434017375,
+          "Score": 0.9891546432772884
+        },
+        "rowOffset": 0,
+        "columnOffset": 0,
+        "angleOffset": 0,
+        "score": 0.9891546432772884
+      },
+      "regions": [
+        {
+          "RoiName": "P1",
+          "Decision": {
+            "Code": "NOT_DETECTED",
+            "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+          },
+          "accepted": 0,
+          "candidates": 0
+        },
+        {
+          "RoiName": "P2",
+          "Decision": {
+            "Code": "OK",
+            "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+          },
+          "accepted": 1,
+          "candidates": 1
+        },
+        {
+          "RoiName": "P3",
+          "Decision": {
+            "Code": "OK",
+            "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+          },
+          "accepted": 1,
+          "candidates": 1
+        },
+        {
+          "RoiName": "P4",
+          "Decision": {
+            "Code": "NOT_DETECTED",
+            "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+          },
+          "accepted": 0,
+          "candidates": 0
+        },
+        {
+          "RoiName": "P5",
+          "Decision": {
+            "Code": "NOT_DETECTED",
+            "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+          },
+          "accepted": 0,
+          "candidates": 0
+        },
+        {
+          "RoiName": "P6",
+          "Decision": {
+            "Code": "NOT_DETECTED",
+            "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+          },
+          "accepted": 0,
+          "candidates": 0
+        }
+      ]
+    }
+  ],
+  "sourceProject": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\aligned-detection-20261021\\1111_\u5B9A\u4F4D\u68C0\u6D4B\u9A8C\u8BC1.hvproj",
+  "model": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3",
+  "note": "\u6267\u884C\u6210\u529F\u4E0EROI\u89C4\u5219\u7ED3\u679C\u5206\u5F00\u8BB0\u5F55\uFF1B\u4E0D\u662F\u7CBE\u5EA6\u62A5\u544A\uFF0C\u4E0D\u63A8\u5BFC\u4EA7\u54C1\u771F\u5B9E\u5408\u683C\u3002"
+}

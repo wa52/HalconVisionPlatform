@@ -1,0 +1,141 @@
+[
+  {
+    "NodeId": "47b875c9-99dc-4958-b16c-d310a5f9c466",
+    "NodeName": "\u8BFB\u53D6\u56FE\u50CF",
+    "Status": 2,
+    "StartedAtUtc": "2026-10-21T15:14:21.511488Z",
+    "EndedAtUtc": "2026-10-21T15:14:21.528152Z",
+    "ElapsedMilliseconds": 16.663,
+    "Outputs": {
+      "image": {
+        "source": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\aligned-detection-20261021\\full-pipeline-check\\blank-input.png",
+        "paths": [
+          "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\aligned-detection-20261021\\full-pipeline-check\\blank-input.png"
+        ],
+        "count": 1,
+        "width": 2592,
+        "height": 1944
+      }
+    },
+    "Error": null
+  },
+  {
+    "NodeId": "cda39d7a-9c4c-4a97-b337-42eac2182037",
+    "NodeName": "\u5FEB\u6377\u5339\u914D",
+    "Status": 2,
+    "StartedAtUtc": "2026-10-21T15:14:21.5281565Z",
+    "EndedAtUtc": "2026-10-21T15:14:21.5441301Z",
+    "ElapsedMilliseconds": 15.9731,
+    "Outputs": {
+      "preview": {
+        "width": 2592,
+        "height": 1944,
+        "count": 1
+      },
+      "matches": [],
+      "acceptedMatches": [],
+      "rawCandidates": [],
+      "rejectReason": "NO_CANDIDATE",
+      "timing": {
+        "ModelMilliseconds": 6.7318,
+        "SearchMilliseconds": 3.0665,
+        "EvaluationMilliseconds": 0.0747,
+        "TotalMilliseconds": 15.4815
+      },
+      "imageResults": [
+        {
+          "ImageIndex": 1,
+          "Matches": [],
+          "RawCandidates": [],
+          "Status": {
+            "Code": "NOT_FOUND",
+            "Message": "\u672A\u627E\u5230\u6A21\u677F\u5019\u9009"
+          },
+          "RejectReason": "NO_CANDIDATE",
+          "SearchMilliseconds": 3.0665,
+          "EvaluationMilliseconds": 0.0747,
+          "AcceptedMatches": []
+        }
+      ],
+      "count": 0,
+      "poses": {
+        "NodeId": "cda39d7a-9c4c-4a97-b337-42eac2182037",
+        "SourceFrame": {
+          "RunId": "112a058d-e4a6-44e3-8f4e-558cea8084ed",
+          "FrameId": "bc70f8b5-e2b9-4cd8-a1f1-be5d7e7c08d7",
+          "SourceNodeId": "47b875c9-99dc-4958-b16c-d310a5f9c466",
+          "SourcePortId": "image",
+          "SpaceId": "d5546632-be03-4340-8409-6f6ba92d330e",
+          "Width": 2592,
+          "Height": 1944,
+          "Count": 1,
+          "Annotated": false,
+          "Corrected": false,
+          "ConfigurationIdentity": "E9C987D4C639277242D24F4AD3D08077A568A1CECD137A3E2014C1DF367B528C",
+          "ImageIndex": 1
+        },
+        "ModelIdentity": "1BE295EC5136D3EF241A07AC76A8B3ECA2E28D2894C3D34921C94AA6D06CEE28",
+        "ConfigurationIdentity": "949A8F3304FA62E12A4F0F89F34C4D7FF35E9C48FD05E33F868F173B388D7B1C",
+        "Images": [
+          {
+            "ImageIndex": 1,
+            "Matches": [],
+            "RawCandidates": [],
+            "Status": {
+              "Code": "NOT_FOUND",
+              "Message": "\u672A\u627E\u5230\u6A21\u677F\u5019\u9009"
+            },
+            "RejectReason": "NO_CANDIDATE",
+            "SearchMilliseconds": 3.0665,
+            "EvaluationMilliseconds": 0.0747,
+            "AcceptedMatches": []
+          }
+        ]
+      },
+      "row": null,
+      "column": null,
+      "angle": null,
+      "score": null,
+      "status": {
+        "Code": "NOT_FOUND",
+        "Message": "\u672A\u627E\u5230\u6A21\u677F\u5019\u9009"
+      },
+      "overlay": {
+        "images": 1,
+        "matches": 0
+      },
+      "modelInfo": {
+        "cacheHit": true,
+        "modelIdentity": "1BE295EC5136D3EF241A07AC76A8B3ECA2E28D2894C3D34921C94AA6D06CEE28",
+        "templateImage": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\desktop-1111-drawing-review\\assets\\templates\\0fc35b382d504104b7cf421c5dafb446\\e04e1b939b7642508dc522767948b025.png",
+        "method": "HALCON shape matching",
+        "candidateLimit": 5,
+        "expectedTargets": 1,
+        "searchMinimumScore": 0.4,
+        "acceptanceMinimumScore": 0.6,
+        "warning": "\u5019\u9009\u5DF2\u53D7\u91D1\u5B57\u5854\u3001\u91CD\u53E0\u6291\u5236\u548C\u641C\u7D22\u4E0A\u9650\u5F71\u54CD\uFF1B\u672A\u53D1\u73B0\u6B67\u4E49\u4E0D\u7B49\u540C\u4E8E\u5168\u5C40\u552F\u4E00\u6027\u8BC1\u660E\u3002"
+      }
+    },
+    "Error": null
+  },
+  {
+    "NodeId": "31ce79fc-8e8c-436d-bd75-42cabf274fe9",
+    "NodeName": "\u4F4D\u7F6E\u77EB\u6B63",
+    "Status": 3,
+    "StartedAtUtc": "2026-10-21T15:14:21.5441336Z",
+    "EndedAtUtc": "2026-10-21T15:14:21.5666351Z",
+    "ElapsedMilliseconds": 22.5002,
+    "Outputs": {},
+    "Error": "System.IO.InvalidDataException: POSE_NOT_FOUND\uFF1A\u672A\u627E\u5230\u6A21\u677F\u5019\u9009\r\n   at HalconVision.Halcon.HalconPositionCorrectionExecutor.UniquePose(PoseSet poses) in D:\\AiProjects\\HalconVisionPlatform\\src\\HalconVision.Halcon\\HalconPositionCorrectionExecutor.cs:line 82\r\n   at HalconVision.Halcon.HalconPositionCorrectionExecutor.ExecuteAsync(NodeExecutionContext context) in D:\\AiProjects\\HalconVisionPlatform\\src\\HalconVision.Halcon\\HalconPositionCorrectionExecutor.cs:line 25\r\n   at HalconVision.Application.WorkflowExecutionEngine.RunAsync(FlowDocument flow, IProgress\u00601 progress, CancellationToken cancellationToken, FlowDocument configurationFlow) in D:\\AiProjects\\HalconVisionPlatform\\src\\HalconVision.Application\\WorkflowExecutionEngine.cs:line 90"
+  },
+  {
+    "NodeId": "f79839d0-ead5-45cc-9c5a-396a29e4ef3d",
+    "NodeName": "\u76EE\u6807\u68C0\u6D4B",
+    "Status": 4,
+    "StartedAtUtc": "2026-10-21T15:14:21.56664Z",
+    "EndedAtUtc": "2026-10-21T15:14:21.566674Z",
+    "ElapsedMilliseconds": 0.0336,
+    "Outputs": {},
+    "Error": "\u4E0A\u6E38\u8282\u70B9\u672A\u6210\u529F\uFF0C\u5DF2\u8DF3\u8FC7\u6267\u884C\u3002"
+  }
+]
