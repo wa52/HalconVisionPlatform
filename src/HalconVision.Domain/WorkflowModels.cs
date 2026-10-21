@@ -50,7 +50,7 @@ public sealed record NodePosition(double X, double Y);
 
 public enum PortDirection { Input, Output }
 
-public sealed record PortDefinition(string Id, string Name, PortDirection Direction, string DataType, bool Required = false, bool Multiple = false, bool Annotated = false);
+public sealed record PortDefinition(string Id, string Name, PortDirection Direction, string DataType, bool Required = false, bool Multiple = false, bool Annotated = false, bool RequiresUnannotatedImage = false);
 
 public enum NodeExecutionStatus { Idle, Running, Success, Failed, Skipped }
 

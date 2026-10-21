@@ -22,7 +22,7 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
     public IEnumerable<NodeDefinition> GetDefinitions()
     {
         yield return new NodeDefinition(PositionCorrection, 1, "定位匹配", "位置矫正", "按唯一匹配位姿将图像对齐到示教基准，供固定 ROI 检测使用。",
-            [new("image", "原始图像", PortDirection.Input, "halcon.image", Required: true),
+            [new("image", "原始图像", PortDirection.Input, "halcon.image", Required: true, RequiresUnannotatedImage: true),
              new("poses", "匹配位姿", PortDirection.Input, "vision.pose-set", Required: true),
              new("image", "矫正图像", PortDirection.Output, "halcon.image"),
              new("transform", "双向变换", PortDirection.Output, "vision.transform2d"),

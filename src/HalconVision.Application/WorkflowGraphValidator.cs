@@ -77,6 +77,8 @@ public sealed class WorkflowGraphValidator(INodeRegistry registry)
             }
             if (sourcePort.DataType != "any" && targetPort.DataType != "any" && sourcePort.DataType != targetPort.DataType)
                 issues.Add(new WorkflowValidationIssue($"端口类型不匹配：{sourcePort.DataType} → {targetPort.DataType}。", target.Id, edge.Id));
+            if (targetPort.RequiresUnannotatedImage && sourcePort.Annotated)
+                issues.Add(new WorkflowValidationIssue($"“{target.DisplayName} / {targetPort.Name}”需要未标注图像，不能连接“{source.DisplayName} / {sourcePort.Name}”；请改接未绘制检测标注的原始图像输出。", target.Id, edge.Id));
             incoming[(target.Id, targetPort.Id)] = incoming.GetValueOrDefault((target.Id, targetPort.Id)) + 1;
             if (!targetPort.Multiple && incoming[(target.Id, targetPort.Id)] > 1)
                 issues.Add(new WorkflowValidationIssue($"输入端口“{targetPort.Name}”只允许一条连线。", target.Id, edge.Id));

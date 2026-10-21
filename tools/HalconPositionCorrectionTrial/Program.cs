@@ -60,6 +60,15 @@ internal static class Program
                 Check(Result(run, threshold.Id).Status == NodeExecutionStatus.Skipped && !run.RuntimeOutputs!.ContainsKey(correction.Id), "失败阻断且无旧图像"); DisposeRun(run);
             }
             Check(validator.Validate(flow).Count == 0, "双输入输出同名端口可校验");
+            var annotatedEdge = new FlowEdge(Guid.NewGuid(), matcher.Id, "preview", correction.Id, "image");
+            var annotatedFlow = flow with { Edges = flow.Edges.Where(e => !(e.ToNodeId == correction.Id && e.ToPortId == "image")).Append(annotatedEdge).ToList() };
+            Check(validator.Validate(annotatedFlow).Any(issue => issue.EdgeId == annotatedEdge.Id && issue.Message.Contains("未标注图像")), "静态校验必须阻止匹配预览接入位置矫正原图端口");
+            var connectionFlow = new FlowTabViewModel(flow with { Edges = flow.Edges.Where(e => !(e.ToNodeId == correction.Id && e.ToPortId == "image")).ToList() }, registry, validator);
+            Check(!connectionFlow.Connect(matcher.Id, "preview", correction.Id, "image", out var connectionError) && connectionError.Contains("未标注图像"), "实际连线入口拒绝预览图并说明应接未标注图像");
+            Check(connectionFlow.Document.Edges.Count == flow.Edges.Count - 1, "拒绝错误连线不修改流程");
+            Check(connectionFlow.Connect(reader.Id, "image", correction.Id, "image", out _), "拒绝预览后仍可连接正确原图");
+            var previewProcessing = flow with { Nodes = [reader, matcher, threshold], Edges = [new(Guid.NewGuid(), reader.Id, "image", matcher.Id, "image"), new(Guid.NewGuid(), matcher.Id, "preview", threshold.Id, "image")] };
+            Check(validator.Validate(previewProcessing).Count == 0, "未声明原图约束的普通图像端口仍可接收预览");
             var initial = Run(templatePath);
             Check(Result(initial, matcher.Id).Status == NodeExecutionStatus.Success, "未示教时上游匹配仍完成");
             var baselinePoses = (PoseSet)initial.RuntimeOutputs![matcher.Id]["poses"]!;
