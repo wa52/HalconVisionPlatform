@@ -56,7 +56,7 @@ public sealed class ProjectStore
             !string.Equals(Path.GetFileName(path), ProjectFileName, StringComparison.OrdinalIgnoreCase))
             throw new FileNotFoundException("请选择 HALCON 项目文件（.hvproj）。", path);
         var project = ReadJson<ProjectDocument>(path);
-        if (project.SchemaVersion != 1 || project.Id == Guid.Empty || string.IsNullOrWhiteSpace(project.Name))
+        if (project.SchemaVersion is not (1 or 2) || project.Id == Guid.Empty || string.IsNullOrWhiteSpace(project.Name))
             throw new InvalidDataException("项目清单版本不受支持或内容不完整。");
         project = project with { Flows = project.Flows ?? [] };
         var root = Path.GetDirectoryName(path)!;
@@ -73,6 +73,8 @@ public sealed class ProjectStore
     public ProjectDocument SaveProject(ProjectWorkspace workspace, IReadOnlyList<FlowDocument>? flows = null)
     {
         var updated = workspace.Project with { UpdatedAtUtc = DateTime.UtcNow, Flows = flows?.ToList() ?? workspace.Project.Flows };
+        updated = updated with { Flows = updated.Flows.Select(VersionForTasks).ToList() };
+        if (updated.Flows.Any(f => f.InspectionTasks.Count > 0 || f.InspectionRegions.Count > 0)) updated = updated with { SchemaVersion = 2 };
         var path = string.IsNullOrWhiteSpace(workspace.ProjectFilePath)
             ? Resolve(workspace.RootPath, ProjectFileName)
             : Path.GetFullPath(workspace.ProjectFilePath);
@@ -103,21 +105,22 @@ public sealed class ProjectStore
         copy = copy with { Nodes = copy.Nodes.Select(node => PositionReferenceParameters.Remap(node, idMap)).ToList(),
             Edges = source.Edges.Select(edge => edge with { Id = Guid.NewGuid(), FromNodeId = idMap[edge.FromNodeId], ToNodeId = idMap[edge.ToNodeId] }).ToList(),
             DetectionPanels = source.DetectionPanels.Select(panel => RemapDetectionPanel(panel, idMap)).OfType<DetectionPanelSettings>().ToList() };
-        return copy;
+        return InspectionTaskReferences.Remap(source, copy, idMap);
     }
 
     public FlowDocument LoadFlow(ProjectWorkspace workspace, Guid flowId)
     {
         var path = FlowPath(workspace, flowId);
         var flow = ReadJson<FlowDocument>(path);
-        if (flow.Id != flowId || flow.SchemaVersion != 1) throw new InvalidDataException("流程 ID 或 schema 版本无效。");
+        if (flow.Id != flowId || flow.SchemaVersion is not (1 or 2)) throw new InvalidDataException("流程 ID 或 schema 版本无效。");
         return flow;
     }
 
     public void SaveFlow(ProjectWorkspace workspace, FlowDocument flow)
     {
         ArgumentNullException.ThrowIfNull(flow);
-        if (flow.Id == Guid.Empty || flow.SchemaVersion != 1) throw new InvalidDataException("不能保存无效流程。");
+        flow = VersionForTasks(flow);
+        if (flow.Id == Guid.Empty || flow.SchemaVersion is not (1 or 2)) throw new InvalidDataException("不能保存无效流程。");
         foreach (var reference in flow.AssetReferences) _ = Resolve(workspace.RootPath, reference);
         AtomicWrite(FlowPath(workspace, flow.Id), JsonSerializer.Serialize(flow, JsonOptions));
     }
@@ -136,15 +139,17 @@ public sealed class ProjectStore
             AssetReferences = [.. imported.AssetReferences]
         };
         foreach (var reference in copy.AssetReferences) _ = Resolve(workspace.RootPath, reference);
-        return copy;
+        return InspectionTaskReferences.Remap(imported, copy, nodeIds);
     }
 
     public string ExportFlow(FlowDocument flow, string destinationPath)
     {
         var destination = Path.GetFullPath(destinationPath);
-        AtomicWrite(destination, JsonSerializer.Serialize(flow, JsonOptions));
+        AtomicWrite(destination, JsonSerializer.Serialize(VersionForTasks(flow), JsonOptions));
         return destination;
     }
+
+    private static FlowDocument VersionForTasks(FlowDocument flow) => flow.InspectionTasks.Count > 0 || flow.InspectionRegions.Count > 0 ? flow with { SchemaVersion = 2 } : flow;
 
     public string SaveRun(ProjectWorkspace workspace, WorkflowExecutionRun run)
     {

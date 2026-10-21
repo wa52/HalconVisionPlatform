@@ -104,7 +104,18 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
     public string ProjectName => Workspace?.Project.Name ?? "未打开项目";
     public string ProjectRoot => Workspace?.ProjectFilePath ?? Workspace?.RootPath ?? string.Empty;
     public bool HasProject => Workspace is not null;
-    public FlowTabViewModel? SelectedFlow { get => _selectedFlow; set => Set(ref _selectedFlow, value); }
+    public FlowTabViewModel? SelectedFlow
+    {
+        get => _selectedFlow;
+        set
+        {
+            if (_selectedFlow is not null) _selectedFlow.PropertyChanged -= InspectionConfiguration_Changed;
+            Set(ref _selectedFlow, value);
+            if (_selectedFlow is not null) _selectedFlow.PropertyChanged += InspectionConfiguration_Changed;
+            RefreshProductVerdict();
+        }
+    }
+    private void InspectionConfiguration_Changed(object? sender, PropertyChangedEventArgs e) => RefreshProductVerdict();
     public string ProjectStatus { get => _projectStatus; set => Set(ref _projectStatus, value); }
     public string SearchText { get => _searchText; set { if (Set(ref _searchText, value)) RefreshProjectTree(); } }
     public string NodeSearchText { get => _nodeSearchText; set { if (Set(ref _nodeSearchText, value)) Raise(nameof(FilteredNodeCatalog)); } }
@@ -114,16 +125,21 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
     public bool IsContinuousRunning
     {
         get => _isContinuousRunning;
-        set { if (Set(ref _isContinuousRunning, value)) { Raise(nameof(CanConfigureCamera)); Raise(nameof(RunStateText)); } }
+        set { if (Set(ref _isContinuousRunning, value)) { Raise(nameof(CanConfigureCamera)); Raise(nameof(RunStateText)); RefreshProductVerdict(); } }
     }
     public bool CanConfigureCamera => !IsRunning && !IsContinuousRunning && !_shuttingDown && _cameraOperations.Count == 0;
     public string LogText { get => _logText; private set => Set(ref _logText, value); }
-    public WorkflowExecutionRun? LastRun { get => _lastRun; private set { if (Set(ref _lastRun, value)) { Raise(nameof(RunStateText)); Raise(nameof(RunElapsedText)); } } }
+    public WorkflowExecutionRun? LastRun { get => _lastRun; private set { if (Set(ref _lastRun, value)) { Raise(nameof(RunStateText)); Raise(nameof(RunElapsedText)); RefreshProductVerdict(); } } }
     public string RunStateText => IsContinuousRunning ? "连续运行中" : IsRunning ? "执行中" :
         LastRun?.Status == WorkflowRunStatus.Success && LastRun.NodeResults.Any(r => r.Outputs.TryGetValue("status",out var s) &&
             s.ValueKind == JsonValueKind.Object && s.TryGetProperty("Code",out var c) && QuickMatchStatus.IsKnown(c.GetString()) && c.GetString() is not (QuickMatchStatus.Found or "MATCH_FOUND"))
             ? "执行完成 · 匹配未通过" : LastRun?.Status.ToString() ?? "未运行";
     public string RunElapsedText => LastRun is null ? "—" : $"{(LastRun.EndedAtUtc - LastRun.StartedAtUtc).TotalMilliseconds:F1} ms";
+    public string ProductVerdictText => IsRunning || IsContinuousRunning ? "产品：检测中" : LastRun?.Inspection is { } inspection && SelectedFlow is { } flow && LastRun.FlowId == flow.Id
+        ? inspection.Verdict == InspectionVerdict.NotConfigured && flow.Document.InspectionTasks.Count > 0 ? "产品：仅执行上游 · 未完成检测" : inspection.Verdict != InspectionVerdict.NotConfigured && inspection.ConfigurationIdentity != InspectionPlan.ConfigurationIdentity(flow.Document)
+            ? "产品：配置已更改 · 请重新运行" : $"产品：{inspection.Label}" + (inspection.Tasks.Count > 0 ? $" · {inspection.Tasks.Count} 项任务" : "") : "产品：未运行";
+    public System.Windows.Media.Brush ProductVerdictBrush => ProductVerdictText.StartsWith("产品：OK", StringComparison.Ordinal) ? System.Windows.Media.Brushes.LightGreen : ProductVerdictText.StartsWith("产品：NG", StringComparison.Ordinal) ? System.Windows.Media.Brushes.OrangeRed : ProductVerdictText.StartsWith("产品：ERROR", StringComparison.Ordinal) ? System.Windows.Media.Brushes.Orange : System.Windows.Media.Brushes.LightGray;
+    private void RefreshProductVerdict() { Raise(nameof(ProductVerdictText)); Raise(nameof(ProductVerdictBrush)); }
     public const int MaximumLogEntries = 500;
     public void Log(string message)
     {
@@ -406,7 +422,7 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
         Visit(edge.FromNodeId);
         if (ancestors.Contains(matchingNodeId)) throw new InvalidDataException("上游图像连接存在循环。");
         var upstream = flow with { Nodes = flow.Nodes.Where(n => ancestors.Contains(n.Id)).ToList(),
-            Edges = flow.Edges.Where(e => ancestors.Contains(e.FromNodeId) && ancestors.Contains(e.ToNodeId)).ToList(), DetectionPanels = [] };
+            Edges = flow.Edges.Where(e => ancestors.Contains(e.FromNodeId) && ancestors.Contains(e.ToNodeId)).ToList(), DetectionPanels = [], InspectionTasks = [], InspectionRegions = [] };
         var prepared = PrepareNextImageFlow(upstream, out _, out _, out var ended);
         if (ended) prepared = PrepareNextImageFlow(upstream, out _, out _, out _);
         if (prepared is null) throw new InvalidOperationException("未能获取上游图像。");
@@ -416,6 +432,22 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
         SetExecutionRun(run);
         if (run.Status == WorkflowRunStatus.Cancelled) throw new OperationCanceledException("模板示教已取消。");
         if (run.Status != WorkflowRunStatus.Success) throw new InvalidOperationException("上游图像执行失败：" + string.Join("；", run.Errors));
+    }
+
+    public async Task RunImageSourceAsync(Guid sourceId)
+    {
+        var flow = SelectedFlow?.Document ?? throw new InvalidOperationException("请先选择流程。");
+        var ids = new HashSet<Guid>();
+        void Visit(Guid id) { if (!ids.Add(id)) return; foreach (var edge in flow.Edges.Where(e => e.ToNodeId == id)) Visit(edge.FromNodeId); }
+        Visit(sourceId);
+        var upstream = flow with { Nodes = flow.Nodes.Where(n => ids.Contains(n.Id)).ToList(), Edges = flow.Edges.Where(e => ids.Contains(e.FromNodeId) && ids.Contains(e.ToNodeId)).ToList(),
+            InspectionTasks = [], InspectionRegions = [], DetectionPanels = [] };
+        var prepared = PrepareNextImageFlow(upstream, out _, out _, out var ended);
+        if (ended) prepared = PrepareNextImageFlow(upstream, out _, out _, out _);
+        var run = await RunSelectedFlowAsync(flowOverride: prepared ?? throw new InvalidDataException("无法获取区域来源图像。"));
+        if (_shuttingDown || SelectedFlow?.Id != flow.Id) { run.Dispose(); throw new OperationCanceledException(); }
+        SetExecutionRun(run);
+        if (run.Status != WorkflowRunStatus.Success) throw new InvalidDataException("区域来源执行失败：" + string.Join("；", run.Errors));
     }
 
     public void ReturnImageToSequence(string? imagePath)
@@ -437,7 +469,7 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
         if (Workspace is null || SelectedFlow is null) throw new InvalidOperationException("请先打开项目和流程。");
         SelectedFlow.EnsureRoiEditsValid();
         using var cancellation = new CancellationTokenSource();
-        _runCancellation = cancellation; Raise(nameof(IsRunning)); Raise(nameof(RunStateText)); Raise(nameof(CanConfigureCamera));
+        _runCancellation = cancellation; Raise(nameof(IsRunning)); Raise(nameof(RunStateText)); RefreshProductVerdict(); Raise(nameof(CanConfigureCamera));
         try
         {
             var document = flowOverride ?? SelectedFlow.Document;
@@ -448,7 +480,7 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
             if (_shuttingDown) run.Dispose();
             return run;
         }
-        finally { _activeRunTask = null; _runCancellation = null; Raise(nameof(IsRunning)); Raise(nameof(RunStateText)); Raise(nameof(CanConfigureCamera)); }
+        finally { _activeRunTask = null; _runCancellation = null; Raise(nameof(IsRunning)); Raise(nameof(RunStateText)); RefreshProductVerdict(); Raise(nameof(CanConfigureCamera)); }
     }
 
     public void CancelRun() => _runCancellation?.Cancel();
@@ -462,6 +494,7 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
     {
         if (!ReferenceEquals(LastRun, run)) LastRun?.Dispose();
         LastRun = run;
+        RefreshProductVerdict();
         ExecutionResults.Clear();
         foreach (var result in run.NodeResults) ExecutionResults.Add(result);
         Raise(nameof(ExecutionResults));

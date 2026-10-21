@@ -20,6 +20,8 @@ public sealed class WorkflowExecutionEngine(INodeRegistry registry, WorkflowGrap
         var spatialOutputs = new Dictionary<Guid, IReadOnlyDictionary<string, FrameReference>>();
         var logs = new List<string>();
         var errors = new List<string>();
+        ProductInspectionResult Inspect(WorkflowRunStatus status, IReadOnlyList<NodeExecutionResult> nodeResults) =>
+            ProductInspectionEvaluator.Evaluate(flow, id, status, nodeResults, errors) with { ConfigurationIdentity = InspectionPlan.ConfigurationIdentity(configurationFlow ?? flow) };
 
         var issues = validator.Validate(flow);
         if (issues.Count > 0)
@@ -28,7 +30,8 @@ public sealed class WorkflowExecutionEngine(INodeRegistry registry, WorkflowGrap
                 ? $"节点 {nodeId}: {issue.Message}"
                 : issue.Message));
             var failedAt = DateTime.UtcNow;
-            return new WorkflowExecutionRun(id, flow.Id, startedAt, failedAt, WorkflowRunStatus.Failed, [], errors, logs);
+            return new WorkflowExecutionRun(id, flow.Id, startedAt, failedAt, WorkflowRunStatus.Failed, [], errors, logs,
+                Inspection: Inspect(WorkflowRunStatus.Failed, []));
         }
 
         IReadOnlyList<NodeInstance> order;
@@ -36,14 +39,17 @@ public sealed class WorkflowExecutionEngine(INodeRegistry registry, WorkflowGrap
         catch (WorkflowValidationException ex)
         {
             errors.AddRange(ex.Issues.Select(issue => issue.Message));
-            return new WorkflowExecutionRun(id, flow.Id, startedAt, DateTime.UtcNow, WorkflowRunStatus.Failed, [], errors, logs);
+            return new WorkflowExecutionRun(id, flow.Id, startedAt, DateTime.UtcNow, WorkflowRunStatus.Failed, [], errors, logs,
+                Inspection: Inspect(WorkflowRunStatus.Failed, []));
         }
 
         var runtimeOwnershipTransferred = false;
         try
         {
-        foreach (var node in order)
+        foreach (var originalNode in order)
         {
+            var node = registry.TryGetDefinition(originalNode.TypeId, originalNode.TypeVersion, out var bindingDefinition)
+                ? InspectionPlan.Bind(flow, originalNode, bindingDefinition) : originalNode;
             if (cancellationToken.IsCancellationRequested) break;
             var nodeStarted = DateTime.UtcNow;
             var timer = Stopwatch.StartNew();
@@ -85,6 +91,7 @@ public sealed class WorkflowExecutionEngine(INodeRegistry registry, WorkflowGrap
                         if (spatialOutputs.TryGetValue(edge.FromNodeId, out var sourceFrames) && sourceFrames.TryGetValue(edge.FromPortId, out var frame))
                             frames[edge.ToPortId] = frame;
                     var signature = WorkflowConfiguration.NodeSignature(configurationFlow ?? flow, node.Id);
+                    InspectionPlan.RequireFrame(flow, node.Id, frames, spatialOutputs, id);
                     var context = new NodeExecutionContext(node, inputs, cancellationToken,
                         message => logs.Add($"{DateTime.UtcNow:O} [{node.DisplayName}] {message}"), runtimeInputs, id, frames, signature);
                     var output = await executor.ExecuteAsync(context).ConfigureAwait(false);
@@ -117,7 +124,8 @@ public sealed class WorkflowExecutionEngine(INodeRegistry registry, WorkflowGrap
             : errors.Count > 0 ? WorkflowRunStatus.Failed : WorkflowRunStatus.Success;
         var completedRun = new WorkflowExecutionRun(id, flow.Id, startedAt, DateTime.UtcNow, runStatus,
             order.Where(node => results.ContainsKey(node.Id)).Select(node => results[node.Id]).ToArray(), errors, logs,
-            runtimeOutputs.ToDictionary(pair => pair.Key, pair => pair.Value), spatialOutputs);
+            runtimeOutputs.ToDictionary(pair => pair.Key, pair => pair.Value), spatialOutputs,
+            Inspect(runStatus, order.Where(node => results.ContainsKey(node.Id)).Select(node => results[node.Id]).ToArray()));
         runtimeOwnershipTransferred = true;
         return completedRun;
         }

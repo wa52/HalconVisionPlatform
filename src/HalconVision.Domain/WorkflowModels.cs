@@ -23,6 +23,8 @@ public sealed record FlowDocument
     public Dictionary<string, JsonElement> Variables { get; init; } = [];
     public List<string> AssetReferences { get; init; } = [];
     public List<DetectionPanelSettings> DetectionPanels { get; init; } = [];
+    public List<InspectionRegion> InspectionRegions { get; init; } = [];
+    public List<InspectionTask> InspectionTasks { get; init; } = [];
 }
 
 public sealed record DetectionPanelSettings(Guid Id, Guid NodeId, string View = "图像", string OutputField = "全部",
@@ -76,7 +78,8 @@ public sealed record WorkflowExecutionRun(
     IReadOnlyList<string> Errors,
     IReadOnlyList<string> Logs,
     IReadOnlyDictionary<Guid, IReadOnlyDictionary<string, object?>>? RuntimeOutputs = null,
-    IReadOnlyDictionary<Guid, IReadOnlyDictionary<string, FrameReference>>? SpatialOutputs = null) : IDisposable
+    IReadOnlyDictionary<Guid, IReadOnlyDictionary<string, FrameReference>>? SpatialOutputs = null,
+    ProductInspectionResult? Inspection = null) : IDisposable
 {
     private int _disposed;
     public void Dispose()

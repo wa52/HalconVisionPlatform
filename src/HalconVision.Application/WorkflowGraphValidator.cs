@@ -18,9 +18,12 @@ public sealed class WorkflowGraphValidator(INodeRegistry registry)
     {
         ArgumentNullException.ThrowIfNull(flow);
         var issues = new List<WorkflowValidationIssue>();
+        if (flow.SchemaVersion is not (1 or 2)) issues.Add(new("不支持的流程版本。"));
+        issues.AddRange(InspectionPlan.Validate(flow, registry));
         var byId = new Dictionary<Guid, NodeInstance>();
         foreach (var node in flow.Nodes)
         {
+            if (node.Id == Guid.Empty) issues.Add(new("节点 ID 不能为空。"));
             if (!byId.TryAdd(node.Id, node))
                 issues.Add(new WorkflowValidationIssue("流程中存在重复的节点 ID。", node.Id));
             if (!registry.TryGetDefinition(node.TypeId, node.TypeVersion, out var definition))

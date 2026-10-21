@@ -13,7 +13,8 @@ public sealed record NodeDefinition(
     string Description,
     IReadOnlyList<PortDefinition> Ports,
     IReadOnlyList<NodeParameterDefinition> Parameters,
-    ImageSpaceBehavior ImageSpace = ImageSpaceBehavior.Preserve);
+    ImageSpaceBehavior ImageSpace = ImageSpaceBehavior.Preserve,
+    string? TaskRoiParameterId = null);
 
 public sealed record NodeExecutionContext(
     NodeInstance Node,

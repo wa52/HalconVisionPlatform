@@ -857,7 +857,7 @@ public partial class MainWindow : Window
         FinishRoiDrawing();
         if (
             _vm.SelectedFlow?.SelectedNode is not { } lineNode ||
-            lineNode.TypeId is not (HalconNodeProvider.StraightLineFind or HalconNodeProvider.SemanticSegmentation or HalconNodeProvider.Classification or HalconNodeProvider.ObjectDetection or HalconNodeProvider.QuickMatch)) return;
+            lineNode.TypeId is not (HalconNodeProvider.StraightLineFind or HalconNodeProvider.SemanticSegmentation or HalconNodeProvider.Classification or HalconNodeProvider.ObjectDetection or HalconNodeProvider.QuickMatch or HalconNodeProvider.Threshold)) return;
         var flow = _vm.SelectedFlow;
         var templateDrawing = lineNode.TypeId == HalconNodeProvider.QuickMatch && parameter.Definition.Id == "templateRoi";
         var edge = flow.Document.Edges.FirstOrDefault(item => item.ToNodeId == lineNode.Id && item.ToPortId == "image");
@@ -979,7 +979,7 @@ public partial class MainWindow : Window
 
     private void RoiOverlay_MouseUp(object sender, MouseButtonEventArgs e)
     {
-        if (!_isDrawingRoi || e.ChangedButton != MouseButton.Left || _roiParameter is null) return;
+        if (!_isDrawingRoi || e.ChangedButton != MouseButton.Left || _roiParameter is null && _inspectionRegionDraw is null) return;
         RoiDrawingOverlay.ReleaseMouseCapture();
         var end = e.GetPosition(RoiDrawingOverlay);
         if (Math.Abs(end.X - _roiStart.X) < 4 || Math.Abs(end.Y - _roiStart.Y) < 4)
@@ -995,10 +995,27 @@ public partial class MainWindow : Window
         var startColumn = column1 + _roiStart.X / RoiDrawingOverlay.ActualWidth * columnSpan;
         var endRow = row1 + end.Y / RoiDrawingOverlay.ActualHeight * rowSpan;
         var endColumn = column1 + end.X / RoiDrawingOverlay.ActualWidth * columnSpan;
+        if (_inspectionRegionDraw is { } commitRegion)
+        {
+            InspectionRegion? outline = null;
+            try
+            {
+                var bounds = new Rectangle2D(Math.Clamp(Math.Min(startRow, endRow), 0, _previewImageHeight - 1),
+                    Math.Clamp(Math.Min(startColumn, endColumn), 0, _previewImageWidth - 1),
+                    Math.Clamp(Math.Max(startRow, endRow), 0, _previewImageHeight - 1), Math.Clamp(Math.Max(startColumn, endColumn), 0, _previewImageWidth - 1));
+                if (bounds.RowEnd <= bounds.RowBegin || bounds.ColumnEnd <= bounds.ColumnBegin) throw new InvalidDataException("检测区域为空。");
+                commitRegion(bounds); DetectionSummary.Text = "任务区域已绘制 · 请保存项目并重新运行";
+                outline = _vm.SelectedFlow?.Document.InspectionRegions.FirstOrDefault(r => r.Bounds == bounds);
+            }
+            catch (Exception error) { ShowError("保存任务区域失败", error); }
+            finally { FinishRoiDrawing(); }
+            if (outline is not null) { _inspectionOutlineRegion = outline; RoiDrawingOverlay.Visibility = Visibility.Visible; RenderConfiguredRois(); }
+            e.Handled = true; return;
+        }
         var parameter = _roiParameter;
         try
         {
-            if (parameter.IsRoiList) parameter.SaveDrawnRoi(_roiEditId, startRow, startColumn, endRow, endColumn);
+            if (parameter!.IsRoiList) parameter.SaveDrawnRoi(_roiEditId, startRow, startColumn, endRow, endColumn);
             else
             {
                 parameter.ValueText = string.Join(",", new[] { startRow, startColumn, endRow, endColumn }
@@ -1021,6 +1038,7 @@ public partial class MainWindow : Window
         ClearConfiguredRois();
         _isDrawingRoi = false;
         _roiParameter = null;
+        _inspectionRegionDraw = null;
         _roiEditId = null;
         RoiDrawingOverlay.Visibility = Visibility.Collapsed;
         RoiDrawingOverlay.Cursor = Cursors.Arrow;
@@ -1031,6 +1049,7 @@ public partial class MainWindow : Window
 
     private void ClearConfiguredRois()
     {
+        _inspectionOutlineRegion = null;
         if (_roiOutlineParameter is { } parameter) parameter.PropertyChanged -= ConfiguredRois_Changed;
         _roiOutlineParameter = null;
         foreach (var element in _roiOutlines) RoiDrawingOverlay.Children.Remove(element);
@@ -1053,11 +1072,13 @@ public partial class MainWindow : Window
     {
         foreach (var element in _roiOutlines) RoiDrawingOverlay.Children.Remove(element);
         _roiOutlines.Clear();
-        if (_roiOutlineParameter is null || PreviewWindow.HalconWindow is null || RoiDrawingOverlay.ActualWidth <= 0 || RoiDrawingOverlay.ActualHeight <= 0) return;
+        if (_roiOutlineParameter is null && _inspectionOutlineRegion is null || PreviewWindow.HalconWindow is null || RoiDrawingOverlay.ActualWidth <= 0 || RoiDrawingOverlay.ActualHeight <= 0) return;
         try
         {
             PreviewWindow.HalconWindow.GetPart(out int r1, out int c1, out int r2, out int c2);
-            foreach (var item in ReadConfiguredDisplayRois(_roiOutlineParameter).Where(item => item.Enabled))
+            var displayRois = _inspectionOutlineRegion is { } taskRegion ? new[] { new DetectionRoi(taskRegion.Id, taskRegion.Name, taskRegion.Bounds.RowBegin, taskRegion.Bounds.ColumnBegin, taskRegion.Bounds.RowEnd, taskRegion.Bounds.ColumnEnd) }
+                : ReadConfiguredDisplayRois(_roiOutlineParameter!);
+            foreach (var item in displayRois.Where(item => item.Enabled))
             {
                 var left = (Math.Min(item.ColumnBegin, item.ColumnEnd) - c1) * RoiDrawingOverlay.ActualWidth / (c2 - c1 + 1d);
                 var top = (Math.Min(item.RowBegin, item.RowEnd) - r1) * RoiDrawingOverlay.ActualHeight / (r2 - r1 + 1d);

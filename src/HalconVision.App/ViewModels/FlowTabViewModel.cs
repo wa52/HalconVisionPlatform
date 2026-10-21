@@ -33,6 +33,13 @@ public sealed class FlowTabViewModel : ObservableModel
     public Guid Id => _document.Id;
     public string Name => _document.Name;
     public FlowDocument Document => _document;
+    public IReadOnlyList<WorkflowValidationIssue> ValidateDocument(FlowDocument document) => _validator.Validate(document);
+    public void SetInspectionPlan(IEnumerable<InspectionRegion> regions, IEnumerable<InspectionTask> tasks)
+    {
+        PushUndo();
+        _document = _document with { SchemaVersion = 2, InspectionRegions = regions.ToList(), InspectionTasks = tasks.ToList() };
+        IsDirty = true; Raise(nameof(Document)); Raise(nameof(ValidationIssues));
+    }
     public void EnsureRoiEditsValid()
     {
         foreach (var node in Nodes)

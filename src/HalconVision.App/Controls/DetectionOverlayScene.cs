@@ -1,6 +1,7 @@
 using System.Text.Json;
 using HalconDotNet;
 using HalconVision.Domain;
+using HalconVision.Application;
 
 namespace HalconVision.App;
 
@@ -99,6 +100,22 @@ public sealed class DetectionOverlayScene
                             .Select(i => new Point2D(rows[i].D, columns[i].D)).ToArray(), "LimeGreen"));
                 }
             }
+        }
+        if (run?.FlowId == flow.Id && run.Inspection?.ConfigurationIdentity == InspectionPlan.ConfigurationIdentity(flow.Document))
+        foreach (var region in flow.Document.InspectionRegions.Where(r => r.ImageNodeId == settings.NodeId))
+        {
+            var tasks = flow.Document.InspectionTasks.Where(t => t.Enabled && t.RegionId == region.Id &&
+                (settings.Overlays ?? []).Any(l => l.ShowGeometry && t.NodeIds.Contains(l.NodeId))).ToArray();
+            if (tasks.Length == 0) continue;
+            var results = run.Inspection.Tasks.Where(t => tasks.Any(item => item.Id == t.TaskId)).ToArray();
+            var color = results.Length != tasks.Length || results.Any(t => t.Verdict is not (InspectionVerdict.Ok or InspectionVerdict.Ng)) ? "Orange" : results.Any(t => t.Verdict == InspectionVerdict.Ng) ? "Red" : "LimeGreen";
+            var b = region.Bounds;
+            scene.Geometry.Add(new([new(b.RowBegin,b.ColumnBegin),new(b.RowBegin,b.ColumnEnd),new(b.RowEnd,b.ColumnEnd),new(b.RowEnd,b.ColumnBegin),new(b.RowBegin,b.ColumnBegin)],color));
+            scene.Captions.Add(new($"{region.Name}："+string.Join(" / ",tasks.Select(t=>
+            {
+                var verdict=results.FirstOrDefault(r=>r.TaskId==t.Id)?.Verdict;
+                return $"{t.Name} {(verdict == InspectionVerdict.Ok ? "OK" : verdict == InspectionVerdict.Ng ? "NG" : "ERROR")}";
+            })),color));
         }
         return scene;
     }

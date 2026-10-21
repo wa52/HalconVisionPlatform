@@ -133,9 +133,11 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
         yield return new NodeDefinition(
             Threshold, 1, "图像处理", "二值化", "对输入 HImage 执行 HALCON Threshold，输出 HRegion。",
             [new PortDefinition("image", "Image", PortDirection.Input, "halcon.image", Required: true),
-             new PortDefinition("region", "Region", PortDirection.Output, "halcon.region")],
+             new PortDefinition("region", "Region", PortDirection.Output, "halcon.region"),
+             new PortDefinition("area", "区域面积", PortDirection.Output, "number")],
             [new NodeParameterDefinition("minimum", "灰度下限", "number", true, JsonSerializer.SerializeToElement(128d)),
-             new NodeParameterDefinition("maximum", "灰度上限", "number", true, JsonSerializer.SerializeToElement(255d))]);
+             new NodeParameterDefinition("maximum", "灰度上限", "number", true, JsonSerializer.SerializeToElement(255d)),
+             new("roi", "检测范围", "roiDraw", false, JsonSerializer.SerializeToElement(""))]);
 
         yield return new NodeDefinition(
             BlobAnalysis, 1, "特征检测", "Blob 分析", "对二值区域执行 Connection 和面积筛选，输出区域及连通域数量。",
@@ -143,7 +145,7 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
              new PortDefinition("regions", "Regions", PortDirection.Output, "halcon.region"),
              new PortDefinition("count", "Count", PortDirection.Output, "number")],
             [new NodeParameterDefinition("minimumArea", "最小面积", "number", true, JsonSerializer.SerializeToElement(1d)),
-             new NodeParameterDefinition("maximumArea", "最大面积", "number", true, JsonSerializer.SerializeToElement(1_000_000_000d))]);
+             new NodeParameterDefinition("maximumArea", "最大面积", "number", true, JsonSerializer.SerializeToElement(1_000_000_000d))], TaskRoiParameterId: "roi");
 
         yield return new NodeDefinition(
             StraightLineFind, 1, "特征检测", "直线查找", "在绘制的矩形搜索范围内，用 HALCON 2D Metrology 定位边缘并拟合一条水平或垂直直线。",
@@ -313,17 +315,24 @@ public sealed class HalconThresholdExecutor : INodeExecutor
         if (channelCount != 1 && channelCount != 3)
             throw new InvalidDataException($"二值化仅支持单通道灰度或三通道 RGB 图像，当前通道数：{channelCount}。");
 
-        HRegion? region = thresholdInput.Threshold(minimum, maximum);
+        var dimensions = ReadImageDimensions(context, "image");
+        var bounds = TaskRoiScope.Read(context.Node, dimensions.Width, dimensions.Height);
+        using var scopeRegion = bounds is null ? null : new HRegion(bounds.RowBegin, bounds.ColumnBegin, bounds.RowEnd, bounds.ColumnEnd);
+        if (bounds is not null) ValidRegionGuard.Require(context, image, [bounds]);
+        using var scoped = scopeRegion is null ? null : thresholdInput.ReduceDomain(scopeRegion);
+        HRegion? region = (scoped ?? thresholdInput).Threshold(minimum, maximum);
         try
         {
         var count = region.CountObj();
-        var dimensions = ReadImageDimensions(context, "image");
+        using var areas = region.AreaCenter(out HTuple rows, out HTuple columns); using var rowsScope = rows; using var colsScope = columns;
+        using var realAreas = areas.TupleReal();
         context.Log(channelCount == 3
             ? $"HALCON Rgb1ToGray + Threshold({minimum:G}, {maximum:G})：生成 {count} 个区域对象。"
             : $"HALCON Threshold({minimum:G}, {maximum:G})：生成 {count} 个区域对象。");
         var serialized = new Dictionary<string, JsonElement>
         {
-            ["region"] = JsonSerializer.SerializeToElement(new { objectCount = count, minimum, maximum, width = dimensions.Width, height = dimensions.Height })
+            ["region"] = JsonSerializer.SerializeToElement(new { objectCount = count, minimum, maximum, width = dimensions.Width, height = dimensions.Height }),
+            ["area"] = JsonSerializer.SerializeToElement(realAreas.DArr.Sum())
         };
         var runtime = new Dictionary<string, object?> { ["region"] = region };
         region = null;
@@ -367,12 +376,15 @@ public sealed class HalconBlobAnalysisExecutor : INodeExecutor
         if (minimumArea < 0 || maximumArea < minimumArea)
             throw new InvalidDataException("Blob 面积范围无效：面积必须非负，且最大面积不能小于最小面积。");
 
-        using var connected = region.Connection();
+        var dimensions = HalconThresholdExecutor.ReadImageDimensions(context, "region");
+        var bounds = TaskRoiScope.Read(context.Node, dimensions.Width, dimensions.Height);
+        using var scopeRegion = bounds is null ? null : new HRegion(bounds.RowBegin, bounds.ColumnBegin, bounds.RowEnd, bounds.ColumnEnd);
+        using var scoped = scopeRegion is null ? null : region.Intersection(scopeRegion);
+        using var connected = (scoped ?? region).Connection();
         HRegion? filtered = connected.SelectShape("area", "and", minimumArea, maximumArea);
         try
         {
         var count = filtered.CountObj();
-        var dimensions = HalconThresholdExecutor.ReadImageDimensions(context, "region");
         context.Log($"HALCON Connection + SelectShape(area)：筛选后 {count} 个连通域。");
         var serialized = new Dictionary<string, JsonElement>
         {

@@ -19,7 +19,12 @@ public static class WorkflowConfiguration
             var parameters = node.Parameters.OrderBy(p => p.Key).Select(p => new { key = p.Key, value = CanonicalParameter(node, p.Key, p.Value) });
             var inputs = flow.Edges.Where(e => e.ToNodeId == id).OrderBy(e => e.ToPortId).ThenBy(e => e.FromPortId)
                 .Select(e => new { input = e.ToPortId, output = e.FromPortId, signature = Visit(e.FromNodeId) }).ToArray();
-            var text = JsonSerializer.Serialize(new { node.TypeId, node.TypeVersion, node.Enabled, parameters = parameters.ToArray(), inputs });
+            var task = flow.InspectionTasks.FirstOrDefault(t => t.NodeIds.Contains(id));
+            var region = task is null ? null : flow.InspectionRegions.FirstOrDefault(r => r.Id == task.RegionId);
+            var taskRegion = region is null ? null : new { region.Bounds, region.ImagePortId, source = Visit(region.ImageNodeId), enabled = task!.Enabled };
+            var text = taskRegion is null
+                ? JsonSerializer.Serialize(new { node.TypeId, node.TypeVersion, node.Enabled, parameters = parameters.ToArray(), inputs })
+                : JsonSerializer.Serialize(new { node.TypeId, node.TypeVersion, node.Enabled, parameters = parameters.ToArray(), inputs, taskRegion });
             seen.Remove(id);
             return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text)));
         }

@@ -1,0 +1,28 @@
+{
+  "RunId": "10c39e66-2285-4e7f-8e4c-edab897f6fd7",
+  "FlowId": "d34acb2f-f7cb-4e9a-9c14-5c45a1407749",
+  "Verdict": 1,
+  "Tasks": [
+    {
+      "TaskId": "88d53a19-a96b-4560-819b-ecca237a0f19",
+      "Name": "\u87BA\u4E1D\u6570\u91CF",
+      "Required": true,
+      "Verdict": 1,
+      "Reasons": [
+        "\u5168\u90E8\u89C4\u5219\u6EE1\u8DB3\u3002"
+      ]
+    },
+    {
+      "TaskId": "42d70c33-acf9-4adb-b0c7-ba2ffe121ee8",
+      "Name": "\u76F4\u7EBF\u5B58\u5728",
+      "Required": true,
+      "Verdict": 1,
+      "Reasons": [
+        "\u5168\u90E8\u89C4\u5219\u6EE1\u8DB3\u3002"
+      ]
+    }
+  ],
+  "Reasons": [],
+  "ConfigurationIdentity": "A753B7787B4885681911CF91589403DCD563756CF486EDCE9C38E4DDF9BA210C",
+  "Label": "OK"
+}
