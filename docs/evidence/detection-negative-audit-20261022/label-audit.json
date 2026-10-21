@@ -1,0 +1,110 @@
+[
+  {
+    "Name": "P1",
+    "imageId": 1,
+    "exportedCrop": "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000001_0.jpg",
+    "classifiedCrop": "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\\u7ED3\u679C\\NGP1\\0.jpg",
+    "negative": true,
+    "boxes": 0,
+    "differenceMeans": [
+      2.162399147737855,
+      1.7480164790547639,
+      2.5162890837436955
+    ],
+    "Decision": {
+      "Code": "NOT_DETECTED",
+      "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+    },
+    "labelAgreement": true
+  },
+  {
+    "Name": "P2",
+    "imageId": 310,
+    "exportedCrop": "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000310_0.jpg",
+    "classifiedCrop": "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\\u7ED3\u679C\\P2\\0.jpg",
+    "negative": false,
+    "boxes": 1,
+    "differenceMeans": [
+      2.1107142857142858,
+      1.7242965367965368,
+      2.4821699134199133
+    ],
+    "Decision": {
+      "Code": "OK",
+      "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+    },
+    "labelAgreement": true
+  },
+  {
+    "Name": "P3",
+    "imageId": 577,
+    "exportedCrop": "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000577_0.jpg",
+    "classifiedCrop": "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\\u7ED3\u679C\\P3\\0.jpg",
+    "negative": false,
+    "boxes": 1,
+    "differenceMeans": [
+      2.1572595481639563,
+      1.773198910883803,
+      2.8015306497902714
+    ],
+    "Decision": {
+      "Code": "OK",
+      "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+    },
+    "labelAgreement": true
+  },
+  {
+    "Name": "P4",
+    "imageId": 15,
+    "exportedCrop": "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000015_0.jpg",
+    "classifiedCrop": "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\\u7ED3\u679C\\NGP4\\0.jpg",
+    "negative": true,
+    "boxes": 0,
+    "differenceMeans": [
+      1.9192081270057169,
+      1.6173145176715618,
+      2.214864089431067
+    ],
+    "Decision": {
+      "Code": "NOT_DETECTED",
+      "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+    },
+    "labelAgreement": true
+  },
+  {
+    "Name": "P5",
+    "imageId": 29,
+    "exportedCrop": "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000029_0.jpg",
+    "classifiedCrop": "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\\u7ED3\u679C\\NGP5\\0.jpg",
+    "negative": true,
+    "boxes": 0,
+    "differenceMeans": [
+      2.496709746805447,
+      1.9780801691609398,
+      2.9402559288357426
+    ],
+    "Decision": {
+      "Code": "NOT_DETECTED",
+      "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+    },
+    "labelAgreement": true
+  },
+  {
+    "Name": "P6",
+    "imageId": 43,
+    "exportedCrop": "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000043_0.jpg",
+    "classifiedCrop": "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\\u7ED3\u679C\\NGP6\\0.jpg",
+    "negative": true,
+    "boxes": 0,
+    "differenceMeans": [
+      1.9602083333333333,
+      1.6089583333333333,
+      2.306111111111111
+    ],
+    "Decision": {
+      "Code": "NOT_DETECTED",
+      "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+    },
+    "labelAgreement": true
+  }
+]

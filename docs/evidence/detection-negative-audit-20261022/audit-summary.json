@@ -1,0 +1,1107 @@
+{
+  "reproduced": true,
+  "observations": [
+    {
+      "name": "baseline",
+      "image": "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\1\\OR_1_N05A00522B_18_37_41.jpg",
+      "full": false,
+      "confidence": 0.5,
+      "raw": false,
+      "pad": 0,
+      "rows": [
+        {
+          "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+          "RoiName": "P1",
+          "Bounds": {
+            "RowBegin": 991,
+            "ColumnBegin": 957,
+            "RowEnd": 1489,
+            "ColumnEnd": 1225
+          },
+          "ExpectedClass": "P1",
+          "Objects": [],
+          "Candidates": [],
+          "Decision": {
+            "Code": "NOT_DETECTED",
+            "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+          },
+          "InferenceMilliseconds": 61196.4883
+        },
+        {
+          "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+          "RoiName": "P2",
+          "Bounds": {
+            "RowBegin": 521,
+            "ColumnBegin": 131,
+            "RowEnd": 730,
+            "ColumnEnd": 306
+          },
+          "ExpectedClass": "P2",
+          "Objects": [
+            {
+              "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+              "RoiName": "P2",
+              "ClassId": 6,
+              "ClassName": "P2",
+              "Confidence": 0.9990643858909607,
+              "Bounds": {
+                "RowBegin": 573.9709230065346,
+                "ColumnBegin": 164.4569673538208,
+                "RowEnd": 666.8576889038086,
+                "ColumnEnd": 259.56262016296387
+              }
+            }
+          ],
+          "Candidates": [
+            {
+              "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+              "RoiName": "P2",
+              "ClassId": 6,
+              "ClassName": "P2",
+              "Confidence": 0.9990643858909607,
+              "Bounds": {
+                "RowBegin": 573.9709230065346,
+                "ColumnBegin": 164.4569673538208,
+                "RowEnd": 666.8576889038086,
+                "ColumnEnd": 259.56262016296387
+              }
+            }
+          ],
+          "Decision": {
+            "Code": "OK",
+            "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+          },
+          "InferenceMilliseconds": 73.959
+        },
+        {
+          "RoiId": "bdc6e70c-6565-48d6-88ac-32c06e7aded4",
+          "RoiName": "P3",
+          "Bounds": {
+            "RowBegin": 261,
+            "ColumnBegin": 1548,
+            "RowEnd": 387,
+            "ColumnEnd": 1654
+          },
+          "ExpectedClass": "P3",
+          "Objects": [
+            {
+              "RoiId": "bdc6e70c-6565-48d6-88ac-32c06e7aded4",
+              "RoiName": "P3",
+              "ClassId": 7,
+              "ClassName": "P3",
+              "Confidence": 0.9988387227058411,
+              "Bounds": {
+                "RowBegin": 295.2183492779732,
+                "ColumnBegin": 1582.7401050329208,
+                "RowEnd": 362.96218544244766,
+                "ColumnEnd": 1624.3982396125793
+              }
+            }
+          ],
+          "Candidates": [
+            {
+              "RoiId": "bdc6e70c-6565-48d6-88ac-32c06e7aded4",
+              "RoiName": "P3",
+              "ClassId": 7,
+              "ClassName": "P3",
+              "Confidence": 0.9988387227058411,
+              "Bounds": {
+                "RowBegin": 295.2183492779732,
+                "ColumnBegin": 1582.7401050329208,
+                "RowEnd": 362.96218544244766,
+                "ColumnEnd": 1624.3982396125793
+              }
+            }
+          ],
+          "Decision": {
+            "Code": "OK",
+            "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+          },
+          "InferenceMilliseconds": 73.1867
+        },
+        {
+          "RoiId": "08137286-be9d-4f6c-8b2b-05f2299e625b",
+          "RoiName": "P4",
+          "Bounds": {
+            "RowBegin": 399,
+            "ColumnBegin": 495,
+            "RowEnd": 844,
+            "ColumnEnd": 705
+          },
+          "ExpectedClass": "P4",
+          "Objects": [],
+          "Candidates": [],
+          "Decision": {
+            "Code": "NOT_DETECTED",
+            "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+          },
+          "InferenceMilliseconds": 75.1565
+        },
+        {
+          "RoiId": "86eb0414-4388-4d0a-9c9d-a628587e5334",
+          "RoiName": "P5",
+          "Bounds": {
+            "RowBegin": 1123,
+            "ColumnBegin": 487,
+            "RowEnd": 1583,
+            "ColumnEnd": 724
+          },
+          "ExpectedClass": "P5",
+          "Objects": [],
+          "Candidates": [],
+          "Decision": {
+            "Code": "NOT_DETECTED",
+            "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+          },
+          "InferenceMilliseconds": 73.7416
+        },
+        {
+          "RoiId": "6c5fa081-ef40-43db-9d1a-f2323c54191f",
+          "RoiName": "P6",
+          "Bounds": {
+            "RowBegin": 1396,
+            "ColumnBegin": 1945,
+            "RowEnd": 1575,
+            "ColumnEnd": 2104
+          },
+          "ExpectedClass": "P6",
+          "Objects": [],
+          "Candidates": [],
+          "Decision": {
+            "Code": "NOT_DETECTED",
+            "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+          },
+          "InferenceMilliseconds": 74.3001
+        }
+      ],
+      "Outputs": {
+        "preview": {
+          "width": 2592,
+          "height": 1944,
+          "channels": 3
+        },
+        "objects": [
+          {
+            "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+            "RoiName": "P2",
+            "ClassId": 6,
+            "ClassName": "P2",
+            "Confidence": 0.9990643858909607,
+            "Bounds": {
+              "RowBegin": 573.9709230065346,
+              "ColumnBegin": 164.4569673538208,
+              "RowEnd": 666.8576889038086,
+              "ColumnEnd": 259.56262016296387
+            }
+          },
+          {
+            "RoiId": "bdc6e70c-6565-48d6-88ac-32c06e7aded4",
+            "RoiName": "P3",
+            "ClassId": 7,
+            "ClassName": "P3",
+            "Confidence": 0.9988387227058411,
+            "Bounds": {
+              "RowBegin": 295.2183492779732,
+              "ColumnBegin": 1582.7401050329208,
+              "RowEnd": 362.96218544244766,
+              "ColumnEnd": 1624.3982396125793
+            }
+          }
+        ],
+        "count": 2,
+        "roiResults": [
+          {
+            "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+            "RoiName": "P1",
+            "Bounds": {
+              "RowBegin": 991,
+              "ColumnBegin": 957,
+              "RowEnd": 1489,
+              "ColumnEnd": 1225
+            },
+            "ExpectedClass": "P1",
+            "Objects": [],
+            "Candidates": [],
+            "Decision": {
+              "Code": "NOT_DETECTED",
+              "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+            },
+            "InferenceMilliseconds": 61196.4883
+          },
+          {
+            "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+            "RoiName": "P2",
+            "Bounds": {
+              "RowBegin": 521,
+              "ColumnBegin": 131,
+              "RowEnd": 730,
+              "ColumnEnd": 306
+            },
+            "ExpectedClass": "P2",
+            "Objects": [
+              {
+                "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+                "RoiName": "P2",
+                "ClassId": 6,
+                "ClassName": "P2",
+                "Confidence": 0.9990643858909607,
+                "Bounds": {
+                  "RowBegin": 573.9709230065346,
+                  "ColumnBegin": 164.4569673538208,
+                  "RowEnd": 666.8576889038086,
+                  "ColumnEnd": 259.56262016296387
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+                "RoiName": "P2",
+                "ClassId": 6,
+                "ClassName": "P2",
+                "Confidence": 0.9990643858909607,
+                "Bounds": {
+                  "RowBegin": 573.9709230065346,
+                  "ColumnBegin": 164.4569673538208,
+                  "RowEnd": 666.8576889038086,
+                  "ColumnEnd": 259.56262016296387
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 73.959
+          },
+          {
+            "RoiId": "bdc6e70c-6565-48d6-88ac-32c06e7aded4",
+            "RoiName": "P3",
+            "Bounds": {
+              "RowBegin": 261,
+              "ColumnBegin": 1548,
+              "RowEnd": 387,
+              "ColumnEnd": 1654
+            },
+            "ExpectedClass": "P3",
+            "Objects": [
+              {
+                "RoiId": "bdc6e70c-6565-48d6-88ac-32c06e7aded4",
+                "RoiName": "P3",
+                "ClassId": 7,
+                "ClassName": "P3",
+                "Confidence": 0.9988387227058411,
+                "Bounds": {
+                  "RowBegin": 295.2183492779732,
+                  "ColumnBegin": 1582.7401050329208,
+                  "RowEnd": 362.96218544244766,
+                  "ColumnEnd": 1624.3982396125793
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "bdc6e70c-6565-48d6-88ac-32c06e7aded4",
+                "RoiName": "P3",
+                "ClassId": 7,
+                "ClassName": "P3",
+                "Confidence": 0.9988387227058411,
+                "Bounds": {
+                  "RowBegin": 295.2183492779732,
+                  "ColumnBegin": 1582.7401050329208,
+                  "RowEnd": 362.96218544244766,
+                  "ColumnEnd": 1624.3982396125793
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 73.1867
+          },
+          {
+            "RoiId": "08137286-be9d-4f6c-8b2b-05f2299e625b",
+            "RoiName": "P4",
+            "Bounds": {
+              "RowBegin": 399,
+              "ColumnBegin": 495,
+              "RowEnd": 844,
+              "ColumnEnd": 705
+            },
+            "ExpectedClass": "P4",
+            "Objects": [],
+            "Candidates": [],
+            "Decision": {
+              "Code": "NOT_DETECTED",
+              "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+            },
+            "InferenceMilliseconds": 75.1565
+          },
+          {
+            "RoiId": "86eb0414-4388-4d0a-9c9d-a628587e5334",
+            "RoiName": "P5",
+            "Bounds": {
+              "RowBegin": 1123,
+              "ColumnBegin": 487,
+              "RowEnd": 1583,
+              "ColumnEnd": 724
+            },
+            "ExpectedClass": "P5",
+            "Objects": [],
+            "Candidates": [],
+            "Decision": {
+              "Code": "NOT_DETECTED",
+              "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+            },
+            "InferenceMilliseconds": 73.7416
+          },
+          {
+            "RoiId": "6c5fa081-ef40-43db-9d1a-f2323c54191f",
+            "RoiName": "P6",
+            "Bounds": {
+              "RowBegin": 1396,
+              "ColumnBegin": 1945,
+              "RowEnd": 1575,
+              "ColumnEnd": 2104
+            },
+            "ExpectedClass": "P6",
+            "Objects": [],
+            "Candidates": [],
+            "Decision": {
+              "Code": "NOT_DETECTED",
+              "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+            },
+            "InferenceMilliseconds": 74.3001
+          }
+        ],
+        "decision": {
+          "Code": "NOT_DETECTED",
+          "Message": "OK 2 \u4E2A\u533A\u57DF\uFF1B\u672A\u68C0\u51FA/\u6570\u91CF\u5F02\u5E38 NG 4 \u4E2A\uFF1B\u68C0\u51FA NG 0 \u4E2A"
+        },
+        "status": {
+          "Code": "DETECTED",
+          "Message": "OK 2 \u4E2A\u533A\u57DF\uFF1B\u672A\u68C0\u51FA/\u6570\u91CF\u5F02\u5E38 NG 4 \u4E2A\uFF1B\u68C0\u51FA NG 0 \u4E2A"
+        },
+        "modelInfo": {
+          "directory": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3",
+          "device": "gpu",
+          "deviceIndex": 0,
+          "roiCount": 6,
+          "cacheHit": false,
+          "modelLoadMs": 4685.0184,
+          "inputWidth": 256,
+          "inputHeight": 256,
+          "minimumConfidence": 0.5,
+          "maxOverlap": 0.5,
+          "maximum": 100,
+          "inferenceMs": 61566.8322,
+          "elapsedMs": 69588.4561,
+          "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+          "validationStatus": "bootstrap_unvalidated"
+        }
+      },
+      "ElapsedMilliseconds": 69596.005
+    },
+    {
+      "name": "positive-control",
+      "image": "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\1\\OR_1_N063000DCL_14_45_59.jpg",
+      "full": false,
+      "confidence": 0.5,
+      "raw": false,
+      "pad": 0,
+      "rows": [
+        {
+          "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+          "RoiName": "P1",
+          "Bounds": {
+            "RowBegin": 991,
+            "ColumnBegin": 957,
+            "RowEnd": 1489,
+            "ColumnEnd": 1225
+          },
+          "ExpectedClass": "P1",
+          "Objects": [
+            {
+              "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+              "RoiName": "P1",
+              "ClassId": 5,
+              "ClassName": "P1",
+              "Confidence": 0.9973074197769165,
+              "Bounds": {
+                "RowBegin": 998.010987997055,
+                "ColumnBegin": 985.0188358128071,
+                "RowEnd": 1467.8347797989845,
+                "ColumnEnd": 1203.6376059055328
+              }
+            }
+          ],
+          "Candidates": [
+            {
+              "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+              "RoiName": "P1",
+              "ClassId": 5,
+              "ClassName": "P1",
+              "Confidence": 0.9973074197769165,
+              "Bounds": {
+                "RowBegin": 998.010987997055,
+                "ColumnBegin": 985.0188358128071,
+                "RowEnd": 1467.8347797989845,
+                "ColumnEnd": 1203.6376059055328
+              }
+            }
+          ],
+          "Decision": {
+            "Code": "OK",
+            "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+          },
+          "InferenceMilliseconds": 74.187
+        },
+        {
+          "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+          "RoiName": "P2",
+          "Bounds": {
+            "RowBegin": 521,
+            "ColumnBegin": 131,
+            "RowEnd": 730,
+            "ColumnEnd": 306
+          },
+          "ExpectedClass": "P2",
+          "Objects": [
+            {
+              "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+              "RoiName": "P2",
+              "ClassId": 6,
+              "ClassName": "P2",
+              "Confidence": 0.998762845993042,
+              "Bounds": {
+                "RowBegin": 573.095057040453,
+                "ColumnBegin": 164.22989177703857,
+                "RowEnd": 664.8746495246887,
+                "ColumnEnd": 256.27257347106934
+              }
+            }
+          ],
+          "Candidates": [
+            {
+              "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+              "RoiName": "P2",
+              "ClassId": 6,
+              "ClassName": "P2",
+              "Confidence": 0.998762845993042,
+              "Bounds": {
+                "RowBegin": 573.095057040453,
+                "ColumnBegin": 164.22989177703857,
+                "RowEnd": 664.8746495246887,
+                "ColumnEnd": 256.27257347106934
+              }
+            }
+          ],
+          "Decision": {
+            "Code": "OK",
+            "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+          },
+          "InferenceMilliseconds": 73.5706
+        },
+        {
+          "RoiId": "bdc6e70c-6565-48d6-88ac-32c06e7aded4",
+          "RoiName": "P3",
+          "Bounds": {
+            "RowBegin": 261,
+            "ColumnBegin": 1548,
+            "RowEnd": 387,
+            "ColumnEnd": 1654
+          },
+          "ExpectedClass": "P3",
+          "Objects": [
+            {
+              "RoiId": "bdc6e70c-6565-48d6-88ac-32c06e7aded4",
+              "RoiName": "P3",
+              "ClassId": 7,
+              "ClassName": "P3",
+              "Confidence": 0.9988969564437866,
+              "Bounds": {
+                "RowBegin": 298.30112728476524,
+                "ColumnBegin": 1582.3726348876953,
+                "RowEnd": 365.21426606178284,
+                "ColumnEnd": 1624.7259639501572
+              }
+            }
+          ],
+          "Candidates": [
+            {
+              "RoiId": "bdc6e70c-6565-48d6-88ac-32c06e7aded4",
+              "RoiName": "P3",
+              "ClassId": 7,
+              "ClassName": "P3",
+              "Confidence": 0.9988969564437866,
+              "Bounds": {
+                "RowBegin": 298.30112728476524,
+                "ColumnBegin": 1582.3726348876953,
+                "RowEnd": 365.21426606178284,
+                "ColumnEnd": 1624.7259639501572
+              }
+            }
+          ],
+          "Decision": {
+            "Code": "OK",
+            "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+          },
+          "InferenceMilliseconds": 74.1979
+        },
+        {
+          "RoiId": "08137286-be9d-4f6c-8b2b-05f2299e625b",
+          "RoiName": "P4",
+          "Bounds": {
+            "RowBegin": 399,
+            "ColumnBegin": 495,
+            "RowEnd": 844,
+            "ColumnEnd": 705
+          },
+          "ExpectedClass": "P4",
+          "Objects": [
+            {
+              "RoiId": "08137286-be9d-4f6c-8b2b-05f2299e625b",
+              "RoiName": "P4",
+              "ClassId": 8,
+              "ClassName": "P4",
+              "Confidence": 0.9936103224754333,
+              "Bounds": {
+                "RowBegin": 485.4064884185791,
+                "ColumnBegin": 510.95371958613396,
+                "RowEnd": 819.3539202213287,
+                "ColumnEnd": 668.5800658464432
+              }
+            }
+          ],
+          "Candidates": [
+            {
+              "RoiId": "08137286-be9d-4f6c-8b2b-05f2299e625b",
+              "RoiName": "P4",
+              "ClassId": 8,
+              "ClassName": "P4",
+              "Confidence": 0.9936103224754333,
+              "Bounds": {
+                "RowBegin": 485.4064884185791,
+                "ColumnBegin": 510.95371958613396,
+                "RowEnd": 819.3539202213287,
+                "ColumnEnd": 668.5800658464432
+              }
+            }
+          ],
+          "Decision": {
+            "Code": "OK",
+            "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+          },
+          "InferenceMilliseconds": 72.8434
+        },
+        {
+          "RoiId": "86eb0414-4388-4d0a-9c9d-a628587e5334",
+          "RoiName": "P5",
+          "Bounds": {
+            "RowBegin": 1123,
+            "ColumnBegin": 487,
+            "RowEnd": 1583,
+            "ColumnEnd": 724
+          },
+          "ExpectedClass": "P5",
+          "Objects": [
+            {
+              "RoiId": "86eb0414-4388-4d0a-9c9d-a628587e5334",
+              "RoiName": "P5",
+              "ClassId": 9,
+              "ClassName": "P5",
+              "Confidence": 0.9987167119979858,
+              "Bounds": {
+                "RowBegin": 1152.3041167259216,
+                "ColumnBegin": 490.0199983716011,
+                "RowEnd": 1540.8788633942604,
+                "ColumnEnd": 636.4817621707916
+              }
+            }
+          ],
+          "Candidates": [
+            {
+              "RoiId": "86eb0414-4388-4d0a-9c9d-a628587e5334",
+              "RoiName": "P5",
+              "ClassId": 9,
+              "ClassName": "P5",
+              "Confidence": 0.9987167119979858,
+              "Bounds": {
+                "RowBegin": 1152.3041167259216,
+                "ColumnBegin": 490.0199983716011,
+                "RowEnd": 1540.8788633942604,
+                "ColumnEnd": 636.4817621707916
+              }
+            }
+          ],
+          "Decision": {
+            "Code": "OK",
+            "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+          },
+          "InferenceMilliseconds": 72.1407
+        },
+        {
+          "RoiId": "6c5fa081-ef40-43db-9d1a-f2323c54191f",
+          "RoiName": "P6",
+          "Bounds": {
+            "RowBegin": 1396,
+            "ColumnBegin": 1945,
+            "RowEnd": 1575,
+            "ColumnEnd": 2104
+          },
+          "ExpectedClass": "P6",
+          "Objects": [
+            {
+              "RoiId": "6c5fa081-ef40-43db-9d1a-f2323c54191f",
+              "RoiName": "P6",
+              "ClassId": 10,
+              "ClassName": "P6",
+              "Confidence": 0.996327817440033,
+              "Bounds": {
+                "RowBegin": 1428.9926581382751,
+                "ColumnBegin": 1981.9143362045288,
+                "RowEnd": 1518.4415714740753,
+                "ColumnEnd": 2074.475528717041
+              }
+            }
+          ],
+          "Candidates": [
+            {
+              "RoiId": "6c5fa081-ef40-43db-9d1a-f2323c54191f",
+              "RoiName": "P6",
+              "ClassId": 10,
+              "ClassName": "P6",
+              "Confidence": 0.996327817440033,
+              "Bounds": {
+                "RowBegin": 1428.9926581382751,
+                "ColumnBegin": 1981.9143362045288,
+                "RowEnd": 1518.4415714740753,
+                "ColumnEnd": 2074.475528717041
+              }
+            }
+          ],
+          "Decision": {
+            "Code": "OK",
+            "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+          },
+          "InferenceMilliseconds": 73.4077
+        }
+      ],
+      "Outputs": {
+        "preview": {
+          "width": 2592,
+          "height": 1944,
+          "channels": 3
+        },
+        "objects": [
+          {
+            "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+            "RoiName": "P1",
+            "ClassId": 5,
+            "ClassName": "P1",
+            "Confidence": 0.9973074197769165,
+            "Bounds": {
+              "RowBegin": 998.010987997055,
+              "ColumnBegin": 985.0188358128071,
+              "RowEnd": 1467.8347797989845,
+              "ColumnEnd": 1203.6376059055328
+            }
+          },
+          {
+            "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+            "RoiName": "P2",
+            "ClassId": 6,
+            "ClassName": "P2",
+            "Confidence": 0.998762845993042,
+            "Bounds": {
+              "RowBegin": 573.095057040453,
+              "ColumnBegin": 164.22989177703857,
+              "RowEnd": 664.8746495246887,
+              "ColumnEnd": 256.27257347106934
+            }
+          },
+          {
+            "RoiId": "bdc6e70c-6565-48d6-88ac-32c06e7aded4",
+            "RoiName": "P3",
+            "ClassId": 7,
+            "ClassName": "P3",
+            "Confidence": 0.9988969564437866,
+            "Bounds": {
+              "RowBegin": 298.30112728476524,
+              "ColumnBegin": 1582.3726348876953,
+              "RowEnd": 365.21426606178284,
+              "ColumnEnd": 1624.7259639501572
+            }
+          },
+          {
+            "RoiId": "08137286-be9d-4f6c-8b2b-05f2299e625b",
+            "RoiName": "P4",
+            "ClassId": 8,
+            "ClassName": "P4",
+            "Confidence": 0.9936103224754333,
+            "Bounds": {
+              "RowBegin": 485.4064884185791,
+              "ColumnBegin": 510.95371958613396,
+              "RowEnd": 819.3539202213287,
+              "ColumnEnd": 668.5800658464432
+            }
+          },
+          {
+            "RoiId": "86eb0414-4388-4d0a-9c9d-a628587e5334",
+            "RoiName": "P5",
+            "ClassId": 9,
+            "ClassName": "P5",
+            "Confidence": 0.9987167119979858,
+            "Bounds": {
+              "RowBegin": 1152.3041167259216,
+              "ColumnBegin": 490.0199983716011,
+              "RowEnd": 1540.8788633942604,
+              "ColumnEnd": 636.4817621707916
+            }
+          },
+          {
+            "RoiId": "6c5fa081-ef40-43db-9d1a-f2323c54191f",
+            "RoiName": "P6",
+            "ClassId": 10,
+            "ClassName": "P6",
+            "Confidence": 0.996327817440033,
+            "Bounds": {
+              "RowBegin": 1428.9926581382751,
+              "ColumnBegin": 1981.9143362045288,
+              "RowEnd": 1518.4415714740753,
+              "ColumnEnd": 2074.475528717041
+            }
+          }
+        ],
+        "count": 6,
+        "roiResults": [
+          {
+            "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+            "RoiName": "P1",
+            "Bounds": {
+              "RowBegin": 991,
+              "ColumnBegin": 957,
+              "RowEnd": 1489,
+              "ColumnEnd": 1225
+            },
+            "ExpectedClass": "P1",
+            "Objects": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 74.187
+          },
+          {
+            "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+            "RoiName": "P2",
+            "Bounds": {
+              "RowBegin": 521,
+              "ColumnBegin": 131,
+              "RowEnd": 730,
+              "ColumnEnd": 306
+            },
+            "ExpectedClass": "P2",
+            "Objects": [
+              {
+                "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+                "RoiName": "P2",
+                "ClassId": 6,
+                "ClassName": "P2",
+                "Confidence": 0.998762845993042,
+                "Bounds": {
+                  "RowBegin": 573.095057040453,
+                  "ColumnBegin": 164.22989177703857,
+                  "RowEnd": 664.8746495246887,
+                  "ColumnEnd": 256.27257347106934
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+                "RoiName": "P2",
+                "ClassId": 6,
+                "ClassName": "P2",
+                "Confidence": 0.998762845993042,
+                "Bounds": {
+                  "RowBegin": 573.095057040453,
+                  "ColumnBegin": 164.22989177703857,
+                  "RowEnd": 664.8746495246887,
+                  "ColumnEnd": 256.27257347106934
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 73.5706
+          },
+          {
+            "RoiId": "bdc6e70c-6565-48d6-88ac-32c06e7aded4",
+            "RoiName": "P3",
+            "Bounds": {
+              "RowBegin": 261,
+              "ColumnBegin": 1548,
+              "RowEnd": 387,
+              "ColumnEnd": 1654
+            },
+            "ExpectedClass": "P3",
+            "Objects": [
+              {
+                "RoiId": "bdc6e70c-6565-48d6-88ac-32c06e7aded4",
+                "RoiName": "P3",
+                "ClassId": 7,
+                "ClassName": "P3",
+                "Confidence": 0.9988969564437866,
+                "Bounds": {
+                  "RowBegin": 298.30112728476524,
+                  "ColumnBegin": 1582.3726348876953,
+                  "RowEnd": 365.21426606178284,
+                  "ColumnEnd": 1624.7259639501572
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "bdc6e70c-6565-48d6-88ac-32c06e7aded4",
+                "RoiName": "P3",
+                "ClassId": 7,
+                "ClassName": "P3",
+                "Confidence": 0.9988969564437866,
+                "Bounds": {
+                  "RowBegin": 298.30112728476524,
+                  "ColumnBegin": 1582.3726348876953,
+                  "RowEnd": 365.21426606178284,
+                  "ColumnEnd": 1624.7259639501572
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 74.1979
+          },
+          {
+            "RoiId": "08137286-be9d-4f6c-8b2b-05f2299e625b",
+            "RoiName": "P4",
+            "Bounds": {
+              "RowBegin": 399,
+              "ColumnBegin": 495,
+              "RowEnd": 844,
+              "ColumnEnd": 705
+            },
+            "ExpectedClass": "P4",
+            "Objects": [
+              {
+                "RoiId": "08137286-be9d-4f6c-8b2b-05f2299e625b",
+                "RoiName": "P4",
+                "ClassId": 8,
+                "ClassName": "P4",
+                "Confidence": 0.9936103224754333,
+                "Bounds": {
+                  "RowBegin": 485.4064884185791,
+                  "ColumnBegin": 510.95371958613396,
+                  "RowEnd": 819.3539202213287,
+                  "ColumnEnd": 668.5800658464432
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "08137286-be9d-4f6c-8b2b-05f2299e625b",
+                "RoiName": "P4",
+                "ClassId": 8,
+                "ClassName": "P4",
+                "Confidence": 0.9936103224754333,
+                "Bounds": {
+                  "RowBegin": 485.4064884185791,
+                  "ColumnBegin": 510.95371958613396,
+                  "RowEnd": 819.3539202213287,
+                  "ColumnEnd": 668.5800658464432
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 72.8434
+          },
+          {
+            "RoiId": "86eb0414-4388-4d0a-9c9d-a628587e5334",
+            "RoiName": "P5",
+            "Bounds": {
+              "RowBegin": 1123,
+              "ColumnBegin": 487,
+              "RowEnd": 1583,
+              "ColumnEnd": 724
+            },
+            "ExpectedClass": "P5",
+            "Objects": [
+              {
+                "RoiId": "86eb0414-4388-4d0a-9c9d-a628587e5334",
+                "RoiName": "P5",
+                "ClassId": 9,
+                "ClassName": "P5",
+                "Confidence": 0.9987167119979858,
+                "Bounds": {
+                  "RowBegin": 1152.3041167259216,
+                  "ColumnBegin": 490.0199983716011,
+                  "RowEnd": 1540.8788633942604,
+                  "ColumnEnd": 636.4817621707916
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "86eb0414-4388-4d0a-9c9d-a628587e5334",
+                "RoiName": "P5",
+                "ClassId": 9,
+                "ClassName": "P5",
+                "Confidence": 0.9987167119979858,
+                "Bounds": {
+                  "RowBegin": 1152.3041167259216,
+                  "ColumnBegin": 490.0199983716011,
+                  "RowEnd": 1540.8788633942604,
+                  "ColumnEnd": 636.4817621707916
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 72.1407
+          },
+          {
+            "RoiId": "6c5fa081-ef40-43db-9d1a-f2323c54191f",
+            "RoiName": "P6",
+            "Bounds": {
+              "RowBegin": 1396,
+              "ColumnBegin": 1945,
+              "RowEnd": 1575,
+              "ColumnEnd": 2104
+            },
+            "ExpectedClass": "P6",
+            "Objects": [
+              {
+                "RoiId": "6c5fa081-ef40-43db-9d1a-f2323c54191f",
+                "RoiName": "P6",
+                "ClassId": 10,
+                "ClassName": "P6",
+                "Confidence": 0.996327817440033,
+                "Bounds": {
+                  "RowBegin": 1428.9926581382751,
+                  "ColumnBegin": 1981.9143362045288,
+                  "RowEnd": 1518.4415714740753,
+                  "ColumnEnd": 2074.475528717041
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "6c5fa081-ef40-43db-9d1a-f2323c54191f",
+                "RoiName": "P6",
+                "ClassId": 10,
+                "ClassName": "P6",
+                "Confidence": 0.996327817440033,
+                "Bounds": {
+                  "RowBegin": 1428.9926581382751,
+                  "ColumnBegin": 1981.9143362045288,
+                  "RowEnd": 1518.4415714740753,
+                  "ColumnEnd": 2074.475528717041
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 73.4077
+          }
+        ],
+        "decision": {
+          "Code": "OK",
+          "Message": "OK 6 \u4E2A\u533A\u57DF\uFF1B\u672A\u68C0\u51FA/\u6570\u91CF\u5F02\u5E38 NG 0 \u4E2A\uFF1B\u68C0\u51FA NG 0 \u4E2A"
+        },
+        "status": {
+          "Code": "DETECTED",
+          "Message": "OK 6 \u4E2A\u533A\u57DF\uFF1B\u672A\u68C0\u51FA/\u6570\u91CF\u5F02\u5E38 NG 0 \u4E2A\uFF1B\u68C0\u51FA NG 0 \u4E2A"
+        },
+        "modelInfo": {
+          "directory": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3",
+          "device": "gpu",
+          "deviceIndex": 0,
+          "roiCount": 6,
+          "cacheHit": true,
+          "modelLoadMs": 0.0036,
+          "inputWidth": 256,
+          "inputHeight": 256,
+          "minimumConfidence": 0.5,
+          "maxOverlap": 0.5,
+          "maximum": 100,
+          "inferenceMs": 440.3473,
+          "elapsedMs": 2444.002,
+          "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+          "validationStatus": "bootstrap_unvalidated"
+        }
+      },
+      "ElapsedMilliseconds": 2444.5458
+    }
+  ],
+  "hashes": {
+    "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\aligned-detection-20261021\\1111_\u5B9A\u4F4D\u68C0\u6D4B\u9A8C\u8BC1.hvproj": "B43756CF822D333233E9999F08B2F64FC407E6480DF90C3B3B257A5337E135EB",
+    "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\1\\OR_1_N05A00522B_18_37_41.jpg": "3FB6D73609EFD55868E2877450DE40DB2A85AF8F95DB2D319F2B980D0A04A28D",
+    "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3\\model.hdl": "200BACCD3143B293039E793927A13A4CBEC920C9621E2E033144E7C9C8207FF3",
+    "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3\\preprocess.hdict": "9702F7AF480704633E6EF730BF76FFAF7D66E1467CA6F32EFD937DE0CC61C481",
+    "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3\\manifest.json": "0C0ABC1319B6A955CA3287CD2D94D406CD8483DCB6E675B832C6CE94AE64B62C",
+    "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\1\\OR_1_N063000DCL_14_45_59.jpg": "B058B4831F5A3F244308275B6594A4E7653798C04CFA7A776E5D214A26FCD053",
+    "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\annotations.json": "02F875684BD909DAB758E2D5773071219B1E2AFDDE82088BB9533DEFF4E129EC",
+    "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\\u7ED3\u679C\\NGP1\\0.jpg": "564261D37B6A7CBB07539E56C5814064B9A0FB061D1594328A770586B4BB8D4E",
+    "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000001_0.jpg": "564261D37B6A7CBB07539E56C5814064B9A0FB061D1594328A770586B4BB8D4E",
+    "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\\u7ED3\u679C\\P2\\0.jpg": "8B7DC111BF6B13E52B6666E6EAFAF1280DC965062EF1E725F26500CE2A65A2F9",
+    "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000310_0.jpg": "8B7DC111BF6B13E52B6666E6EAFAF1280DC965062EF1E725F26500CE2A65A2F9",
+    "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\\u7ED3\u679C\\P3\\0.jpg": "E0790B38DC3DDE90F7BF94CC4B2C37215F2289CCC90831498CE39ACDDAE319BB",
+    "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000577_0.jpg": "E0790B38DC3DDE90F7BF94CC4B2C37215F2289CCC90831498CE39ACDDAE319BB",
+    "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\\u7ED3\u679C\\NGP4\\0.jpg": "5F1F3F575D8F8B784AF4FE67BE6EDA2F0BEEC763DE6C9DB6D295F63896E56D1E",
+    "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000015_0.jpg": "5F1F3F575D8F8B784AF4FE67BE6EDA2F0BEEC763DE6C9DB6D295F63896E56D1E",
+    "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\\u7ED3\u679C\\NGP5\\0.jpg": "C717C2A829F2318C8D860564B7F5B1DDB7690C5E7457E5D98B0D65CF7EC773A3",
+    "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000029_0.jpg": "C717C2A829F2318C8D860564B7F5B1DDB7690C5E7457E5D98B0D65CF7EC773A3",
+    "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\\u7ED3\u679C\\NGP6\\0.jpg": "CE73456BD79D3B9C6A85FF58BA0789F254E488375C16AA83818567AC5B76535B",
+    "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000043_0.jpg": "CE73456BD79D3B9C6A85FF58BA0789F254E488375C16AA83818567AC5B76535B"
+  },
+  "note": "\u540C\u56FE\u8F93\u5165\u5BF9\u7167\uFF1B\u4F4E\u9608\u503C\u4EC5\u8BCA\u65AD\uFF0C\u4E0D\u6539\u539F\u9879\u76EE\uFF0C\u4E0D\u4F5C\u4E3A\u7CBE\u5EA6\u6216\u771F\u503C\u62A5\u544A\u3002"
+}

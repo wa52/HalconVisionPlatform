@@ -1,0 +1,216 @@
+{
+  "source": "artifacts/detection-input-20261022/probe",
+  "note": "同图输入对照，不是精度报告；低阈值未写入原方案",
+  "comparisons": [
+    {
+      "name": "baseline",
+      "confidence": 0.5,
+      "full": false,
+      "raw": false,
+      "padding": 0,
+      "milliseconds": 83607.8659,
+      "regions": [
+        {
+          "name": "P1",
+          "decision": "NOT_DETECTED",
+          "accepted": 0,
+          "candidates": 0,
+          "bestClass": null,
+          "bestConfidence": null
+        },
+        {
+          "name": "P2",
+          "decision": "OK",
+          "accepted": 1,
+          "candidates": 1,
+          "bestClass": "P2",
+          "bestConfidence": 0.9990643858909607
+        },
+        {
+          "name": "P3",
+          "decision": "OK",
+          "accepted": 1,
+          "candidates": 1,
+          "bestClass": "P3",
+          "bestConfidence": 0.9988387227058411
+        },
+        {
+          "name": "P4",
+          "decision": "NOT_DETECTED",
+          "accepted": 0,
+          "candidates": 0,
+          "bestClass": null,
+          "bestConfidence": null
+        },
+        {
+          "name": "P5",
+          "decision": "NOT_DETECTED",
+          "accepted": 0,
+          "candidates": 0,
+          "bestClass": null,
+          "bestConfidence": null
+        },
+        {
+          "name": "P6",
+          "decision": "NOT_DETECTED",
+          "accepted": 0,
+          "candidates": 0,
+          "bestClass": null,
+          "bestConfidence": null
+        }
+      ]
+    },
+    {
+      "name": "full-frame",
+      "confidence": 0.5,
+      "full": true,
+      "raw": false,
+      "padding": 0,
+      "milliseconds": 493.5423,
+      "regions": [
+        {
+          "name": "全图",
+          "decision": "NOT_DETECTED",
+          "accepted": 0,
+          "candidates": 0,
+          "bestClass": null,
+          "bestConfidence": null
+        }
+      ]
+    },
+    {
+      "name": "full-frame-raw",
+      "confidence": 0.5,
+      "full": true,
+      "raw": true,
+      "padding": 0,
+      "milliseconds": 455.084,
+      "regions": [
+        {
+          "name": "全图",
+          "decision": "NOT_DETECTED",
+          "accepted": 0,
+          "candidates": 0,
+          "bestClass": null,
+          "bestConfidence": null
+        }
+      ]
+    },
+    {
+      "name": "roi-low-threshold",
+      "confidence": 0.05,
+      "full": false,
+      "raw": false,
+      "padding": 0,
+      "milliseconds": 2925.6133,
+      "regions": [
+        {
+          "name": "P1",
+          "decision": "NOT_DETECTED",
+          "accepted": 3,
+          "candidates": 5,
+          "bestClass": "P1",
+          "bestConfidence": 0.2367558479309082
+        },
+        {
+          "name": "P2",
+          "decision": "NOT_DETECTED",
+          "accepted": 4,
+          "candidates": 13,
+          "bestClass": "P2",
+          "bestConfidence": 0.9990643858909607
+        },
+        {
+          "name": "P3",
+          "decision": "NOT_DETECTED",
+          "accepted": 6,
+          "candidates": 13,
+          "bestClass": "P3",
+          "bestConfidence": 0.9988387227058411
+        },
+        {
+          "name": "P4",
+          "decision": "NOT_DETECTED",
+          "accepted": 3,
+          "candidates": 14,
+          "bestClass": "P2",
+          "bestConfidence": 0.20712926983833313
+        },
+        {
+          "name": "P5",
+          "decision": "NOT_DETECTED",
+          "accepted": 2,
+          "candidates": 10,
+          "bestClass": "P1",
+          "bestConfidence": 0.20514489710330963
+        },
+        {
+          "name": "P6",
+          "decision": "NOT_DETECTED",
+          "accepted": 2,
+          "candidates": 10,
+          "bestClass": "P6",
+          "bestConfidence": 0.3170471787452698
+        }
+      ]
+    },
+    {
+      "name": "roi-padding-64",
+      "confidence": 0.5,
+      "full": false,
+      "raw": false,
+      "padding": 64,
+      "milliseconds": 2961.8003,
+      "regions": [
+        {
+          "name": "P1",
+          "decision": "NOT_DETECTED",
+          "accepted": 0,
+          "candidates": 0,
+          "bestClass": null,
+          "bestConfidence": null
+        },
+        {
+          "name": "P2",
+          "decision": "OK",
+          "accepted": 1,
+          "candidates": 1,
+          "bestClass": "P2",
+          "bestConfidence": 0.6257990598678589
+        },
+        {
+          "name": "P3",
+          "decision": "NOT_DETECTED",
+          "accepted": 0,
+          "candidates": 0,
+          "bestClass": null,
+          "bestConfidence": null
+        },
+        {
+          "name": "P4",
+          "decision": "NOT_DETECTED",
+          "accepted": 0,
+          "candidates": 0,
+          "bestClass": null,
+          "bestConfidence": null
+        },
+        {
+          "name": "P5",
+          "decision": "NOT_DETECTED",
+          "accepted": 0,
+          "candidates": 0,
+          "bestClass": null,
+          "bestConfidence": null
+        },
+        {
+          "name": "P6",
+          "decision": "NOT_DETECTED",
+          "accepted": 0,
+          "candidates": 0,
+          "bestClass": null,
+          "bestConfidence": null
+        }
+      ]
+    }
+  ]
+}

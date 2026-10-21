@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net8.0-windows</TargetFramework><PlatformTarget>x64</PlatformTarget>
+    <UseWPF>true</UseWPF><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings>
+    <ValidatedRuntimeDir Condition="'$(ValidatedRuntimeDir)' == ''">$(MSBuildThisFileDirectory)..\..\artifacts\desktop-position-correction-checked</ValidatedRuntimeDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="HalconVision.Domain"><HintPath>$(ValidatedRuntimeDir)/HalconVision.Domain.dll</HintPath></Reference>
+    <Reference Include="HalconVision.Application"><HintPath>$(ValidatedRuntimeDir)/HalconVision.Application.dll</HintPath></Reference>
+    <Reference Include="HalconVision.Halcon"><HintPath>$(ValidatedRuntimeDir)/HalconVision.Halcon.dll</HintPath></Reference>
+    <Reference Include="HalconVision.Persistence"><HintPath>$(ValidatedRuntimeDir)/HalconVision.Persistence.dll</HintPath></Reference>
+    <Reference Include="MVTec.HalconDotNet"><HintPath>$(ValidatedRuntimeDir)/MVTec.HalconDotNet.dll</HintPath></Reference>
+  </ItemGroup>
+  <Target Name="CheckValidatedRuntime" BeforeTargets="ResolveReferences">
+    <Error Condition="!Exists('$(ValidatedRuntimeDir)/HalconVision.Halcon.dll')" Text="请使用 ValidatedRuntimeDir 指定已验证的完整发布目录。" />
+  </Target>
+</Project>

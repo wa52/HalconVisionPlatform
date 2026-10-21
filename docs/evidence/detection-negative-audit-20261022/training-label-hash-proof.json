@@ -1,0 +1,38 @@
+[
+  {
+    "folder": "NGP1",
+    "export": "000001_0.jpg",
+    "same": true,
+    "sha256": "564261D37B6A7CBB07539E56C5814064B9A0FB061D1594328A770586B4BB8D4E"
+  },
+  {
+    "folder": "P2",
+    "export": "000310_0.jpg",
+    "same": true,
+    "sha256": "8B7DC111BF6B13E52B6666E6EAFAF1280DC965062EF1E725F26500CE2A65A2F9"
+  },
+  {
+    "folder": "P3",
+    "export": "000577_0.jpg",
+    "same": true,
+    "sha256": "E0790B38DC3DDE90F7BF94CC4B2C37215F2289CCC90831498CE39ACDDAE319BB"
+  },
+  {
+    "folder": "NGP4",
+    "export": "000015_0.jpg",
+    "same": true,
+    "sha256": "5F1F3F575D8F8B784AF4FE67BE6EDA2F0BEEC763DE6C9DB6D295F63896E56D1E"
+  },
+  {
+    "folder": "NGP5",
+    "export": "000029_0.jpg",
+    "same": true,
+    "sha256": "C717C2A829F2318C8D860564B7F5B1DDB7690C5E7457E5D98B0D65CF7EC773A3"
+  },
+  {
+    "folder": "NGP6",
+    "export": "000043_0.jpg",
+    "same": true,
+    "sha256": "CE73456BD79D3B9C6A85FF58BA0789F254E488375C16AA83818567AC5B76535B"
+  }
+]
