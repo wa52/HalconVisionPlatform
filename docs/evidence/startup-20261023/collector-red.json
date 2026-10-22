@@ -1,0 +1,17 @@
+{
+  "ProcessId": 30376,
+  "ExitHex": "0xC0000005",
+  "CleanupConfirmed": true,
+  "Exceptions": [
+    {
+      "Code": "0xC0000005",
+      "Address": "0x00007FFA125F408A",
+      "FirstChance": true,
+      "ThreadId": 35940,
+      "Module": "C:\\Windows\\System32\\KERNELBASE.dll",
+      "ModuleOffset": "0xC408A"
+    }
+  ],
+  "DumpPath": null,
+  "DumpError": null
+}

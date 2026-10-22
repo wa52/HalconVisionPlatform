@@ -1,0 +1,14 @@
+{
+  "ProcessId": 49360,
+  "Capture": true,
+  "ExitCode": 0,
+  "ExitHex": "0x00000000",
+  "TimedOut": false,
+  "CleanupConfirmed": true,
+  "Success": true,
+  "Milliseconds": 10834.1515,
+  "ValidationErrors": [],
+  "Exceptions": [],
+  "DumpPath": null,
+  "DumpError": null
+}

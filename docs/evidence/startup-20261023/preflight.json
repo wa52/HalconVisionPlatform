@@ -1,0 +1,32 @@
+[
+  {
+    "arguments": [
+      "fixture",
+      "tests/HalconVision.LifecycleChecks/bin/Release/net8.0-windows/HalconVision.LifecycleChecks.exe",
+      "artifacts/startup-preflight-20261023",
+      "1"
+    ],
+    "exitCode": 2,
+    "console": "System.IO.IOException: 拒绝覆盖已有输出：D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-preflight-20261023\r\n   at HalconStartupAudit.Program.FreshDirectory(String path) in D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\Program.cs:line 201\r\n   at HalconStartupAudit.Program.Main(String[] args) in D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\Program.cs:line 30\r\n"
+  },
+  {
+    "arguments": [
+      "fixture",
+      "src/HalconVision.App/bin/Release/net8.0-windows/HalconVision.App.exe",
+      "artifacts\\startup-preflight-20261023\\disallowed",
+      "1"
+    ],
+    "exitCode": 2,
+    "console": "System.ArgumentException: 只能启动指定名称的本项目检查程序。\r\n   at HalconStartupAudit.Program.Main(String[] args) in D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\Program.cs:line 25\r\n"
+  },
+  {
+    "arguments": [
+      "fixture",
+      "tests/HalconVision.LifecycleChecks/bin/Release/net8.0-windows/HalconVision.LifecycleChecks.exe",
+      "artifacts\\startup-preflight-20261023\\count-zero",
+      "0"
+    ],
+    "exitCode": 2,
+    "console": "System.ArgumentException: 次数必须为1..200。\r\n   at HalconStartupAudit.Program.Main(String[] args) in D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\Program.cs:line 27\r\n"
+  }
+]

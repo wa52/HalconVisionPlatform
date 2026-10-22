@@ -1,0 +1,1761 @@
+[
+  {
+    "capture": false,
+    "scenario": "ok",
+    "passed": true,
+    "row": {
+      "ProcessId": 26060,
+      "Output": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-collector-delivery-20261023\\plain-ok",
+      "Capture": false,
+      "ExitCode": 0,
+      "ExitHex": "0x00000000",
+      "TimedOut": false,
+      "CleanupConfirmed": true,
+      "Success": true,
+      "Milliseconds": 67.303,
+      "StandardOutput": "",
+      "StandardError": "",
+      "Stages": [],
+      "ValidationErrors": [],
+      "Exceptions": [],
+      "Modules": [],
+      "DumpPath": null,
+      "DumpAttempts": 0,
+      "DumpFiles": [],
+      "DumpError": null
+    }
+  },
+  {
+    "capture": false,
+    "scenario": "handled-exception",
+    "passed": true,
+    "row": {
+      "ProcessId": 44948,
+      "Output": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-collector-delivery-20261023\\plain-handled-exception",
+      "Capture": false,
+      "ExitCode": 0,
+      "ExitHex": "0x00000000",
+      "TimedOut": false,
+      "CleanupConfirmed": true,
+      "Success": true,
+      "Milliseconds": 63.3346,
+      "StandardOutput": "",
+      "StandardError": "",
+      "Stages": [],
+      "ValidationErrors": [],
+      "Exceptions": [],
+      "Modules": [],
+      "DumpPath": null,
+      "DumpAttempts": 0,
+      "DumpFiles": [],
+      "DumpError": null
+    }
+  },
+  {
+    "capture": false,
+    "scenario": "handled-null",
+    "passed": true,
+    "row": {
+      "ProcessId": 39476,
+      "Output": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-collector-delivery-20261023\\plain-handled-null",
+      "Capture": false,
+      "ExitCode": 0,
+      "ExitHex": "0x00000000",
+      "TimedOut": false,
+      "CleanupConfirmed": true,
+      "Success": true,
+      "Milliseconds": 64.7547,
+      "StandardOutput": "",
+      "StandardError": "",
+      "Stages": [],
+      "ValidationErrors": [],
+      "Exceptions": [],
+      "Modules": [],
+      "DumpPath": null,
+      "DumpAttempts": 0,
+      "DumpFiles": [],
+      "DumpError": null
+    }
+  },
+  {
+    "capture": false,
+    "scenario": "exit-42",
+    "passed": true,
+    "row": {
+      "ProcessId": 17428,
+      "Output": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-collector-delivery-20261023\\plain-exit-42",
+      "Capture": false,
+      "ExitCode": 42,
+      "ExitHex": "0x0000002A",
+      "TimedOut": false,
+      "CleanupConfirmed": true,
+      "Success": false,
+      "Milliseconds": 64.3683,
+      "StandardOutput": "",
+      "StandardError": "",
+      "Stages": [],
+      "ValidationErrors": [],
+      "Exceptions": [],
+      "Modules": [],
+      "DumpPath": null,
+      "DumpAttempts": 0,
+      "DumpFiles": [],
+      "DumpError": null
+    }
+  },
+  {
+    "capture": false,
+    "scenario": "hang",
+    "passed": true,
+    "row": {
+      "ProcessId": 30116,
+      "Output": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-collector-delivery-20261023\\plain-hang",
+      "Capture": false,
+      "ExitCode": 4294967295,
+      "ExitHex": "0xFFFFFFFF",
+      "TimedOut": true,
+      "CleanupConfirmed": true,
+      "Success": false,
+      "Milliseconds": 2299.3299,
+      "StandardOutput": "",
+      "StandardError": "",
+      "Stages": [],
+      "ValidationErrors": [],
+      "Exceptions": [],
+      "Modules": [],
+      "DumpPath": null,
+      "DumpAttempts": 0,
+      "DumpFiles": [],
+      "DumpError": null
+    }
+  },
+  {
+    "capture": true,
+    "scenario": "ok",
+    "passed": true,
+    "row": {
+      "ProcessId": 46660,
+      "Output": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-collector-delivery-20261023\\capture-ok",
+      "Capture": true,
+      "ExitCode": 0,
+      "ExitHex": "0x00000000",
+      "TimedOut": false,
+      "CleanupConfirmed": true,
+      "Success": true,
+      "Milliseconds": 134.5335,
+      "StandardOutput": "",
+      "StandardError": "",
+      "Stages": [],
+      "ValidationErrors": [],
+      "Exceptions": [],
+      "Modules": [
+        {
+          "Path": "D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\bin\\Release\\net8.0-windows\\HalconStartupAudit.exe",
+          "BaseAddress": "0x00007FF644EA0000",
+          "Size": 0,
+          "Version": "1.0.0.0"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\ntdll.dll",
+          "BaseAddress": "0x00007FFA14FE0000",
+          "Size": 0,
+          "Version": "10.0.26100.9549 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\kernel32.dll",
+          "BaseAddress": "0x00007FFA13B30000",
+          "Size": 0,
+          "Version": "10.0.26100.9549 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\KernelBase.dll",
+          "BaseAddress": "0x00007FFA12530000",
+          "Size": 0,
+          "Version": "10.0.26100.9278 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\user32.dll",
+          "BaseAddress": "0x00007FFA12F10000",
+          "Size": 0,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\win32u.dll",
+          "BaseAddress": "0x00007FFA12310000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\gdi32.dll",
+          "BaseAddress": "0x00007FFA14EA0000",
+          "Size": 0,
+          "Version": "10.0.26100.8328 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\gdi32full.dll",
+          "BaseAddress": "0x00007FFA12340000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\msvcp_win.dll",
+          "BaseAddress": "0x00007FFA12260000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\ucrtbase.dll",
+          "BaseAddress": "0x00007FFA12940000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\shell32.dll",
+          "BaseAddress": "0x00007FFA13380000",
+          "Size": 0,
+          "Version": "10.0.26100.9549 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\advapi32.dll",
+          "BaseAddress": "0x00007FFA12D30000",
+          "Size": 0,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\msvcrt.dll",
+          "BaseAddress": "0x00007FFA13D40000",
+          "Size": 0,
+          "Version": "7.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\sechost.dll",
+          "BaseAddress": "0x00007FFA13C90000",
+          "Size": 0,
+          "Version": "10.0.26100.1 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\rpcrt4.dll",
+          "BaseAddress": "0x00007FFA140C0000",
+          "Size": 0,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\imm32.dll",
+          "BaseAddress": "0x00007FFA12CF0000",
+          "Size": 0,
+          "Version": "10.0.26100.9278 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\host\\fxr\\10.0.11\\hostfxr.dll",
+          "BaseAddress": "0x00007FF9159E0000",
+          "Size": 0,
+          "Version": "10,0,1126,37416 @Commit: e2f47b0110ed922f21a1522da67279133ce28f32"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\hostpolicy.dll",
+          "BaseAddress": "0x00007FF8DE320000",
+          "Size": 0,
+          "Version": "8,0,3026,36720 @Commit: a83db3e0eb2defb6220e15dae2f1a0462fdbf99f"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\coreclr.dll",
+          "BaseAddress": "0x00007FF8DDE40000",
+          "Size": 0,
+          "Version": "8,0,3026,36720 @Commit: a83db3e0eb2defb6220e15dae2f1a0462fdbf99f"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\ole32.dll",
+          "BaseAddress": "0x00007FFA130F0000",
+          "Size": 0,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\combase.dll",
+          "BaseAddress": "0x00007FFA14250000",
+          "Size": 0,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\oleaut32.dll",
+          "BaseAddress": "0x00007FFA13DF0000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\bcryptprimitives.dll",
+          "BaseAddress": "0x00007FFA12470000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Private.CoreLib.dll",
+          "BaseAddress": "0x00007FF8DBFD0000",
+          "Size": 0,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\clrjit.dll",
+          "BaseAddress": "0x00007FF8DDC80000",
+          "Size": 0,
+          "Version": "8,0,3026,36720 @Commit: a83db3e0eb2defb6220e15dae2f1a0462fdbf99f"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\kernel.appcore.dll",
+          "BaseAddress": "0x00007FFA10E50000",
+          "Size": 0,
+          "Version": "10.0.26100.9278 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\bin\\Release\\net8.0-windows\\HalconStartupAudit.dll",
+          "BaseAddress": "0x0000018A80700000",
+          "Size": 0,
+          "Version": "1.0.0.0"
+        },
+        {
+          "Path": "D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\bin\\Release\\net8.0-windows\\HalconStartupAudit.dll",
+          "BaseAddress": "0x0000018A80700000",
+          "Size": 0,
+          "Version": "1.0.0.0"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Runtime.dll",
+          "BaseAddress": "0x0000018A8C8D0000",
+          "Size": 0,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\icu.dll",
+          "BaseAddress": "0x00007FF9EE340000",
+          "Size": 0,
+          "Version": "72, 1, 0, 4 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Collections.dll",
+          "BaseAddress": "0x00007FF8DDC40000",
+          "Size": 0,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Console.dll",
+          "BaseAddress": "0x00007FF8DDC10000",
+          "Size": 0,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Threading.Thread.dll",
+          "BaseAddress": "0x0000018A8C480000",
+          "Size": 0,
+          "Version": "8.0.3026.36720"
+        }
+      ],
+      "DumpPath": null,
+      "DumpAttempts": 0,
+      "DumpFiles": [],
+      "DumpError": null
+    }
+  },
+  {
+    "capture": true,
+    "scenario": "handled-exception",
+    "passed": true,
+    "row": {
+      "ProcessId": 49396,
+      "Output": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-collector-delivery-20261023\\capture-handled-exception",
+      "Capture": true,
+      "ExitCode": 0,
+      "ExitHex": "0x00000000",
+      "TimedOut": false,
+      "CleanupConfirmed": true,
+      "Success": true,
+      "Milliseconds": 114.7705,
+      "StandardOutput": "",
+      "StandardError": "",
+      "Stages": [],
+      "ValidationErrors": [],
+      "Exceptions": [],
+      "Modules": [
+        {
+          "Path": "D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\bin\\Release\\net8.0-windows\\HalconStartupAudit.exe",
+          "BaseAddress": "0x00007FF644EA0000",
+          "Size": 0,
+          "Version": "1.0.0.0"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\ntdll.dll",
+          "BaseAddress": "0x00007FFA14FE0000",
+          "Size": 0,
+          "Version": "10.0.26100.9549 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\kernel32.dll",
+          "BaseAddress": "0x00007FFA13B30000",
+          "Size": 0,
+          "Version": "10.0.26100.9549 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\KernelBase.dll",
+          "BaseAddress": "0x00007FFA12530000",
+          "Size": 0,
+          "Version": "10.0.26100.9278 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\user32.dll",
+          "BaseAddress": "0x00007FFA12F10000",
+          "Size": 0,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\win32u.dll",
+          "BaseAddress": "0x00007FFA12310000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\gdi32.dll",
+          "BaseAddress": "0x00007FFA14EA0000",
+          "Size": 0,
+          "Version": "10.0.26100.8328 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\gdi32full.dll",
+          "BaseAddress": "0x00007FFA12340000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\msvcp_win.dll",
+          "BaseAddress": "0x00007FFA12260000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\ucrtbase.dll",
+          "BaseAddress": "0x00007FFA12940000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\shell32.dll",
+          "BaseAddress": "0x00007FFA13380000",
+          "Size": 0,
+          "Version": "10.0.26100.9549 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\advapi32.dll",
+          "BaseAddress": "0x00007FFA12D30000",
+          "Size": 0,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\msvcrt.dll",
+          "BaseAddress": "0x00007FFA13D40000",
+          "Size": 0,
+          "Version": "7.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\sechost.dll",
+          "BaseAddress": "0x00007FFA13C90000",
+          "Size": 0,
+          "Version": "10.0.26100.1 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\rpcrt4.dll",
+          "BaseAddress": "0x00007FFA140C0000",
+          "Size": 0,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\imm32.dll",
+          "BaseAddress": "0x00007FFA12CF0000",
+          "Size": 0,
+          "Version": "10.0.26100.9278 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\host\\fxr\\10.0.11\\hostfxr.dll",
+          "BaseAddress": "0x00007FF9159E0000",
+          "Size": 0,
+          "Version": "10,0,1126,37416 @Commit: e2f47b0110ed922f21a1522da67279133ce28f32"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\hostpolicy.dll",
+          "BaseAddress": "0x00007FF8DE320000",
+          "Size": 0,
+          "Version": "8,0,3026,36720 @Commit: a83db3e0eb2defb6220e15dae2f1a0462fdbf99f"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\coreclr.dll",
+          "BaseAddress": "0x00007FF8DDE40000",
+          "Size": 0,
+          "Version": "8,0,3026,36720 @Commit: a83db3e0eb2defb6220e15dae2f1a0462fdbf99f"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\ole32.dll",
+          "BaseAddress": "0x00007FFA130F0000",
+          "Size": 0,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\combase.dll",
+          "BaseAddress": "0x00007FFA14250000",
+          "Size": 0,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\oleaut32.dll",
+          "BaseAddress": "0x00007FFA13DF0000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\bcryptprimitives.dll",
+          "BaseAddress": "0x00007FFA12470000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Private.CoreLib.dll",
+          "BaseAddress": "0x00007FF8DBFD0000",
+          "Size": 0,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\clrjit.dll",
+          "BaseAddress": "0x00007FF8DDC80000",
+          "Size": 0,
+          "Version": "8,0,3026,36720 @Commit: a83db3e0eb2defb6220e15dae2f1a0462fdbf99f"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\kernel.appcore.dll",
+          "BaseAddress": "0x00007FFA10E50000",
+          "Size": 0,
+          "Version": "10.0.26100.9278 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\bin\\Release\\net8.0-windows\\HalconStartupAudit.dll",
+          "BaseAddress": "0x0000020180600000",
+          "Size": 0,
+          "Version": "1.0.0.0"
+        },
+        {
+          "Path": "D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\bin\\Release\\net8.0-windows\\HalconStartupAudit.dll",
+          "BaseAddress": "0x0000020180600000",
+          "Size": 0,
+          "Version": "1.0.0.0"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Runtime.dll",
+          "BaseAddress": "0x00000201FC680000",
+          "Size": 0,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\icu.dll",
+          "BaseAddress": "0x00007FF9EE340000",
+          "Size": 0,
+          "Version": "72, 1, 0, 4 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Collections.dll",
+          "BaseAddress": "0x00007FF8DDC40000",
+          "Size": 0,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Console.dll",
+          "BaseAddress": "0x00007FF8DDC10000",
+          "Size": 0,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Threading.Thread.dll",
+          "BaseAddress": "0x00000201FAC60000",
+          "Size": 0,
+          "Version": "8.0.3026.36720"
+        }
+      ],
+      "DumpPath": null,
+      "DumpAttempts": 0,
+      "DumpFiles": [],
+      "DumpError": null
+    }
+  },
+  {
+    "capture": true,
+    "scenario": "handled-null",
+    "passed": true,
+    "row": {
+      "ProcessId": 15776,
+      "Output": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-collector-delivery-20261023\\capture-handled-null",
+      "Capture": true,
+      "ExitCode": 0,
+      "ExitHex": "0x00000000",
+      "TimedOut": false,
+      "CleanupConfirmed": true,
+      "Success": true,
+      "Milliseconds": 330.2521,
+      "StandardOutput": "",
+      "StandardError": "",
+      "Stages": [],
+      "ValidationErrors": [],
+      "Exceptions": [
+        {
+          "Code": "0xC0000005",
+          "Address": "0x00007FF87E424ADC",
+          "FirstChance": true,
+          "ThreadId": 1148,
+          "Module": null,
+          "ModuleOffset": null,
+          "AccessType": "read",
+          "AccessAddress": "0x0000000000000008"
+        },
+        {
+          "Code": "0xC0000005",
+          "Address": "0x00007FFA125F408A",
+          "FirstChance": true,
+          "ThreadId": 1148,
+          "Module": "C:\\Windows\\System32\\KERNELBASE.dll",
+          "ModuleOffset": "0xC408A",
+          "AccessType": "read",
+          "AccessAddress": "0x0000000000000008"
+        }
+      ],
+      "Modules": [
+        {
+          "Path": "D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\bin\\Release\\net8.0-windows\\HalconStartupAudit.exe",
+          "BaseAddress": "0x00007FF644EA0000",
+          "Size": 172032,
+          "Version": "1.0.0.0"
+        },
+        {
+          "Path": "C:\\Windows\\SYSTEM32\\ntdll.dll",
+          "BaseAddress": "0x00007FFA14FE0000",
+          "Size": 2523136,
+          "Version": "10.0.26100.9549 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\KERNEL32.DLL",
+          "BaseAddress": "0x00007FFA13B30000",
+          "Size": 831488,
+          "Version": "10.0.26100.9549 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\KERNELBASE.dll",
+          "BaseAddress": "0x00007FFA12530000",
+          "Size": 4198400,
+          "Version": "10.0.26100.9278 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\USER32.dll",
+          "BaseAddress": "0x00007FFA12F10000",
+          "Size": 1929216,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\win32u.dll",
+          "BaseAddress": "0x00007FFA12310000",
+          "Size": 159744,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\GDI32.dll",
+          "BaseAddress": "0x00007FFA14EA0000",
+          "Size": 176128,
+          "Version": "10.0.26100.8328 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\gdi32full.dll",
+          "BaseAddress": "0x00007FFA12340000",
+          "Size": 1220608,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\msvcp_win.dll",
+          "BaseAddress": "0x00007FFA12260000",
+          "Size": 667648,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\ucrtbase.dll",
+          "BaseAddress": "0x00007FFA12940000",
+          "Size": 1359872,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\SHELL32.dll",
+          "BaseAddress": "0x00007FFA13380000",
+          "Size": 7979008,
+          "Version": "10.0.26100.9549 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\ADVAPI32.dll",
+          "BaseAddress": "0x00007FFA12D30000",
+          "Size": 770048,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\msvcrt.dll",
+          "BaseAddress": "0x00007FFA13D40000",
+          "Size": 692224,
+          "Version": "7.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\sechost.dll",
+          "BaseAddress": "0x00007FFA13C90000",
+          "Size": 688128,
+          "Version": "10.0.26100.1 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\RPCRT4.dll",
+          "BaseAddress": "0x00007FFA140C0000",
+          "Size": 1146880,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\IMM32.DLL",
+          "BaseAddress": "0x00007FFA12CF0000",
+          "Size": 200704,
+          "Version": "10.0.26100.9278 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\host\\fxr\\10.0.11\\hostfxr.dll",
+          "BaseAddress": "0x00007FF9159E0000",
+          "Size": 389120,
+          "Version": "10,0,1126,37416 @Commit: e2f47b0110ed922f21a1522da67279133ce28f32"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\hostpolicy.dll",
+          "BaseAddress": "0x00007FF8DE320000",
+          "Size": 417792,
+          "Version": "8,0,3026,36720 @Commit: a83db3e0eb2defb6220e15dae2f1a0462fdbf99f"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\coreclr.dll",
+          "BaseAddress": "0x00007FF8DDE40000",
+          "Size": 5095424,
+          "Version": "8,0,3026,36720 @Commit: a83db3e0eb2defb6220e15dae2f1a0462fdbf99f"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\ole32.dll",
+          "BaseAddress": "0x00007FFA130F0000",
+          "Size": 1679360,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\combase.dll",
+          "BaseAddress": "0x00007FFA14250000",
+          "Size": 3715072,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\OLEAUT32.dll",
+          "BaseAddress": "0x00007FFA13DF0000",
+          "Size": 888832,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\bcryptPrimitives.dll",
+          "BaseAddress": "0x00007FFA12470000",
+          "Size": 704512,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Private.CoreLib.dll",
+          "BaseAddress": "0x00007FF8DBFD0000",
+          "Size": 13164544,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\clrjit.dll",
+          "BaseAddress": "0x00007FF8DDC80000",
+          "Size": 1794048,
+          "Version": "8,0,3026,36720 @Commit: a83db3e0eb2defb6220e15dae2f1a0462fdbf99f"
+        },
+        {
+          "Path": "C:\\Windows\\SYSTEM32\\kernel.appcore.dll",
+          "BaseAddress": "0x00007FFA10E50000",
+          "Size": 110592,
+          "Version": "10.0.26100.9278 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\bin\\Release\\net8.0-windows\\HalconStartupAudit.dll",
+          "BaseAddress": "0x000001BC00400000",
+          "Size": 57344,
+          "Version": "1.0.0.0"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Runtime.dll",
+          "BaseAddress": "0x000001BC2F030000",
+          "Size": 57344,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Windows\\SYSTEM32\\icu.dll",
+          "BaseAddress": "0x00007FF9EE340000",
+          "Size": 2744320,
+          "Version": "72, 1, 0, 4 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Collections.dll",
+          "BaseAddress": "0x00007FF8DDC40000",
+          "Size": 249856,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Console.dll",
+          "BaseAddress": "0x00007FF8DDC10000",
+          "Size": 163840,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Threading.Thread.dll",
+          "BaseAddress": "0x000001BC2DBB0000",
+          "Size": 32768,
+          "Version": "8.0.3026.36720"
+        }
+      ],
+      "DumpPath": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-collector-delivery-20261023\\capture-handled-null\\native-event-002.dmp",
+      "DumpAttempts": 2,
+      "DumpFiles": [
+        "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-collector-delivery-20261023\\capture-handled-null\\native-event-001.dmp",
+        "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-collector-delivery-20261023\\capture-handled-null\\native-event-002.dmp"
+      ],
+      "DumpError": null
+    }
+  },
+  {
+    "capture": true,
+    "scenario": "exit-42",
+    "passed": true,
+    "row": {
+      "ProcessId": 49460,
+      "Output": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-collector-delivery-20261023\\capture-exit-42",
+      "Capture": true,
+      "ExitCode": 42,
+      "ExitHex": "0x0000002A",
+      "TimedOut": false,
+      "CleanupConfirmed": true,
+      "Success": false,
+      "Milliseconds": 118.0091,
+      "StandardOutput": "",
+      "StandardError": "",
+      "Stages": [],
+      "ValidationErrors": [],
+      "Exceptions": [],
+      "Modules": [
+        {
+          "Path": "D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\bin\\Release\\net8.0-windows\\HalconStartupAudit.exe",
+          "BaseAddress": "0x00007FF644EA0000",
+          "Size": 0,
+          "Version": "1.0.0.0"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\ntdll.dll",
+          "BaseAddress": "0x00007FFA14FE0000",
+          "Size": 0,
+          "Version": "10.0.26100.9549 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\kernel32.dll",
+          "BaseAddress": "0x00007FFA13B30000",
+          "Size": 0,
+          "Version": "10.0.26100.9549 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\KernelBase.dll",
+          "BaseAddress": "0x00007FFA12530000",
+          "Size": 0,
+          "Version": "10.0.26100.9278 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\user32.dll",
+          "BaseAddress": "0x00007FFA12F10000",
+          "Size": 0,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\win32u.dll",
+          "BaseAddress": "0x00007FFA12310000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\gdi32.dll",
+          "BaseAddress": "0x00007FFA14EA0000",
+          "Size": 0,
+          "Version": "10.0.26100.8328 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\gdi32full.dll",
+          "BaseAddress": "0x00007FFA12340000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\msvcp_win.dll",
+          "BaseAddress": "0x00007FFA12260000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\ucrtbase.dll",
+          "BaseAddress": "0x00007FFA12940000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\shell32.dll",
+          "BaseAddress": "0x00007FFA13380000",
+          "Size": 0,
+          "Version": "10.0.26100.9549 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\advapi32.dll",
+          "BaseAddress": "0x00007FFA12D30000",
+          "Size": 0,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\msvcrt.dll",
+          "BaseAddress": "0x00007FFA13D40000",
+          "Size": 0,
+          "Version": "7.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\sechost.dll",
+          "BaseAddress": "0x00007FFA13C90000",
+          "Size": 0,
+          "Version": "10.0.26100.1 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\rpcrt4.dll",
+          "BaseAddress": "0x00007FFA140C0000",
+          "Size": 0,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\imm32.dll",
+          "BaseAddress": "0x00007FFA12CF0000",
+          "Size": 0,
+          "Version": "10.0.26100.9278 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\host\\fxr\\10.0.11\\hostfxr.dll",
+          "BaseAddress": "0x00007FF9159E0000",
+          "Size": 0,
+          "Version": "10,0,1126,37416 @Commit: e2f47b0110ed922f21a1522da67279133ce28f32"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\hostpolicy.dll",
+          "BaseAddress": "0x00007FF8DE320000",
+          "Size": 0,
+          "Version": "8,0,3026,36720 @Commit: a83db3e0eb2defb6220e15dae2f1a0462fdbf99f"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\coreclr.dll",
+          "BaseAddress": "0x00007FF8DDE40000",
+          "Size": 0,
+          "Version": "8,0,3026,36720 @Commit: a83db3e0eb2defb6220e15dae2f1a0462fdbf99f"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\ole32.dll",
+          "BaseAddress": "0x00007FFA130F0000",
+          "Size": 0,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\combase.dll",
+          "BaseAddress": "0x00007FFA14250000",
+          "Size": 0,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\oleaut32.dll",
+          "BaseAddress": "0x00007FFA13DF0000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\bcryptprimitives.dll",
+          "BaseAddress": "0x00007FFA12470000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Private.CoreLib.dll",
+          "BaseAddress": "0x00007FF8DBFD0000",
+          "Size": 0,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\clrjit.dll",
+          "BaseAddress": "0x00007FF8DDC80000",
+          "Size": 0,
+          "Version": "8,0,3026,36720 @Commit: a83db3e0eb2defb6220e15dae2f1a0462fdbf99f"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\kernel.appcore.dll",
+          "BaseAddress": "0x00007FFA10E50000",
+          "Size": 0,
+          "Version": "10.0.26100.9278 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\bin\\Release\\net8.0-windows\\HalconStartupAudit.dll",
+          "BaseAddress": "0x000001DC80700000",
+          "Size": 0,
+          "Version": "1.0.0.0"
+        },
+        {
+          "Path": "D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\bin\\Release\\net8.0-windows\\HalconStartupAudit.dll",
+          "BaseAddress": "0x000001DC80700000",
+          "Size": 0,
+          "Version": "1.0.0.0"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Runtime.dll",
+          "BaseAddress": "0x000001DCBDD80000",
+          "Size": 0,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\icu.dll",
+          "BaseAddress": "0x00007FF9EE340000",
+          "Size": 0,
+          "Version": "72, 1, 0, 4 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Collections.dll",
+          "BaseAddress": "0x00007FF8DDC40000",
+          "Size": 0,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Console.dll",
+          "BaseAddress": "0x00007FF8DDC10000",
+          "Size": 0,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Threading.Thread.dll",
+          "BaseAddress": "0x000001DCBC770000",
+          "Size": 0,
+          "Version": "8.0.3026.36720"
+        }
+      ],
+      "DumpPath": null,
+      "DumpAttempts": 0,
+      "DumpFiles": [],
+      "DumpError": null
+    }
+  },
+  {
+    "capture": true,
+    "scenario": "hang",
+    "passed": true,
+    "row": {
+      "ProcessId": 37260,
+      "Output": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-collector-delivery-20261023\\capture-hang",
+      "Capture": true,
+      "ExitCode": 1460,
+      "ExitHex": "0x000005B4",
+      "TimedOut": true,
+      "CleanupConfirmed": true,
+      "Success": false,
+      "Milliseconds": 2021.5122,
+      "StandardOutput": "",
+      "StandardError": "",
+      "Stages": [],
+      "ValidationErrors": [],
+      "Exceptions": [],
+      "Modules": [
+        {
+          "Path": "D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\bin\\Release\\net8.0-windows\\HalconStartupAudit.exe",
+          "BaseAddress": "0x00007FF644EA0000",
+          "Size": 0,
+          "Version": "1.0.0.0"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\ntdll.dll",
+          "BaseAddress": "0x00007FFA14FE0000",
+          "Size": 0,
+          "Version": "10.0.26100.9549 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\kernel32.dll",
+          "BaseAddress": "0x00007FFA13B30000",
+          "Size": 0,
+          "Version": "10.0.26100.9549 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\KernelBase.dll",
+          "BaseAddress": "0x00007FFA12530000",
+          "Size": 0,
+          "Version": "10.0.26100.9278 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\user32.dll",
+          "BaseAddress": "0x00007FFA12F10000",
+          "Size": 0,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\win32u.dll",
+          "BaseAddress": "0x00007FFA12310000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\gdi32.dll",
+          "BaseAddress": "0x00007FFA14EA0000",
+          "Size": 0,
+          "Version": "10.0.26100.8328 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\gdi32full.dll",
+          "BaseAddress": "0x00007FFA12340000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\msvcp_win.dll",
+          "BaseAddress": "0x00007FFA12260000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\ucrtbase.dll",
+          "BaseAddress": "0x00007FFA12940000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\shell32.dll",
+          "BaseAddress": "0x00007FFA13380000",
+          "Size": 0,
+          "Version": "10.0.26100.9549 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\advapi32.dll",
+          "BaseAddress": "0x00007FFA12D30000",
+          "Size": 0,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\msvcrt.dll",
+          "BaseAddress": "0x00007FFA13D40000",
+          "Size": 0,
+          "Version": "7.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\sechost.dll",
+          "BaseAddress": "0x00007FFA13C90000",
+          "Size": 0,
+          "Version": "10.0.26100.1 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\rpcrt4.dll",
+          "BaseAddress": "0x00007FFA140C0000",
+          "Size": 0,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\imm32.dll",
+          "BaseAddress": "0x00007FFA12CF0000",
+          "Size": 0,
+          "Version": "10.0.26100.9278 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\host\\fxr\\10.0.11\\hostfxr.dll",
+          "BaseAddress": "0x00007FF9159E0000",
+          "Size": 0,
+          "Version": "10,0,1126,37416 @Commit: e2f47b0110ed922f21a1522da67279133ce28f32"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\hostpolicy.dll",
+          "BaseAddress": "0x00007FF8DE320000",
+          "Size": 0,
+          "Version": "8,0,3026,36720 @Commit: a83db3e0eb2defb6220e15dae2f1a0462fdbf99f"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\coreclr.dll",
+          "BaseAddress": "0x00007FF8DDE40000",
+          "Size": 0,
+          "Version": "8,0,3026,36720 @Commit: a83db3e0eb2defb6220e15dae2f1a0462fdbf99f"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\ole32.dll",
+          "BaseAddress": "0x00007FFA130F0000",
+          "Size": 0,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\combase.dll",
+          "BaseAddress": "0x00007FFA14250000",
+          "Size": 0,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\oleaut32.dll",
+          "BaseAddress": "0x00007FFA13DF0000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\bcryptprimitives.dll",
+          "BaseAddress": "0x00007FFA12470000",
+          "Size": 0,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Private.CoreLib.dll",
+          "BaseAddress": "0x00007FF8DBFD0000",
+          "Size": 0,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\clrjit.dll",
+          "BaseAddress": "0x00007FF8DDC80000",
+          "Size": 0,
+          "Version": "8,0,3026,36720 @Commit: a83db3e0eb2defb6220e15dae2f1a0462fdbf99f"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\kernel.appcore.dll",
+          "BaseAddress": "0x00007FFA10E50000",
+          "Size": 0,
+          "Version": "10.0.26100.9278 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\bin\\Release\\net8.0-windows\\HalconStartupAudit.dll",
+          "BaseAddress": "0x000001D6AA8C0000",
+          "Size": 0,
+          "Version": "1.0.0.0"
+        },
+        {
+          "Path": "D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\bin\\Release\\net8.0-windows\\HalconStartupAudit.dll",
+          "BaseAddress": "0x000001D6AA8C0000",
+          "Size": 0,
+          "Version": "1.0.0.0"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Runtime.dll",
+          "BaseAddress": "0x000001D6AA8D0000",
+          "Size": 0,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\icu.dll",
+          "BaseAddress": "0x00007FF9EE340000",
+          "Size": 0,
+          "Version": "72, 1, 0, 4 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Collections.dll",
+          "BaseAddress": "0x00007FF8DDC40000",
+          "Size": 0,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Console.dll",
+          "BaseAddress": "0x00007FF8DDC10000",
+          "Size": 0,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Threading.Thread.dll",
+          "BaseAddress": "0x000001D6A91A0000",
+          "Size": 0,
+          "Version": "8.0.3026.36720"
+        }
+      ],
+      "DumpPath": null,
+      "DumpAttempts": 0,
+      "DumpFiles": [],
+      "DumpError": null
+    }
+  },
+  {
+    "capture": true,
+    "scenario": "access-violation",
+    "passed": true,
+    "row": {
+      "ProcessId": 20472,
+      "Output": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-collector-delivery-20261023\\capture-access-violation",
+      "Capture": true,
+      "ExitCode": 3221225477,
+      "ExitHex": "0xC0000005",
+      "TimedOut": false,
+      "CleanupConfirmed": true,
+      "Success": false,
+      "Milliseconds": 316.6086,
+      "StandardOutput": "",
+      "StandardError": "",
+      "Stages": [],
+      "ValidationErrors": [],
+      "Exceptions": [
+        {
+          "Code": "0xC0000005",
+          "Address": "0x00007FFA125F408A",
+          "FirstChance": true,
+          "ThreadId": 46152,
+          "Module": "C:\\Windows\\System32\\KERNELBASE.dll",
+          "ModuleOffset": "0xC408A",
+          "AccessType": null,
+          "AccessAddress": null
+        }
+      ],
+      "Modules": [
+        {
+          "Path": "D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\bin\\Release\\net8.0-windows\\HalconStartupAudit.exe",
+          "BaseAddress": "0x00007FF644EA0000",
+          "Size": 172032,
+          "Version": "1.0.0.0"
+        },
+        {
+          "Path": "C:\\Windows\\SYSTEM32\\ntdll.dll",
+          "BaseAddress": "0x00007FFA14FE0000",
+          "Size": 2523136,
+          "Version": "10.0.26100.9549 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\KERNEL32.DLL",
+          "BaseAddress": "0x00007FFA13B30000",
+          "Size": 831488,
+          "Version": "10.0.26100.9549 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\KERNELBASE.dll",
+          "BaseAddress": "0x00007FFA12530000",
+          "Size": 4198400,
+          "Version": "10.0.26100.9278 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\USER32.dll",
+          "BaseAddress": "0x00007FFA12F10000",
+          "Size": 1929216,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\win32u.dll",
+          "BaseAddress": "0x00007FFA12310000",
+          "Size": 159744,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\GDI32.dll",
+          "BaseAddress": "0x00007FFA14EA0000",
+          "Size": 176128,
+          "Version": "10.0.26100.8328 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\gdi32full.dll",
+          "BaseAddress": "0x00007FFA12340000",
+          "Size": 1220608,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\msvcp_win.dll",
+          "BaseAddress": "0x00007FFA12260000",
+          "Size": 667648,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\ucrtbase.dll",
+          "BaseAddress": "0x00007FFA12940000",
+          "Size": 1359872,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\SHELL32.dll",
+          "BaseAddress": "0x00007FFA13380000",
+          "Size": 7979008,
+          "Version": "10.0.26100.9549 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\ADVAPI32.dll",
+          "BaseAddress": "0x00007FFA12D30000",
+          "Size": 770048,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\msvcrt.dll",
+          "BaseAddress": "0x00007FFA13D40000",
+          "Size": 692224,
+          "Version": "7.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\sechost.dll",
+          "BaseAddress": "0x00007FFA13C90000",
+          "Size": 688128,
+          "Version": "10.0.26100.1 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\RPCRT4.dll",
+          "BaseAddress": "0x00007FFA140C0000",
+          "Size": 1146880,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\IMM32.DLL",
+          "BaseAddress": "0x00007FFA12CF0000",
+          "Size": 200704,
+          "Version": "10.0.26100.9278 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\host\\fxr\\10.0.11\\hostfxr.dll",
+          "BaseAddress": "0x00007FF9159E0000",
+          "Size": 389120,
+          "Version": "10,0,1126,37416 @Commit: e2f47b0110ed922f21a1522da67279133ce28f32"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\hostpolicy.dll",
+          "BaseAddress": "0x00007FF8DE320000",
+          "Size": 417792,
+          "Version": "8,0,3026,36720 @Commit: a83db3e0eb2defb6220e15dae2f1a0462fdbf99f"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\coreclr.dll",
+          "BaseAddress": "0x00007FF8DDE40000",
+          "Size": 5095424,
+          "Version": "8,0,3026,36720 @Commit: a83db3e0eb2defb6220e15dae2f1a0462fdbf99f"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\ole32.dll",
+          "BaseAddress": "0x00007FFA130F0000",
+          "Size": 1679360,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\combase.dll",
+          "BaseAddress": "0x00007FFA14250000",
+          "Size": 3715072,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\OLEAUT32.dll",
+          "BaseAddress": "0x00007FFA13DF0000",
+          "Size": 888832,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\bcryptPrimitives.dll",
+          "BaseAddress": "0x00007FFA12470000",
+          "Size": 704512,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Private.CoreLib.dll",
+          "BaseAddress": "0x00007FF8DBFD0000",
+          "Size": 13164544,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\clrjit.dll",
+          "BaseAddress": "0x00007FF8DDC80000",
+          "Size": 1794048,
+          "Version": "8,0,3026,36720 @Commit: a83db3e0eb2defb6220e15dae2f1a0462fdbf99f"
+        },
+        {
+          "Path": "C:\\Windows\\SYSTEM32\\kernel.appcore.dll",
+          "BaseAddress": "0x00007FFA10E50000",
+          "Size": 110592,
+          "Version": "10.0.26100.9278 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\bin\\Release\\net8.0-windows\\HalconStartupAudit.dll",
+          "BaseAddress": "0x0000014663680000",
+          "Size": 57344,
+          "Version": "1.0.0.0"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Runtime.dll",
+          "BaseAddress": "0x0000014664AB0000",
+          "Size": 57344,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Windows\\SYSTEM32\\icu.dll",
+          "BaseAddress": "0x00007FF9EE340000",
+          "Size": 2744320,
+          "Version": "72, 1, 0, 4 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Collections.dll",
+          "BaseAddress": "0x00007FF8DDC40000",
+          "Size": 249856,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Console.dll",
+          "BaseAddress": "0x00007FF8DDC10000",
+          "Size": 163840,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Threading.Thread.dll",
+          "BaseAddress": "0x0000014663190000",
+          "Size": 32768,
+          "Version": "8.0.3026.36720"
+        }
+      ],
+      "DumpPath": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-collector-delivery-20261023\\capture-access-violation\\native-event-001.dmp",
+      "DumpAttempts": 1,
+      "DumpFiles": [
+        "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-collector-delivery-20261023\\capture-access-violation\\native-event-001.dmp"
+      ],
+      "DumpError": null
+    }
+  },
+  {
+    "capture": true,
+    "scenario": "null-then-av",
+    "passed": true,
+    "row": {
+      "ProcessId": 33188,
+      "Output": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-collector-delivery-20261023\\capture-null-then-av",
+      "Capture": true,
+      "ExitCode": 3221225477,
+      "ExitHex": "0xC0000005",
+      "TimedOut": false,
+      "CleanupConfirmed": true,
+      "Success": false,
+      "Milliseconds": 533.2917,
+      "StandardOutput": "",
+      "StandardError": "",
+      "Stages": [],
+      "ValidationErrors": [],
+      "Exceptions": [
+        {
+          "Code": "0xC0000005",
+          "Address": "0x00007FF87E434ADC",
+          "FirstChance": true,
+          "ThreadId": 25448,
+          "Module": null,
+          "ModuleOffset": null,
+          "AccessType": "read",
+          "AccessAddress": "0x0000000000000008"
+        },
+        {
+          "Code": "0xC0000005",
+          "Address": "0x00007FFA125F408A",
+          "FirstChance": true,
+          "ThreadId": 25448,
+          "Module": "C:\\Windows\\System32\\KERNELBASE.dll",
+          "ModuleOffset": "0xC408A",
+          "AccessType": "read",
+          "AccessAddress": "0x0000000000000008"
+        },
+        {
+          "Code": "0xC0000005",
+          "Address": "0x00007FFA125F408A",
+          "FirstChance": true,
+          "ThreadId": 25448,
+          "Module": "C:\\Windows\\System32\\KERNELBASE.dll",
+          "ModuleOffset": "0xC408A",
+          "AccessType": null,
+          "AccessAddress": null
+        }
+      ],
+      "Modules": [
+        {
+          "Path": "D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\bin\\Release\\net8.0-windows\\HalconStartupAudit.exe",
+          "BaseAddress": "0x00007FF644EA0000",
+          "Size": 172032,
+          "Version": "1.0.0.0"
+        },
+        {
+          "Path": "C:\\Windows\\SYSTEM32\\ntdll.dll",
+          "BaseAddress": "0x00007FFA14FE0000",
+          "Size": 2523136,
+          "Version": "10.0.26100.9549 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\KERNEL32.DLL",
+          "BaseAddress": "0x00007FFA13B30000",
+          "Size": 831488,
+          "Version": "10.0.26100.9549 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\KERNELBASE.dll",
+          "BaseAddress": "0x00007FFA12530000",
+          "Size": 4198400,
+          "Version": "10.0.26100.9278 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\USER32.dll",
+          "BaseAddress": "0x00007FFA12F10000",
+          "Size": 1929216,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\win32u.dll",
+          "BaseAddress": "0x00007FFA12310000",
+          "Size": 159744,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\GDI32.dll",
+          "BaseAddress": "0x00007FFA14EA0000",
+          "Size": 176128,
+          "Version": "10.0.26100.8328 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\gdi32full.dll",
+          "BaseAddress": "0x00007FFA12340000",
+          "Size": 1220608,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\msvcp_win.dll",
+          "BaseAddress": "0x00007FFA12260000",
+          "Size": 667648,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\ucrtbase.dll",
+          "BaseAddress": "0x00007FFA12940000",
+          "Size": 1359872,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\SHELL32.dll",
+          "BaseAddress": "0x00007FFA13380000",
+          "Size": 7979008,
+          "Version": "10.0.26100.9549 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\ADVAPI32.dll",
+          "BaseAddress": "0x00007FFA12D30000",
+          "Size": 770048,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\msvcrt.dll",
+          "BaseAddress": "0x00007FFA13D40000",
+          "Size": 692224,
+          "Version": "7.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\sechost.dll",
+          "BaseAddress": "0x00007FFA13C90000",
+          "Size": 688128,
+          "Version": "10.0.26100.1 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\RPCRT4.dll",
+          "BaseAddress": "0x00007FFA140C0000",
+          "Size": 1146880,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\IMM32.DLL",
+          "BaseAddress": "0x00007FFA12CF0000",
+          "Size": 200704,
+          "Version": "10.0.26100.9278 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\host\\fxr\\10.0.11\\hostfxr.dll",
+          "BaseAddress": "0x00007FF9159E0000",
+          "Size": 389120,
+          "Version": "10,0,1126,37416 @Commit: e2f47b0110ed922f21a1522da67279133ce28f32"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\hostpolicy.dll",
+          "BaseAddress": "0x00007FF8DE320000",
+          "Size": 417792,
+          "Version": "8,0,3026,36720 @Commit: a83db3e0eb2defb6220e15dae2f1a0462fdbf99f"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\coreclr.dll",
+          "BaseAddress": "0x00007FF8DDE40000",
+          "Size": 5095424,
+          "Version": "8,0,3026,36720 @Commit: a83db3e0eb2defb6220e15dae2f1a0462fdbf99f"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\ole32.dll",
+          "BaseAddress": "0x00007FFA130F0000",
+          "Size": 1679360,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\combase.dll",
+          "BaseAddress": "0x00007FFA14250000",
+          "Size": 3715072,
+          "Version": "10.0.26100.8875 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\OLEAUT32.dll",
+          "BaseAddress": "0x00007FFA13DF0000",
+          "Size": 888832,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Windows\\System32\\bcryptPrimitives.dll",
+          "BaseAddress": "0x00007FFA12470000",
+          "Size": 704512,
+          "Version": "10.0.26100.9711 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Private.CoreLib.dll",
+          "BaseAddress": "0x00007FF8DBFD0000",
+          "Size": 13164544,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\clrjit.dll",
+          "BaseAddress": "0x00007FF8DDC80000",
+          "Size": 1794048,
+          "Version": "8,0,3026,36720 @Commit: a83db3e0eb2defb6220e15dae2f1a0462fdbf99f"
+        },
+        {
+          "Path": "C:\\Windows\\SYSTEM32\\kernel.appcore.dll",
+          "BaseAddress": "0x00007FFA10E50000",
+          "Size": 110592,
+          "Version": "10.0.26100.9278 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconStartupAudit\\bin\\Release\\net8.0-windows\\HalconStartupAudit.dll",
+          "BaseAddress": "0x000001ED00500000",
+          "Size": 57344,
+          "Version": "1.0.0.0"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Runtime.dll",
+          "BaseAddress": "0x000001ED7CDD0000",
+          "Size": 57344,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Windows\\SYSTEM32\\icu.dll",
+          "BaseAddress": "0x00007FF9EE340000",
+          "Size": 2744320,
+          "Version": "72, 1, 0, 4 (WinBuild.160101.0800)"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Collections.dll",
+          "BaseAddress": "0x00007FF8DDC40000",
+          "Size": 249856,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Console.dll",
+          "BaseAddress": "0x00007FF8DDC10000",
+          "Size": 163840,
+          "Version": "8.0.3026.36720"
+        },
+        {
+          "Path": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.30\\System.Threading.Thread.dll",
+          "BaseAddress": "0x000001ED7CD70000",
+          "Size": 32768,
+          "Version": "8.0.3026.36720"
+        }
+      ],
+      "DumpPath": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-collector-delivery-20261023\\capture-null-then-av\\native-event-003.dmp",
+      "DumpAttempts": 3,
+      "DumpFiles": [
+        "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-collector-delivery-20261023\\capture-null-then-av\\native-event-001.dmp",
+        "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-collector-delivery-20261023\\capture-null-then-av\\native-event-002.dmp",
+        "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-collector-delivery-20261023\\capture-null-then-av\\native-event-003.dmp"
+      ],
+      "DumpError": null
+    }
+  }
+]

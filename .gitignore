@@ -11,3 +11,4 @@ logs/
 data/
 config/local.*
 !config/*.example.*
+*.dmp

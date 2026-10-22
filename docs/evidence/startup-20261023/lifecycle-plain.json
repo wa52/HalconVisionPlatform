@@ -1,0 +1,21 @@
+[
+  {
+    "ProcessId": 31556,
+    "Output": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-lifecycle-final-20261023\\run-001",
+    "Capture": false,
+    "ExitCode": 0,
+    "ExitHex": "0x00000000",
+    "TimedOut": false,
+    "CleanupConfirmed": true,
+    "Success": true,
+    "Milliseconds": 9691.0436,
+    "StandardOutput": "PASS: startup project argument loads nodes and wiring without manual reopen\r\nPASS: startup selected flow renders both node containers\r\nPASS: startup argument format: D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-lifecycle-final-20261023\\run-001\\fixture\\\u68C0\u67E5\u9879\u76EE.hvproj\r\nPASS: startup argument format: --project\r\nPASS: startup argument format: --project=D:\\AiProjects\\HalconVisionPlatform\\artifacts\\startup-lifecycle-final-20261023\\run-001\\fixture\\\u68C0\u67E5\u9879\u76EE.hvproj\r\nPASS: startup argument format: file:///D:/AiProjects/HalconVisionPlatform/artifacts/startup-lifecycle-final-20261023/run-001/fixture/%E6%A3%80%E6%9F%A5%E9%A1%B9%E7%9B%AE.hvproj\r\nPASS: node copy/paste\r\nPASS: delete selected pasted node\r\nPASS: undo delete\r\nPASS: redo delete\r\nPASS: node move\r\nPASS: canvas zoom\r\nPASS: reject duplicate wire\r\nPASS: delete node removes edges\r\nPASS: undo restores wiring\r\nPASS: project save/reopen\r\nPASS: unchanged parameter does not create unsaved changes\r\nPASS: single run threshold succeeds\r\nPASS: folder single run first image\r\nPASS: threshold black input produces zero foreground area\r\nPASS: folder single run next image\r\nPASS: threshold white input produces 64x64 foreground area\r\nPASS: previous HALCON outputs disposed on replacement\r\nPASS: 200 real HALCON runs release 400 previous image/region objects\r\nMETRIC: repeated executions=200; released objects=400; elapsed=3463 ms\r\nPASS: prevent run reentry\r\nPASS: continuous dispatcher responsiveness\r\nPASS: continuous detection refreshes node overlays in the visible common-image viewport\r\nPASS: stop drains execution task\r\nMETRIC: heartbeat=60; stop=62 ms\r\nPASS: 10 repeated start/stop cycles\r\nPASS: bounded UI logs\r\nPASS: project switch releases old results\r\nPASS: camera-only continuous acquisition and threshold\r\nPASS: stop closes native acquisition handle\r\nPASS: close while running drains tasks and releases HALCON objects\r\nPASS: owned image viewer closes with workspace\r\nPASS: disposed workspace rejects reuse\r\nPASS: aliased runtime output disposed exactly once\r\nPASS: 3 workspace reopen/close cycles\r\nPASS: shutdown waits for concurrent device scan\r\n",
+    "StandardError": "",
+    "Stages": [],
+    "ValidationErrors": [],
+    "Exceptions": [],
+    "Modules": [],
+    "DumpPath": null,
+    "DumpError": null
+  }
+]

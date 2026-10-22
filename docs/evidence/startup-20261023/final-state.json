@@ -1,0 +1,34 @@
+{
+  "dependencies": [
+    {
+      "path": "D:\\AiProjects\\HalconVisionPlatform\\tests\\HalconVision.LifecycleChecks\\bin\\Release\\net8.0-windows\\HalconVision.Halcon.dll",
+      "sha256": "57337EC37B00D98E6CDF4E6196DFAACE286EB777567583F9F41EDD0086A41F0C",
+      "unchanged": true
+    },
+    {
+      "path": "D:\\AiProjects\\HalconVisionPlatform\\tests\\HalconVision.LifecycleChecks\\bin\\Release\\net8.0-windows\\HalconVision.App.dll",
+      "sha256": "05801EFDDA7D9F854EBBF275976D75292DA00B2B382785D81FD1576064748B2D",
+      "unchanged": true
+    },
+    {
+      "path": "D:\\AiProjects\\HalconVisionPlatform\\tests\\HalconVision.LifecycleChecks\\bin\\Release\\net8.0-windows\\MVTec.HalconDotNet.dll",
+      "sha256": "8C6A241B7AAAA368B4DDAEB0A7F1BCF953F15A1A883CC4850CFC3C69C1FCC29A",
+      "unchanged": true
+    },
+    {
+      "path": "D:\\AiProjects\\HalconVisionPlatform\\tests\\HalconVision.LifecycleChecks\\bin\\Release\\net8.0-windows\\HalconVision.LifecycleChecks.runtimeconfig.json",
+      "sha256": "73B37384BB001E78DB2014D328750EB2990393712FD63CD00C0F41965B3DBE96",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\feng\\AppData\\Local\\Programs\\MVTec\\HALCON-24.11-Progress-Steady\\bin\\x64-win64\\halcon.dll",
+      "sha256": "6D69CF569BEA06A834FD5CF964C0B32E4DFF15166035B783E2A2C82157945FF1",
+      "unchanged": true
+    }
+  ],
+  "desktopTarget": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\desktop-preprocessing-checked\\HalconVision.App.exe",
+  "defaultPromoted": false,
+  "note": "只读回查；检查输出的CleanupConfirmed逐次为true，旧检查进程不作为本轮所有。",
+  "installationVersionFile": "C:\\Users\\feng\\AppData\\Local\\Programs\\MVTec\\HALCON-24.11-Progress-Steady\\version.txt",
+  "installationVersion": "24.11.1.1"
+}

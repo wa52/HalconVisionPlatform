@@ -1,0 +1,202 @@
+[
+  {
+    "ProcessId": 49520,
+    "Capture": true,
+    "ExitCode": 0,
+    "ExitHex": "0x00000000",
+    "TimedOut": false,
+    "CleanupConfirmed": true,
+    "Success": true,
+    "Milliseconds": 558.9773,
+    "Stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ],
+    "ValidationErrors": [],
+    "Exceptions": [],
+    "DumpPath": null,
+    "DumpError": null
+  },
+  {
+    "ProcessId": 21640,
+    "Capture": true,
+    "ExitCode": 0,
+    "ExitHex": "0x00000000",
+    "TimedOut": false,
+    "CleanupConfirmed": true,
+    "Success": true,
+    "Milliseconds": 523.9471,
+    "Stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ],
+    "ValidationErrors": [],
+    "Exceptions": [],
+    "DumpPath": null,
+    "DumpError": null
+  },
+  {
+    "ProcessId": 28692,
+    "Capture": true,
+    "ExitCode": 0,
+    "ExitHex": "0x00000000",
+    "TimedOut": false,
+    "CleanupConfirmed": true,
+    "Success": true,
+    "Milliseconds": 527.1962,
+    "Stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ],
+    "ValidationErrors": [],
+    "Exceptions": [],
+    "DumpPath": null,
+    "DumpError": null
+  },
+  {
+    "ProcessId": 43504,
+    "Capture": true,
+    "ExitCode": 0,
+    "ExitHex": "0x00000000",
+    "TimedOut": false,
+    "CleanupConfirmed": true,
+    "Success": true,
+    "Milliseconds": 509.3923,
+    "Stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ],
+    "ValidationErrors": [],
+    "Exceptions": [],
+    "DumpPath": null,
+    "DumpError": null
+  },
+  {
+    "ProcessId": 18552,
+    "Capture": true,
+    "ExitCode": 0,
+    "ExitHex": "0x00000000",
+    "TimedOut": false,
+    "CleanupConfirmed": true,
+    "Success": true,
+    "Milliseconds": 494.0657,
+    "Stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ],
+    "ValidationErrors": [],
+    "Exceptions": [],
+    "DumpPath": null,
+    "DumpError": null
+  },
+  {
+    "ProcessId": 41344,
+    "Capture": true,
+    "ExitCode": 0,
+    "ExitHex": "0x00000000",
+    "TimedOut": false,
+    "CleanupConfirmed": true,
+    "Success": true,
+    "Milliseconds": 510.01,
+    "Stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ],
+    "ValidationErrors": [],
+    "Exceptions": [],
+    "DumpPath": null,
+    "DumpError": null
+  },
+  {
+    "ProcessId": 6724,
+    "Capture": true,
+    "ExitCode": 0,
+    "ExitHex": "0x00000000",
+    "TimedOut": false,
+    "CleanupConfirmed": true,
+    "Success": true,
+    "Milliseconds": 528.1186,
+    "Stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ],
+    "ValidationErrors": [],
+    "Exceptions": [],
+    "DumpPath": null,
+    "DumpError": null
+  },
+  {
+    "ProcessId": 34936,
+    "Capture": true,
+    "ExitCode": 0,
+    "ExitHex": "0x00000000",
+    "TimedOut": false,
+    "CleanupConfirmed": true,
+    "Success": true,
+    "Milliseconds": 526.3367,
+    "Stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ],
+    "ValidationErrors": [],
+    "Exceptions": [],
+    "DumpPath": null,
+    "DumpError": null
+  },
+  {
+    "ProcessId": 32104,
+    "Capture": true,
+    "ExitCode": 0,
+    "ExitHex": "0x00000000",
+    "TimedOut": false,
+    "CleanupConfirmed": true,
+    "Success": true,
+    "Milliseconds": 511.0623,
+    "Stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ],
+    "ValidationErrors": [],
+    "Exceptions": [],
+    "DumpPath": null,
+    "DumpError": null
+  },
+  {
+    "ProcessId": 19872,
+    "Capture": true,
+    "ExitCode": 0,
+    "ExitHex": "0x00000000",
+    "TimedOut": false,
+    "CleanupConfirmed": true,
+    "Success": true,
+    "Milliseconds": 526.8926,
+    "Stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ],
+    "ValidationErrors": [],
+    "Exceptions": [],
+    "DumpPath": null,
+    "DumpError": null
+  }
+]

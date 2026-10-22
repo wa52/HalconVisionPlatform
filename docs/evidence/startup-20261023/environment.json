@@ -1,0 +1,39 @@
+{
+  "target": "fixture",
+  "executable": "D:\\AiProjects\\HalconVisionPlatform\\tests\\HalconVision.LifecycleChecks\\bin\\Release\\net8.0-windows\\HalconVision.LifecycleChecks.exe",
+  "sha256": "31B43DBD71AA13D413593935A84E7A719A1D9495CF2B5524C9FBB8EB719B907C",
+  "capture": true,
+  "parentRuntime": ".NET 8.0.30",
+  "os": "Microsoft Windows 10.0.26200",
+  "architecture": "X64",
+  "halconRoot": "C:\\Users\\feng\\AppData\\Local\\Programs\\MVTec\\HALCON-24.11-Progress-Steady",
+  "halconArch": "x64-win64",
+  "dependencies": [
+    {
+      "path": "D:\\AiProjects\\HalconVisionPlatform\\tests\\HalconVision.LifecycleChecks\\bin\\Release\\net8.0-windows\\HalconVision.Halcon.dll",
+      "sha256": "57337EC37B00D98E6CDF4E6196DFAACE286EB777567583F9F41EDD0086A41F0C",
+      "version": "1.0.0.0"
+    },
+    {
+      "path": "D:\\AiProjects\\HalconVisionPlatform\\tests\\HalconVision.LifecycleChecks\\bin\\Release\\net8.0-windows\\HalconVision.App.dll",
+      "sha256": "05801EFDDA7D9F854EBBF275976D75292DA00B2B382785D81FD1576064748B2D",
+      "version": "1.0.0.0"
+    },
+    {
+      "path": "D:\\AiProjects\\HalconVisionPlatform\\tests\\HalconVision.LifecycleChecks\\bin\\Release\\net8.0-windows\\MVTec.HalconDotNet.dll",
+      "sha256": "8C6A241B7AAAA368B4DDAEB0A7F1BCF953F15A1A883CC4850CFC3C69C1FCC29A",
+      "version": "24111.0.0.0"
+    },
+    {
+      "path": "D:\\AiProjects\\HalconVisionPlatform\\tests\\HalconVision.LifecycleChecks\\bin\\Release\\net8.0-windows\\HalconVision.LifecycleChecks.runtimeconfig.json",
+      "sha256": "73B37384BB001E78DB2014D328750EB2990393712FD63CD00C0F41965B3DBE96",
+      "version": null
+    },
+    {
+      "path": "C:\\Users\\feng\\AppData\\Local\\Programs\\MVTec\\HALCON-24.11-Progress-Steady\\bin\\x64-win64\\halcon.dll",
+      "sha256": "6D69CF569BEA06A834FD5CF964C0B32E4DFF15166035B783E2A2C82157945FF1",
+      "version": "24.11.1.0"
+    }
+  ],
+  "note": "\u53EA\u8BFB\u73AF\u5883\u5FEB\u7167\uFF1B\u91C7\u96C6\u6A21\u5F0F\u5F71\u54CD\u65F6\u5E8F\uFF0C\u4E0D\u7B49\u540C\u4E8E\u666E\u901A\u542F\u52A8\u3002dump\u4EC5\u7559\u672C\u5730artifacts\uFF0C\u4E0D\u4E0A\u4F20\u3002"
+}
