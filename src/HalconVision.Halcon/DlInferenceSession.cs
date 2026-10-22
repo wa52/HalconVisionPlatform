@@ -10,6 +10,7 @@ internal sealed class DlInferenceSession : IDisposable
 {
     private HDlModel? _model;
     private HDict? _preprocess;
+    private DlPreprocessing? _preprocessing;
     private HDlDevice[] _devices = [];
     public string Runtime { get; }
     public int DeviceIndex { get; }
@@ -66,6 +67,7 @@ internal sealed class DlInferenceSession : IDisposable
             if (DeviceIndex >= _devices.Length) throw new InvalidOperationException($"未发现 {Runtime} 设备索引 {DeviceIndex}，可用数 {_devices.Length}。");
             using var device = new HTuple(_devices[DeviceIndex]);
             _model.SetDlModelParam("device", device); _model.SetDlModelParam("batch_size", 1);
+            _preprocessing = new DlPreprocessing();
         }
         catch (Exception error)
         {
@@ -85,7 +87,7 @@ internal sealed class DlInferenceSession : IDisposable
     {
         cancellation.ThrowIfCancellationRequested();
         using var sample = new HDict(); sample.SetDictObject(image, "image");
-        DlPreprocessing.Apply(sample, _preprocess!, cancellation);
+        _preprocessing!.Apply(sample, _preprocess!, cancellation);
         cancellation.ThrowIfCancellationRequested();
         using var empty = new HTuple();
         var clock = Stopwatch.StartNew();
@@ -101,8 +103,8 @@ internal sealed class DlInferenceSession : IDisposable
     }
     public void Dispose()
     {
-        var model = _model; var preprocess = _preprocess; var devices = _devices;
-        _model = null; _preprocess = null; _devices = [];
+        var model = _model; var preprocess = _preprocess; var processing = _preprocessing; var devices = _devices;
+        _model = null; _preprocess = null; _preprocessing = null; _devices = [];
         var errors = new List<Exception>();
         if (model is not null)
         {
@@ -110,6 +112,7 @@ internal sealed class DlInferenceSession : IDisposable
             Attempt(model.Dispose);
         }
         if (preprocess is not null) Attempt(preprocess.Dispose);
+        if (processing is not null) Attempt(processing.Dispose);
         foreach (var device in devices) Attempt(device.Dispose);
         if (errors.Count > 0) throw new AggregateException("释放深度学习资源失败。", errors);
         void Attempt(Action action) { try { action(); } catch (Exception ex) { errors.Add(ex); } }

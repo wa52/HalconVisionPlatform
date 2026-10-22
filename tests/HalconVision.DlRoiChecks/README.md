@@ -3,7 +3,7 @@
 要求 Windows x64、HALCON 24.11、本机有效运行环境和 HalconTrainingPlatform 导出的分割及分类模型。模型、图像路径通过本机组合方案传入，不硬编码或提交到仓库。该程序使用真实模型，不是精度基准。
 
 ```powershell
-dotnet restore tests/HalconVision.DlRoiChecks/HalconVision.DlRoiChecks.csproj --disable-parallel -m:1 -p:NuGetAudit=false
+dotnet restore tests/HalconVision.DlRoiChecks/HalconVision.DlRoiChecks.csproj --disable-parallel -m:1
 dotnet build tests/HalconVision.DlRoiChecks/HalconVision.DlRoiChecks.csproj -c Release --no-restore -m:1
 dotnet tests/HalconVision.DlRoiChecks/bin/Release/net8.0-windows/HalconVision.DlRoiChecks.dll <组合方案.hvproj> artifacts/dl-roi-baseline 3
 dotnet tests/HalconVision.DlRoiChecks/bin/Release/net8.0-windows/HalconVision.DlRoiChecks.dll <组合方案.hvproj> artifacts/dl-roi-cache-stress 100 --cache
@@ -14,6 +14,8 @@ dotnet tests/HalconVision.DlRoiChecks/bin/Release/net8.0-windows/HalconVision.Dl
 组合方案应包含一个本机图片读取节点、一个分割节点、一个分类节点及有效连接。检查程序在指定输出目录另建方案，不修改输入项目、训练模型或 HALCON 安装。输出目录每次应使用新名称，以便区分历史失败文件。
 
 覆盖：重叠 ROI、反向绘制、部分/完全越界、禁用、保存恢复、身份与名称、重复参数拒绝、原图尺寸/有效域、分类类别映射和全部评分、分割对象所属区域、逐 ROI 物理裁图的独立推理对照、原生输出释放、处理中取消、设备切换、缓存容量/清理/关闭。错误返回非零退出码并写 error.txt；成功写 results.json 和推理预览，进度写 progress.json。
+
+缓存容量按模型包/任务/设备身份计数，同模型不同节点应命中；不同模型才触发容量淘汰。满容量下尝试错误的新设备仍可能先淘汰 LRU，但必须报错，不能回退到其他设备。检查实际的分类/分割模型切换和重建，同时验证每个缓存模型拥有的官方预处理过程也可安全释放和重建。
 
 `--ui-contracts` 是 WPF 叠加层布局单元契约：恢复 ROI 时必须先将 Canvas 加入布局。它不替代鼠标拖动和屏幕观察。真实 UI 绘制、缩放、保存和检测显示需独立执行，见验收记录。
 

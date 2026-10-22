@@ -1,0 +1,1100 @@
+{
+  "checks": 247,
+  "passed": [
+    "\u672C\u8F6E\u65B9\u6848\u3001\u6B63\u8D1F\u6837\u672C\u548C\u6A21\u578B\u4E0E\u65E2\u6709\u6807\u7B7E\u5BA1\u67E5\u9010\u6587\u4EF6\u54C8\u5E0C\u4E00\u81F4",
+    "\u539F\u59CB\u6807\u7B7E\u3001\u8BAD\u7EC3\u88C1\u56FE\u53CA\u5BF9\u5E94\u5206\u7C7B\u88C1\u56FE\u5747\u4FDD\u6301\u5BA1\u67E5\u65F6\u54C8\u5E0C",
+    "\u6CBF\u7528\u539F P1\u2013P6 \u516D\u533A\u57DF\u987A\u5E8F",
+    "\u72EC\u7ACB\u4EFB\u52A1\u914D\u7F6E\u8EAB\u4EFD\u6709\u6548",
+    "\u4E5D\u8282\u70B9\u516D\u5FC5\u68C0\u4EFB\u52A1\u56FE\u6821\u9A8C\u901A\u8FC7",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5B9E\u9645\u4EA7\u54C1\u5224\u5B9A",
+    "\u5185\u5B58\u68C0\u67E5\u516D\u533A\u57DF\u8F93\u51FA\u6B63\u786E",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u5185\u5B58\u68C0\u67E5\u4FDD\u6301\u5355\u4E00\u6A21\u578B\u4E14\u4E0D\u91CD\u8F7D",
+    "\u68C0\u67E5\u7ED3\u675F\u91CA\u653E\u5F62\u72B6\u4E0EDL\u7F13\u5B58",
+    "\u6E90\u9879\u76EE\u3001\u56FE\u7247\u3001\u6A21\u677F\u3001\u6A21\u578B\u548C\u9884\u5904\u7406\u6587\u4EF6\u54C8\u5E0C\u672A\u53D8"
+  ],
+  "runs": [
+    {
+      "name": "memory-round-1",
+      "Status": 0,
+      "inspection": {
+        "RunId": "0c8b0f18-21f4-48db-b656-52acd4825e90",
+        "FlowId": "a9ebd86e-9628-4cdd-84a7-97b7749ad723",
+        "Verdict": 1,
+        "Tasks": [
+          {
+            "TaskId": "ea602537-1a99-4056-8f13-04563beb9e03",
+            "Name": "P1 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 1,
+            "Reasons": [
+              "\u5168\u90E8\u89C4\u5219\u6EE1\u8DB3\u3002"
+            ]
+          },
+          {
+            "TaskId": "d45b0b87-41c1-4723-b9f8-ac24552a6c0d",
+            "Name": "P2 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 1,
+            "Reasons": [
+              "\u5168\u90E8\u89C4\u5219\u6EE1\u8DB3\u3002"
+            ]
+          },
+          {
+            "TaskId": "67e4e304-5081-4e1c-bb6f-6248f28c414e",
+            "Name": "P3 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 1,
+            "Reasons": [
+              "\u5168\u90E8\u89C4\u5219\u6EE1\u8DB3\u3002"
+            ]
+          },
+          {
+            "TaskId": "cbc0aad1-5153-4be2-91c3-4544261b97b2",
+            "Name": "P4 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 1,
+            "Reasons": [
+              "\u5168\u90E8\u89C4\u5219\u6EE1\u8DB3\u3002"
+            ]
+          },
+          {
+            "TaskId": "521f240e-8261-485f-9a08-6d7067c451c8",
+            "Name": "P5 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 1,
+            "Reasons": [
+              "\u5168\u90E8\u89C4\u5219\u6EE1\u8DB3\u3002"
+            ]
+          },
+          {
+            "TaskId": "b446c352-5c29-41a1-a481-c44dd3733945",
+            "Name": "P6 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 1,
+            "Reasons": [
+              "\u5168\u90E8\u89C4\u5219\u6EE1\u8DB3\u3002"
+            ]
+          }
+        ],
+        "Reasons": [],
+        "ConfigurationIdentity": "5198A4EA5AE865E9B465AB56727158B0D24EF01C4F172A1B3CD44239C3152D16",
+        "Label": "OK"
+      },
+      "ms": 48828.8249,
+      "rows": [
+        {
+          "node": "P1 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+            "RoiName": "P1",
+            "Bounds": {
+              "RowBegin": 991,
+              "ColumnBegin": 957,
+              "RowEnd": 1489,
+              "ColumnEnd": 1225
+            },
+            "ExpectedClass": "P1",
+            "Objects": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 41412.1065
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": false,
+            "modelLoadMs": 6848.6084,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 41412.1065,
+            "elapsedMs": 48281.3147,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        },
+        {
+          "node": "P2 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+            "RoiName": "P2",
+            "Bounds": {
+              "RowBegin": 521,
+              "ColumnBegin": 131,
+              "RowEnd": 730,
+              "ColumnEnd": 306
+            },
+            "ExpectedClass": "P2",
+            "Objects": [
+              {
+                "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+                "RoiName": "P2",
+                "ClassId": 6,
+                "ClassName": "P2",
+                "Confidence": 0.998762845993042,
+                "Bounds": {
+                  "RowBegin": 573.095057040453,
+                  "ColumnBegin": 164.22989177703857,
+                  "RowEnd": 664.8746495246887,
+                  "ColumnEnd": 256.27257347106934
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+                "RoiName": "P2",
+                "ClassId": 6,
+                "ClassName": "P2",
+                "Confidence": 0.998762845993042,
+                "Bounds": {
+                  "RowBegin": 573.095057040453,
+                  "ColumnBegin": 164.22989177703857,
+                  "RowEnd": 664.8746495246887,
+                  "ColumnEnd": 256.27257347106934
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 64.6963
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": true,
+            "modelLoadMs": 0.0046,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 64.6963,
+            "elapsedMs": 73.1496,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        },
+        {
+          "node": "P3 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "bdc6e70c-6565-48d6-88ac-32c06e7aded4",
+            "RoiName": "P3",
+            "Bounds": {
+              "RowBegin": 261,
+              "ColumnBegin": 1548,
+              "RowEnd": 387,
+              "ColumnEnd": 1654
+            },
+            "ExpectedClass": "P3",
+            "Objects": [
+              {
+                "RoiId": "bdc6e70c-6565-48d6-88ac-32c06e7aded4",
+                "RoiName": "P3",
+                "ClassId": 7,
+                "ClassName": "P3",
+                "Confidence": 0.9988969564437866,
+                "Bounds": {
+                  "RowBegin": 298.30112728476524,
+                  "ColumnBegin": 1582.3726348876953,
+                  "RowEnd": 365.21426606178284,
+                  "ColumnEnd": 1624.7259639501572
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "bdc6e70c-6565-48d6-88ac-32c06e7aded4",
+                "RoiName": "P3",
+                "ClassId": 7,
+                "ClassName": "P3",
+                "Confidence": 0.9988969564437866,
+                "Bounds": {
+                  "RowBegin": 298.30112728476524,
+                  "ColumnBegin": 1582.3726348876953,
+                  "RowEnd": 365.21426606178284,
+                  "ColumnEnd": 1624.7259639501572
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 64.5313
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": true,
+            "modelLoadMs": 0.0082,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 64.5313,
+            "elapsedMs": 72.7006,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        },
+        {
+          "node": "P4 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "08137286-be9d-4f6c-8b2b-05f2299e625b",
+            "RoiName": "P4",
+            "Bounds": {
+              "RowBegin": 399,
+              "ColumnBegin": 495,
+              "RowEnd": 844,
+              "ColumnEnd": 705
+            },
+            "ExpectedClass": "P4",
+            "Objects": [
+              {
+                "RoiId": "08137286-be9d-4f6c-8b2b-05f2299e625b",
+                "RoiName": "P4",
+                "ClassId": 8,
+                "ClassName": "P4",
+                "Confidence": 0.9936103224754333,
+                "Bounds": {
+                  "RowBegin": 485.4064884185791,
+                  "ColumnBegin": 510.95371958613396,
+                  "RowEnd": 819.3539202213287,
+                  "ColumnEnd": 668.5800658464432
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "08137286-be9d-4f6c-8b2b-05f2299e625b",
+                "RoiName": "P4",
+                "ClassId": 8,
+                "ClassName": "P4",
+                "Confidence": 0.9936103224754333,
+                "Bounds": {
+                  "RowBegin": 485.4064884185791,
+                  "ColumnBegin": 510.95371958613396,
+                  "RowEnd": 819.3539202213287,
+                  "ColumnEnd": 668.5800658464432
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 63.4214
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": true,
+            "modelLoadMs": 0.0042,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 63.4214,
+            "elapsedMs": 71.7207,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        },
+        {
+          "node": "P5 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "86eb0414-4388-4d0a-9c9d-a628587e5334",
+            "RoiName": "P5",
+            "Bounds": {
+              "RowBegin": 1123,
+              "ColumnBegin": 487,
+              "RowEnd": 1583,
+              "ColumnEnd": 724
+            },
+            "ExpectedClass": "P5",
+            "Objects": [
+              {
+                "RoiId": "86eb0414-4388-4d0a-9c9d-a628587e5334",
+                "RoiName": "P5",
+                "ClassId": 9,
+                "ClassName": "P5",
+                "Confidence": 0.9987167119979858,
+                "Bounds": {
+                  "RowBegin": 1152.3041167259216,
+                  "ColumnBegin": 490.0199983716011,
+                  "RowEnd": 1540.8788633942604,
+                  "ColumnEnd": 636.4817621707916
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "86eb0414-4388-4d0a-9c9d-a628587e5334",
+                "RoiName": "P5",
+                "ClassId": 9,
+                "ClassName": "P5",
+                "Confidence": 0.9987167119979858,
+                "Bounds": {
+                  "RowBegin": 1152.3041167259216,
+                  "ColumnBegin": 490.0199983716011,
+                  "RowEnd": 1540.8788633942604,
+                  "ColumnEnd": 636.4817621707916
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 63.2174
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": true,
+            "modelLoadMs": 0.0043,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 63.2174,
+            "elapsedMs": 69.5263,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        },
+        {
+          "node": "P6 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "6c5fa081-ef40-43db-9d1a-f2323c54191f",
+            "RoiName": "P6",
+            "Bounds": {
+              "RowBegin": 1396,
+              "ColumnBegin": 1945,
+              "RowEnd": 1575,
+              "ColumnEnd": 2104
+            },
+            "ExpectedClass": "P6",
+            "Objects": [
+              {
+                "RoiId": "6c5fa081-ef40-43db-9d1a-f2323c54191f",
+                "RoiName": "P6",
+                "ClassId": 10,
+                "ClassName": "P6",
+                "Confidence": 0.996327817440033,
+                "Bounds": {
+                  "RowBegin": 1428.9926581382751,
+                  "ColumnBegin": 1981.9143362045288,
+                  "RowEnd": 1518.4415714740753,
+                  "ColumnEnd": 2074.475528717041
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "6c5fa081-ef40-43db-9d1a-f2323c54191f",
+                "RoiName": "P6",
+                "ClassId": 10,
+                "ClassName": "P6",
+                "Confidence": 0.996327817440033,
+                "Bounds": {
+                  "RowBegin": 1428.9926581382751,
+                  "ColumnBegin": 1981.9143362045288,
+                  "RowEnd": 1518.4415714740753,
+                  "ColumnEnd": 2074.475528717041
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 62.9335
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": true,
+            "modelLoadMs": 0.0044,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 62.9335,
+            "elapsedMs": 70.7846,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        }
+      ]
+    },
+    {
+      "name": "memory-round-60",
+      "Status": 0,
+      "inspection": {
+        "RunId": "77f8224e-e947-4b09-9170-b1ca3e883389",
+        "FlowId": "a9ebd86e-9628-4cdd-84a7-97b7749ad723",
+        "Verdict": 2,
+        "Tasks": [
+          {
+            "TaskId": "ea602537-1a99-4056-8f13-04563beb9e03",
+            "Name": "P1 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 2,
+            "Reasons": [
+              "P1 \u68C0\u6D4B / decision/Code \u672A\u6EE1\u8DB3\u89C4\u5219\u3002"
+            ]
+          },
+          {
+            "TaskId": "d45b0b87-41c1-4723-b9f8-ac24552a6c0d",
+            "Name": "P2 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 1,
+            "Reasons": [
+              "\u5168\u90E8\u89C4\u5219\u6EE1\u8DB3\u3002"
+            ]
+          },
+          {
+            "TaskId": "67e4e304-5081-4e1c-bb6f-6248f28c414e",
+            "Name": "P3 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 1,
+            "Reasons": [
+              "\u5168\u90E8\u89C4\u5219\u6EE1\u8DB3\u3002"
+            ]
+          },
+          {
+            "TaskId": "cbc0aad1-5153-4be2-91c3-4544261b97b2",
+            "Name": "P4 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 2,
+            "Reasons": [
+              "P4 \u68C0\u6D4B / decision/Code \u672A\u6EE1\u8DB3\u89C4\u5219\u3002"
+            ]
+          },
+          {
+            "TaskId": "521f240e-8261-485f-9a08-6d7067c451c8",
+            "Name": "P5 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 2,
+            "Reasons": [
+              "P5 \u68C0\u6D4B / decision/Code \u672A\u6EE1\u8DB3\u89C4\u5219\u3002"
+            ]
+          },
+          {
+            "TaskId": "b446c352-5c29-41a1-a481-c44dd3733945",
+            "Name": "P6 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 2,
+            "Reasons": [
+              "P6 \u68C0\u6D4B / decision/Code \u672A\u6EE1\u8DB3\u89C4\u5219\u3002"
+            ]
+          }
+        ],
+        "Reasons": [],
+        "ConfigurationIdentity": "5198A4EA5AE865E9B465AB56727158B0D24EF01C4F172A1B3CD44239C3152D16",
+        "Label": "NG"
+      },
+      "ms": 464.3071,
+      "rows": [
+        {
+          "node": "P1 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+            "RoiName": "P1",
+            "Bounds": {
+              "RowBegin": 991,
+              "ColumnBegin": 957,
+              "RowEnd": 1489,
+              "ColumnEnd": 1225
+            },
+            "ExpectedClass": "P1",
+            "Objects": [],
+            "Candidates": [],
+            "Decision": {
+              "Code": "NOT_DETECTED",
+              "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+            },
+            "InferenceMilliseconds": 62.1118
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": true,
+            "modelLoadMs": 0.001,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 62.1118,
+            "elapsedMs": 68.3687,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        },
+        {
+          "node": "P2 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+            "RoiName": "P2",
+            "Bounds": {
+              "RowBegin": 521,
+              "ColumnBegin": 131,
+              "RowEnd": 730,
+              "ColumnEnd": 306
+            },
+            "ExpectedClass": "P2",
+            "Objects": [
+              {
+                "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+                "RoiName": "P2",
+                "ClassId": 6,
+                "ClassName": "P2",
+                "Confidence": 0.9990643858909607,
+                "Bounds": {
+                  "RowBegin": 573.9709230065346,
+                  "ColumnBegin": 164.4569673538208,
+                  "RowEnd": 666.8576889038086,
+                  "ColumnEnd": 259.56262016296387
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+                "RoiName": "P2",
+                "ClassId": 6,
+                "ClassName": "P2",
+                "Confidence": 0.9990643858909607,
+                "Bounds": {
+                  "RowBegin": 573.9709230065346,
+                  "ColumnBegin": 164.4569673538208,
+                  "RowEnd": 666.8576889038086,
+                  "ColumnEnd": 259.56262016296387
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 62.4601
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": true,
+            "modelLoadMs": 0.0022,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 62.4601,
+            "elapsedMs": 70.1569,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        },
+        {
+          "node": "P3 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "bdc6e70c-6565-48d6-88ac-32c06e7aded4",
+            "RoiName": "P3",
+            "Bounds": {
+              "RowBegin": 261,
+              "ColumnBegin": 1548,
+              "RowEnd": 387,
+              "ColumnEnd": 1654
+            },
+            "ExpectedClass": "P3",
+            "Objects": [
+              {
+                "RoiId": "bdc6e70c-6565-48d6-88ac-32c06e7aded4",
+                "RoiName": "P3",
+                "ClassId": 7,
+                "ClassName": "P3",
+                "Confidence": 0.9988387227058411,
+                "Bounds": {
+                  "RowBegin": 295.2183492779732,
+                  "ColumnBegin": 1582.7401050329208,
+                  "RowEnd": 362.96218544244766,
+                  "ColumnEnd": 1624.3982396125793
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "bdc6e70c-6565-48d6-88ac-32c06e7aded4",
+                "RoiName": "P3",
+                "ClassId": 7,
+                "ClassName": "P3",
+                "Confidence": 0.9988387227058411,
+                "Bounds": {
+                  "RowBegin": 295.2183492779732,
+                  "ColumnBegin": 1582.7401050329208,
+                  "RowEnd": 362.96218544244766,
+                  "ColumnEnd": 1624.3982396125793
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 62.4072
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": true,
+            "modelLoadMs": 0.0018,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 62.4072,
+            "elapsedMs": 69.2141,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        },
+        {
+          "node": "P4 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "08137286-be9d-4f6c-8b2b-05f2299e625b",
+            "RoiName": "P4",
+            "Bounds": {
+              "RowBegin": 399,
+              "ColumnBegin": 495,
+              "RowEnd": 844,
+              "ColumnEnd": 705
+            },
+            "ExpectedClass": "P4",
+            "Objects": [],
+            "Candidates": [],
+            "Decision": {
+              "Code": "NOT_DETECTED",
+              "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+            },
+            "InferenceMilliseconds": 65.9553
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": true,
+            "modelLoadMs": 0.0032,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 65.9553,
+            "elapsedMs": 72.264,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        },
+        {
+          "node": "P5 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "86eb0414-4388-4d0a-9c9d-a628587e5334",
+            "RoiName": "P5",
+            "Bounds": {
+              "RowBegin": 1123,
+              "ColumnBegin": 487,
+              "RowEnd": 1583,
+              "ColumnEnd": 724
+            },
+            "ExpectedClass": "P5",
+            "Objects": [],
+            "Candidates": [],
+            "Decision": {
+              "Code": "NOT_DETECTED",
+              "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+            },
+            "InferenceMilliseconds": 61.4285
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": true,
+            "modelLoadMs": 0.0016,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 61.4285,
+            "elapsedMs": 70.0158,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        },
+        {
+          "node": "P6 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "6c5fa081-ef40-43db-9d1a-f2323c54191f",
+            "RoiName": "P6",
+            "Bounds": {
+              "RowBegin": 1396,
+              "ColumnBegin": 1945,
+              "RowEnd": 1575,
+              "ColumnEnd": 2104
+            },
+            "ExpectedClass": "P6",
+            "Objects": [],
+            "Candidates": [],
+            "Decision": {
+              "Code": "NOT_DETECTED",
+              "Message": "NG \u00B7 \u672A\u68C0\u51FA\u671F\u671B\u76EE\u6807"
+            },
+            "InferenceMilliseconds": 62.545
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": true,
+            "modelLoadMs": 0.0017,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 62.545,
+            "elapsedMs": 69.8717,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        }
+      ]
+    }
+  ],
+  "readOnlyHashes": {
+    "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\aligned-detection-20261021\\1111_\u5B9A\u4F4D\u68C0\u6D4B\u9A8C\u8BC1.hvproj": "B43756CF822D333233E9999F08B2F64FC407E6480DF90C3B3B257A5337E135EB",
+    "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\1\\OR_1_N063000DCL_14_45_59.jpg": "B058B4831F5A3F244308275B6594A4E7653798C04CFA7A776E5D214A26FCD053",
+    "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\1\\OR_1_N05A00522B_18_37_41.jpg": "3FB6D73609EFD55868E2877450DE40DB2A85AF8F95DB2D319F2B980D0A04A28D",
+    "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\desktop-1111-drawing-review\\assets\\templates\\0fc35b382d504104b7cf421c5dafb446\\e04e1b939b7642508dc522767948b025.png": "BF688EFFE540E3848B75361802E70A107639946D612A7EE7D473E357856DAE95",
+    "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3\\model.hdl": "200BACCD3143B293039E793927A13A4CBEC920C9621E2E033144E7C9C8207FF3",
+    "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3\\preprocess.hdict": "9702F7AF480704633E6EF730BF76FFAF7D66E1467CA6F32EFD937DE0CC61C481",
+    "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3\\manifest.json": "0C0ABC1319B6A955CA3287CD2D94D406CD8483DCB6E675B832C6CE94AE64B62C",
+    "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\annotations.json": "02F875684BD909DAB758E2D5773071219B1E2AFDDE82088BB9533DEFF4E129EC",
+    "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\\u7ED3\u679C\\NGP1\\0.jpg": "564261D37B6A7CBB07539E56C5814064B9A0FB061D1594328A770586B4BB8D4E",
+    "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000001_0.jpg": "564261D37B6A7CBB07539E56C5814064B9A0FB061D1594328A770586B4BB8D4E",
+    "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\\u7ED3\u679C\\P2\\0.jpg": "8B7DC111BF6B13E52B6666E6EAFAF1280DC965062EF1E725F26500CE2A65A2F9",
+    "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000310_0.jpg": "8B7DC111BF6B13E52B6666E6EAFAF1280DC965062EF1E725F26500CE2A65A2F9",
+    "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\\u7ED3\u679C\\P3\\0.jpg": "E0790B38DC3DDE90F7BF94CC4B2C37215F2289CCC90831498CE39ACDDAE319BB",
+    "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000577_0.jpg": "E0790B38DC3DDE90F7BF94CC4B2C37215F2289CCC90831498CE39ACDDAE319BB",
+    "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\\u7ED3\u679C\\NGP4\\0.jpg": "5F1F3F575D8F8B784AF4FE67BE6EDA2F0BEEC763DE6C9DB6D295F63896E56D1E",
+    "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000015_0.jpg": "5F1F3F575D8F8B784AF4FE67BE6EDA2F0BEEC763DE6C9DB6D295F63896E56D1E",
+    "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\\u7ED3\u679C\\NGP5\\0.jpg": "C717C2A829F2318C8D860564B7F5B1DDB7690C5E7457E5D98B0D65CF7EC773A3",
+    "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000029_0.jpg": "C717C2A829F2318C8D860564B7F5B1DDB7690C5E7457E5D98B0D65CF7EC773A3",
+    "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\\u7ED3\u679C\\NGP6\\0.jpg": "CE73456BD79D3B9C6A85FF58BA0789F254E488375C16AA83818567AC5B76535B",
+    "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000043_0.jpg": "CE73456BD79D3B9C6A85FF58BA0789F254E488375C16AA83818567AC5B76535B",
+    "D:\\AiProjects\\HalconVisionPlatform\\docs\\evidence\\detection-negative-audit-20261022\\audit-summary.json": "EA3962D7EE68275DEEC1C4F042B05CFB5F5CE9CB5D3219F3A447B9F029EAAE74"
+  },
+  "note": "\u6807\u7B7E\u540C\u6E90\u6B63\u8D1F\u6837\u672C\u8054\u8C03\uFF0C\u4E0D\u662F\u72EC\u7ACB\u7CBE\u5EA6\u62A5\u544A\uFF1B\u73B0\u6709\u6A21\u578B\u4E0D\u542BNG\u7C7B\u522B\u3002"
+}

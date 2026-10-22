@@ -9,6 +9,7 @@ using HalconVision.Halcon;
 using HalconVision.Persistence;
 using HalconVision.App;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 internal static class Program
 {
@@ -22,8 +23,8 @@ internal static class Program
     [STAThread]
     private static int Main(string[] args)
     {
-        if (args.Length is < 5 or > 6 || args[4] is not ("cache-probe" or "cache-lifecycle" or "create-ui" or "verify") || (args[4] is "verify" or "create-ui") && args.Length != 6)
-        { Console.Error.WriteLine("用法：<四节点1111方案> <正常原图> <负样本原图> <全新输出目录> <cache-probe|cache-lifecycle|create-ui|verify> [verify/create-ui所需既有标签审查summary.json]"); return 2; }
+        if (args.Length is < 5 or > 7 || args[4] is not ("cache-probe" or "cache-lifecycle" or "create-ui" or "memory-probe" or "preprocess-probe" or "preprocess-check" or "verify") || (args[4] is "verify" or "create-ui" or "memory-probe" or "preprocess-probe") && args.Length != 6 || args[4]=="preprocess-check" && args.Length!=7)
+        { Console.Error.WriteLine("用法：<四节点1111方案> <正常原图> <负样本原图> <全新输出目录> <cache-probe|cache-lifecycle|create-ui|verify|memory-probe|preprocess-probe|preprocess-check> [既有标签审查summary.json] [preprocess-check所需基线preprocessing.json]"); return 2; }
         var output = Path.GetFullPath(args[3]);
         if (Directory.Exists(output) || File.Exists(output)) { Console.Error.WriteLine("拒绝覆盖已有输出。"); return 2; }
         Directory.CreateDirectory(output);
@@ -38,7 +39,7 @@ internal static class Program
             var package = detector.Parameters["modelPackage"].GetString()!;
             var readOnly = new[] { source, positive, negative, matcher.Parameters["templateImage"].GetString()!,
                 Path.Combine(package,"model.hdl"), Path.Combine(package,"preprocess.hdict"), Path.Combine(package,"manifest.json") }.ToDictionary(p => p, Hash);
-            if(args[4] is "verify" or "create-ui")
+            if(args[4] is "verify" or "create-ui" or "memory-probe" or "preprocess-probe" or "preprocess-check")
             {
                 using var proof=JsonDocument.Parse(File.ReadAllText(args[5]));
                 var audited=proof.RootElement.GetProperty("hashes").EnumerateObject().ToDictionary(p=>Path.GetFullPath(p.Name),p=>p.Value.GetString()!,StringComparer.OrdinalIgnoreCase);
@@ -91,7 +92,115 @@ internal static class Program
                 Runs.Add(new{name,run.Status,inspection=run.Inspection,ms=(run.EndedAtUtc-run.StartedAtUtc).TotalMilliseconds,rows});
                 Console.WriteLine($"{name}: {run.Status} / 产品 {run.Inspection?.Label}; "+string.Join("; ",rows.Select(r=>$"{r.row.RoiName}={r.row.Decision.Code} cache={r.modelInfo.GetProperty("cacheHit").GetBoolean()}")));
             }
-            if(args[4]=="create-ui")
+            if(args[4] is "preprocess-probe" or "preprocess-check")
+            {
+                var samples = new List<object>(); var times = new List<double>();
+                var processingType=typeof(DlModelSessionCache).Assembly.GetType("HalconVision.Halcon.DlPreprocessing",true)!;
+                var apply=processingType.GetMethod("Apply",BindingFlags.Public|BindingFlags.Static|BindingFlags.Instance)!;
+                var setup=Stopwatch.StartNew();var processor=apply.IsStatic?null:Activator.CreateInstance(processingType);setup.Stop();
+                using var input=new HImage(positive); using var empty=new HTuple(); using var preprocess=new HDict(Path.Combine(package,"preprocess.hdict"),empty,empty);
+                string Pixels(HDict sample)
+                {
+                    using var processed=sample.GetDictObject("image");HOperatorSet.CountChannels(processed,out var channels);using(channels)
+                    {
+                        using var hash=IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+                        for(var channel=1;channel<=channels.I;channel++)
+                        {
+                            HOperatorSet.AccessChannel(processed,out var plane,channel);using(plane)
+                            {
+                                HOperatorSet.GetImagePointer1(plane,out var pointer,out var pixelType,out var w,out var h);
+                                using(pointer)using(pixelType)using(w)using(h)
+                                {
+                                    Check(pixelType.S=="real","官方预处理输出real像素");var data=new byte[checked(w.I*h.I*4)];
+                                    Marshal.Copy(new IntPtr(pointer.L),data,0,data.Length);hash.AppendData(data);
+                                }
+                            }
+                        }
+                        return Convert.ToHexString(hash.GetHashAndReset());
+                    }
+                }
+                try
+                {
+                    for(var round=0;round<24;round++)
+                    {
+                        var roi=rois[round%6];using var cropped=input.CropRectangle1(roi.RowBegin,roi.ColumnBegin,roi.RowEnd,roi.ColumnEnd);
+                        using var sample=new HDict();sample.SetDictObject(cropped,"image");var watch=Stopwatch.StartNew();
+                        apply.Invoke(processor,[sample,preprocess,CancellationToken.None]);watch.Stop();times.Add(watch.Elapsed.TotalMilliseconds);
+                        samples.Add(new{round=round+1,roi=roi.Name,ms=watch.Elapsed.TotalMilliseconds,hash=Pixels(sample)});
+                    }
+                    var measurements=new{setupMs=setup.Elapsed.TotalMilliseconds,coldMs=times[0],warmMedianMs=times.Skip(6).Order().ElementAt(9),samples};
+                    File.WriteAllText(Path.Combine(output,"preprocessing.json"),JsonSerializer.Serialize(measurements,Json));
+                    Console.WriteLine("预处理 "+JsonSerializer.Serialize(new{measurements.setupMs,measurements.coldMs,measurements.warmMedianMs}));
+                    if(args[4]=="preprocess-check")
+                    {
+                        using var baseline=JsonDocument.Parse(File.ReadAllText(args[6]));
+                        var actual=JsonSerializer.SerializeToElement(samples).EnumerateArray().Select(s=>s.GetProperty("hash").GetString()).ToArray();
+                        var expectedHashes=baseline.RootElement.GetProperty("samples").EnumerateArray().Select(s=>s.GetProperty("hash").GetString()).ToArray();
+                        Check(actual.SequenceEqual(expectedHashes),"24个实际ROI的预处理real像素逐字节与基线一致");
+                        Check(measurements.warmMedianMs < baseline.RootElement.GetProperty("warmMedianMs").GetDouble()*.5,"热预处理中位耗时低于同机基线的一半");
+                        Check(processor is IDisposable,"预处理过程必须有明确的模型会话所有者");
+                        using(var invalid=new HDict())
+                        {
+                            var cancelled=false;try{apply.Invoke(processor,[invalid,preprocess,new CancellationToken(true)]);}catch(TargetInvocationException ex)when(ex.InnerException is OperationCanceledException){cancelled=true;}
+                            Check(cancelled,"预处理取消先于缺失图像访问");
+                            var failed=false;try{apply.Invoke(processor,[invalid,preprocess,CancellationToken.None]);}catch(TargetInvocationException ex)when(ex.InnerException is HDevEngineException){failed=true;}
+                            Check(failed,"损坏样本明确报错");
+                        }
+                        string Reuse(object? owner)
+                        {
+                            var roi=rois[0];using var crop=input.CropRectangle1(roi.RowBegin,roi.ColumnBegin,roi.RowEnd,roi.ColumnEnd);
+                            using var sample=new HDict();sample.SetDictObject(crop,"image");apply.Invoke(owner,[sample,preprocess,CancellationToken.None]);
+                            return Pixels(sample);
+                        }
+                        Check(Reuse(processor)==actual[0],"失败后新调用不残留旧样本或状态");
+                        Check(Task.Run(()=>Reuse(processor)).GetAwaiter().GetResult()==actual[0],"顺序切换执行线程保持实际预处理一致");
+                        var second=Activator.CreateInstance(processingType)!;
+                        try
+                        {
+                            Check(Reuse(second)==actual[0],"两个独立模型会话可分别持有官方过程");
+                            ((IDisposable)processor!).Dispose();((IDisposable)processor).Dispose();
+                            Check(Reuse(second)==actual[0],"释放一个模型的过程不影响另一个会话");
+                            var closed=false;try{Reuse(processor);}catch(TargetInvocationException ex)when(ex.InnerException is ObjectDisposedException){closed=true;}
+                            Check(closed,"关闭的预处理过程拒绝再次使用且重复释放安全");
+                        }
+                        finally{((IDisposable)second).Dispose();}
+                    }
+                }
+                finally{(processor as IDisposable)?.Dispose();}
+            }
+            else if(args[4]=="memory-probe")
+            {
+                var samples = new List<object>(); var process = Process.GetCurrentProcess();
+                void Sample(string phase, int round, double elapsed)
+                {
+                    process.Refresh();
+                    long Cached(string key) { using var query = new HTuple(key); HOperatorSet.GetSystem(query, out var value); using(value) return (long)value.ToDArr().Sum(); }
+                    samples.Add(new { phase, round, elapsedMs = elapsed, privateBytes = process.PrivateMemorySize64,
+                        workingSet = process.WorkingSet64, managedBytes = GC.GetTotalMemory(false), allocatedBytes = GC.GetTotalAllocatedBytes(),
+                        gen2Collections = GC.CollectionCount(2), sessions = sessions.Count, loads = sessions.ModelLoads,
+                        threadTemporaryCache = Cached("tsp_temporary_mem_cache_block_sizes"), globalTemporaryReservoir = Cached("temporary_mem_reservoir_block_sizes") });
+                    File.WriteAllText(Path.Combine(output,"memory.json"), JsonSerializer.Serialize(samples,Json));
+                    Console.WriteLine($"内存采样 {phase} {round}: private={process.PrivateMemorySize64 / 1048576} MiB managed={GC.GetTotalMemory(false)/1048576} MiB");
+                }
+                Sample("start",0,0);
+                for(var round=1;round<=60;round++)
+                {
+                    var normal=round%2!=0; var run=Execute(flow,normal?positive:negative);
+                    try
+                    {
+                        Check(run.Inspection?.Verdict==(normal?InspectionVerdict.Ok:InspectionVerdict.Ng),"内存检查保持实际产品判定");
+                        Check(nodes.Select((n,i)=>Row(run,n).Decision.Code==((normal||i is 1 or 2)?ClassificationDecision.Ok:ClassificationDecision.NotDetected)).All(x=>x),"内存检查六区域输出正确");
+                        if(round is 1 or 60)Record(run,"memory-round-"+round);
+                    }
+                    finally{Release(run);}
+                    Check(sessions.Count==1&&sessions.ModelLoads==1,"内存检查保持单一模型且不重载");
+                    if(round==1||round%5==0)Sample("released",round,(run.EndedAtUtc-run.StartedAtUtc).TotalMilliseconds);
+                }
+                sessions.Clear();shapes.Clear();Sample("models-cleared",60,0);
+                // Diagnostic comparison only: never introduce forced GC into the application's run loop.
+                GC.Collect();GC.WaitForPendingFinalizers();GC.Collect();Sample("diagnostic-gc",60,0);
+            }
+            else if(args[4]=="create-ui")
             {
                 var frames=Path.Combine(output,"inputs");Directory.CreateDirectory(frames);
                 var copiedPositive=Path.Combine(frames,Path.GetFileName(positive));var copiedNegative=Path.Combine(frames,Path.GetFileName(negative));

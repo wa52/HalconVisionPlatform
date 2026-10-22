@@ -35,10 +35,11 @@ try
     Check(reloaded.Nodes.Skip(1).All(node => DetectionRoi.Parse(node.Parameters["rois"]).SequenceEqual(rois)), "保存恢复 ROI 的 ID、名称、范围和禁用状态");
     var registry = BuiltInNodeCatalog.Create();
     using var camera = new HalconCameraManager();
-    using var cache = new DlModelSessionCache(); var cached = args.Contains("--cache");
+    using var cache = new DlModelSessionCache(); using var shapes = new ShapeMatchModelCache(); var cached = args.Contains("--cache");
     registry.Register(new HalconNodeProvider(), [new HalconImageReadExecutor(), new HalconCameraCaptureExecutor(camera),
         new HalconThresholdExecutor(), new HalconBlobAnalysisExecutor(), new HalconStraightLineFindExecutor(),
-        new HalconSemanticSegmentationExecutor(cached ? cache : null), new HalconClassificationExecutor(cached ? cache : null), new HalconObjectDetectionExecutor(cached ? cache : null)]);
+        new HalconSemanticSegmentationExecutor(cached ? cache : null), new HalconClassificationExecutor(cached ? cache : null), new HalconObjectDetectionExecutor(cached ? cache : null),
+        new HalconQuickMatchExecutor(shapes), new HalconPositionCorrectionExecutor()]);
     var validator = new WorkflowGraphValidator(registry); var engine = new WorkflowExecutionEngine(registry, validator);
     Check(validator.Validate(flow).Count == 0, "真实组合流程端口和参数校验");
     var vmFlow = new FlowTabViewModel(flow, registry, validator);
@@ -142,9 +143,11 @@ try
         var switched = node with { Parameters = new(node.Parameters) { ["deviceIndex"] = JsonSerializer.SerializeToElement(99999) } };
         bool badDevice = false;
         try { await executor.ExecuteAsync(normal with { Node = switched }); } catch (InvalidOperationException) { badDevice = true; }
-        Check(badDevice && cache.Count == 1, "设备参数变化使旧会话失效，错误设备不回退");
+        Check(badDevice && cache.Count == 1, "错误设备不回退；满容量加载失败后仍保留最近有效分类会话");
         using (var fresh = Wrap(await executor.ExecuteAsync(normal)))
-            Check(!fresh.NodeResults[0].Outputs["modelInfo"].GetProperty("cacheHit").GetBoolean(), "设备恢复后重新加载模型");
+            Check(fresh.NodeResults[0].Outputs["modelInfo"].GetProperty("cacheHit").GetBoolean(), "恢复原设备后复用同模型身份");
+        using (var other = Wrap(await new HalconSemanticSegmentationExecutor(cache).ExecuteAsync(normal with { Node = nodes.Single(item => item.TypeId == HalconNodeProvider.SemanticSegmentation) })))
+            Check(cache.Count == 2 && !other.NodeResults[0].Outputs["modelInfo"].GetProperty("cacheHit").GetBoolean(), "被容量淘汰的分割会话重建供取消隔离检查");
         using var cancellation = new CancellationTokenSource();
         var context = new NodeExecutionContext(node, new Dictionary<string, JsonElement>(), cancellation.Token,
             log => { if (log.StartsWith(rois[0].Name + "：")) cancellation.Cancel(); }, new Dictionary<string, object?> { ["image"] = image });
@@ -161,7 +164,12 @@ try
             using var a = Wrap(await new HalconClassificationExecutor(small).ExecuteAsync(normal));
             var another = normal with { Node = node with { Id = Guid.NewGuid() } };
             using var b = Wrap(await new HalconClassificationExecutor(small).ExecuteAsync(another));
-            Check(small.Count == 1 && !b.NodeResults[0].Outputs["modelInfo"].GetProperty("cacheHit").GetBoolean(), "容量满时淘汰旧节点模型");
+            Check(small.Count == 1 && b.NodeResults[0].Outputs["modelInfo"].GetProperty("cacheHit").GetBoolean() && small.ModelLoads == 1, "同模型不同节点共用容量项");
+            var segmentationNode = nodes.Single(item => item.TypeId == HalconNodeProvider.SemanticSegmentation);
+            using var c = Wrap(await new HalconSemanticSegmentationExecutor(small).ExecuteAsync(normal with { Node = segmentationNode }));
+            Check(small.Count == 1 && !c.NodeResults[0].Outputs["modelInfo"].GetProperty("cacheHit").GetBoolean() && small.ModelLoads == 2, "容量满时不同模型身份淘汰旧会话");
+            using var d = Wrap(await new HalconClassificationExecutor(small).ExecuteAsync(normal));
+            Check(!d.NodeResults[0].Outputs["modelInfo"].GetProperty("cacheHit").GetBoolean() && small.ModelLoads == 3, "被淘汰的分类模型及预处理过程可以重建");
         }
         cache.Dispose(); Check(cache.Count == 0, "关闭缓存释放全部条目");
         bool disposed = false;

@@ -43,6 +43,12 @@ internal static class Program
         var externalProject = args.ElementAtOrDefault(1);
         var path = externalProject is null ? CreateFixture() : Path.GetFullPath(externalProject);
         _app = new System.Windows.Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+        // This harness owns its Application startup. Load the actual shared theme
+        // before constructing MainWindow, without launching a second App window.
+        _app.Resources.MergedDictionaries.Add(new ResourceDictionary
+        {
+            Source = new Uri("/HalconVision.App;component/Themes/IconControls.xaml", UriKind.Relative)
+        });
         _app.DispatcherUnhandledException += (_, e) => Fail(e.Exception);
         var timer = new DispatcherTimer(TimeSpan.FromMilliseconds(30), DispatcherPriority.Background, (_, _) =>
         {
