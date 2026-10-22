@@ -1,0 +1,192 @@
+{
+  "checks": 8,
+  "passed": [
+    "\u6CBF\u7528\u539F P1\u2013P6 \u516D\u533A\u57DF\u987A\u5E8F",
+    "\u72EC\u7ACB\u4EFB\u52A1\u914D\u7F6E\u8EAB\u4EFD\u6709\u6548",
+    "\u4E5D\u8282\u70B9\u516D\u5FC5\u68C0\u4EFB\u52A1\u56FE\u6821\u9A8C\u901A\u8FC7",
+    "",
+    "\u540C\u6A21\u578B\u4E0D\u540C\u8282\u70B9\u5FC5\u987B\u5171\u4EAB\u4E00\u4E2A\u4F1A\u8BDD\uFF0C\u7B2C\u4E8C\u8282\u70B9\u5E94\u547D\u4E2D\uFF08\u542B\u663E\u5F0F/\u7701\u7565\u9ED8\u8BA4\u8BBE\u5907\u53C2\u6570\uFF09",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u68C0\u67E5\u7ED3\u675F\u91CA\u653E\u5F62\u72B6\u4E0EDL\u7F13\u5B58",
+    "\u6E90\u9879\u76EE\u3001\u56FE\u7247\u3001\u6A21\u677F\u3001\u6A21\u578B\u548C\u9884\u5904\u7406\u6587\u4EF6\u54C8\u5E0C\u672A\u53D8"
+  ],
+  "runs": [
+    {
+      "name": "two-node-cache",
+      "Status": 0,
+      "inspection": {
+        "RunId": "df1f7645-ddfd-4331-801e-867a8917fb10",
+        "FlowId": "a9ebd86e-9628-4cdd-84a7-97b7749ad723",
+        "Verdict": 1,
+        "Tasks": [
+          {
+            "TaskId": "e4215119-87c5-4ff9-853a-3bdd53471b53",
+            "Name": "P1 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 1,
+            "Reasons": [
+              "\u5168\u90E8\u89C4\u5219\u6EE1\u8DB3\u3002"
+            ]
+          },
+          {
+            "TaskId": "223dbc3c-1b1a-4189-93b6-7d25305120c5",
+            "Name": "P2 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 1,
+            "Reasons": [
+              "\u5168\u90E8\u89C4\u5219\u6EE1\u8DB3\u3002"
+            ]
+          }
+        ],
+        "Reasons": [],
+        "ConfigurationIdentity": "731A8C9258349307F0FC5DE461958EBB21FAB0AEF19AD67514A30502CA67B6DF",
+        "Label": "OK"
+      },
+      "ms": 59210.9039,
+      "rows": [
+        {
+          "node": "P1 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+            "RoiName": "P1",
+            "Bounds": {
+              "RowBegin": 991,
+              "ColumnBegin": 957,
+              "RowEnd": 1489,
+              "ColumnEnd": 1225
+            },
+            "ExpectedClass": "P1",
+            "Objects": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 52893.4153
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": false,
+            "modelLoadMs": 4312.5049,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 52893.4153,
+            "elapsedMs": 58595.1858,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        },
+        {
+          "node": "P2 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+            "RoiName": "P2",
+            "Bounds": {
+              "RowBegin": 521,
+              "ColumnBegin": 131,
+              "RowEnd": 730,
+              "ColumnEnd": 306
+            },
+            "ExpectedClass": "P2",
+            "Objects": [
+              {
+                "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+                "RoiName": "P2",
+                "ClassId": 6,
+                "ClassName": "P2",
+                "Confidence": 0.998762845993042,
+                "Bounds": {
+                  "RowBegin": 573.095057040453,
+                  "ColumnBegin": 164.22989177703857,
+                  "RowEnd": 664.8746495246887,
+                  "ColumnEnd": 256.27257347106934
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+                "RoiName": "P2",
+                "ClassId": 6,
+                "ClassName": "P2",
+                "Confidence": 0.998762845993042,
+                "Bounds": {
+                  "RowBegin": 573.095057040453,
+                  "ColumnBegin": 164.22989177703857,
+                  "RowEnd": 664.8746495246887,
+                  "ColumnEnd": 256.27257347106934
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 66.6185
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": true,
+            "modelLoadMs": 0.0049,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 66.6185,
+            "elapsedMs": 336.5571,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        }
+      ]
+    }
+  ],
+  "readOnlyHashes": {
+    "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\aligned-detection-20261021\\1111_\u5B9A\u4F4D\u68C0\u6D4B\u9A8C\u8BC1.hvproj": "B43756CF822D333233E9999F08B2F64FC407E6480DF90C3B3B257A5337E135EB",
+    "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\1\\OR_1_N063000DCL_14_45_59.jpg": "B058B4831F5A3F244308275B6594A4E7653798C04CFA7A776E5D214A26FCD053",
+    "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\1\\OR_1_N05A00522B_18_37_41.jpg": "3FB6D73609EFD55868E2877450DE40DB2A85AF8F95DB2D319F2B980D0A04A28D",
+    "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\desktop-1111-drawing-review\\assets\\templates\\0fc35b382d504104b7cf421c5dafb446\\e04e1b939b7642508dc522767948b025.png": "BF688EFFE540E3848B75361802E70A107639946D612A7EE7D473E357856DAE95",
+    "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3\\model.hdl": "200BACCD3143B293039E793927A13A4CBEC920C9621E2E033144E7C9C8207FF3",
+    "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3\\preprocess.hdict": "9702F7AF480704633E6EF730BF76FFAF7D66E1467CA6F32EFD937DE0CC61C481",
+    "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3\\manifest.json": "0C0ABC1319B6A955CA3287CD2D94D406CD8483DCB6E675B832C6CE94AE64B62C"
+  },
+  "note": "\u6807\u7B7E\u540C\u6E90\u6B63\u8D1F\u6837\u672C\u8054\u8C03\uFF0C\u4E0D\u662F\u72EC\u7ACB\u7CBE\u5EA6\u62A5\u544A\uFF1B\u73B0\u6709\u6A21\u578B\u4E0D\u542BNG\u7C7B\u522B\u3002"
+}

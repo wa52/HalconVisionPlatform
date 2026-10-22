@@ -97,6 +97,26 @@ internal static class Program
       checks++;if(scroller.ScrollableHeight<=0)failures.Add("高级参数缺少滚动空间");
       advanced.IsExpanded=false;scroller.ScrollToHome();root.UpdateLayout();
   }
+  // A real nine-node graph must fit its viewport, rather than resetting to a fixed 85%.
+  var fittingFlow = new FlowTabViewModel(new FlowDocument { Nodes = Enumerable.Range(0, 9)
+      .Select(i => positionNode with { Id = Guid.NewGuid(), X = 80 + i % 3 * 350, Y = 60 + i / 3 * 410 }).ToList() }, registry, new WorkflowGraphValidator(registry));
+  workspaceVm.Flows.Add(fittingFlow); workspaceVm.SelectedFlow = fittingFlow;
+  foreach (var size in new[] { new Size(1180, 680), new Size(1580, 934) })
+  {
+      root.Measure(size); root.Arrange(new Rect(new Point(), size)); root.UpdateLayout();
+      var scroller = Descendants(root).OfType<ScrollViewer>().Single(s => s.Name == "FlowCanvasScrollViewer" && ReferenceEquals(s.DataContext, fittingFlow));
+      scroller.ScrollToBottom(); scroller.ScrollToRightEnd(); root.UpdateLayout();
+      ((Button)window.FindName("FitCanvasButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); root.UpdateLayout();
+      var visuals = Descendants(scroller).OfType<ContentPresenter>().Where(p => p.DataContext is FlowNodeViewModel && VisualTreeHelper.GetParent(p) is Canvas).ToArray();
+      checks++; if (visuals.Length != 9 || fittingFlow.Zoom >= .85) failures.Add("九节点适应画布未按内容缩放");
+      foreach (var visual in visuals)
+      {
+          var node = (FlowNodeViewModel)visual.DataContext; checks++;
+          var x = node.X * fittingFlow.Zoom - scroller.HorizontalOffset; var y = node.Y * fittingFlow.Zoom - scroller.VerticalOffset;
+          if (x < -.5 || y < -.5 || x + visual.ActualWidth * fittingFlow.Zoom > scroller.ViewportWidth + .5 || y + visual.ActualHeight * fittingFlow.Zoom > scroller.ViewportHeight + .5)
+              failures.Add($"适应画布后节点仍在可见范围外：{size} zoom={fittingFlow.Zoom:F4} rect={x:F1},{y:F1},{visual.ActualWidth * fittingFlow.Zoom:F1},{visual.ActualHeight * fittingFlow.Zoom:F1} viewport={scroller.ViewportWidth:F1},{scroller.ViewportHeight:F1} offset={scroller.HorizontalOffset:F1},{scroller.VerticalOffset:F1}");
+      }
+  }
   var viewer = new ImageViewerWindow("layout-check.png");
   ((TextBlock)viewer.FindName("ImageNameText")).Text = new string('长', 100);
   var viewerRoot = (FrameworkElement)viewer.Content;

@@ -1,0 +1,179 @@
+{
+  "checks": [
+    "\u6CBF\u7528\u539F P1\u2013P6 \u516D\u533A\u57DF\u987A\u5E8F",
+    "\u72EC\u7ACB\u4EFB\u52A1\u914D\u7F6E\u8EAB\u4EFD\u6709\u6548",
+    "\u4E5D\u8282\u70B9\u516D\u5FC5\u68C0\u4EFB\u52A1\u56FE\u6821\u9A8C\u901A\u8FC7",
+    "",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E"
+  ],
+  "runs": [
+    {
+      "name": "two-node-cache",
+      "Status": 0,
+      "inspection": {
+        "RunId": "515184e9-2b77-429d-a2d8-f4f44cbfcd4b",
+        "FlowId": "a9ebd86e-9628-4cdd-84a7-97b7749ad723",
+        "Verdict": 1,
+        "Tasks": [
+          {
+            "TaskId": "cc914095-f269-48a0-8198-2dcca1d49901",
+            "Name": "P1 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 1,
+            "Reasons": [
+              "\u5168\u90E8\u89C4\u5219\u6EE1\u8DB3\u3002"
+            ]
+          },
+          {
+            "TaskId": "61dec636-0537-4d47-b89b-502c665e6087",
+            "Name": "P2 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 1,
+            "Reasons": [
+              "\u5168\u90E8\u89C4\u5219\u6EE1\u8DB3\u3002"
+            ]
+          }
+        ],
+        "Reasons": [],
+        "ConfigurationIdentity": "0BE96C800325A8B87A586461F1A7B77A7EB182490C0D616C1B051AFC72DCBC91",
+        "Label": "OK"
+      },
+      "ms": 63204.7005,
+      "rows": [
+        {
+          "node": "P1 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+            "RoiName": "P1",
+            "Bounds": {
+              "RowBegin": 991,
+              "ColumnBegin": 957,
+              "RowEnd": 1489,
+              "ColumnEnd": 1225
+            },
+            "ExpectedClass": "P1",
+            "Objects": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 53192.1605
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": false,
+            "modelLoadMs": 6170.2299,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 53192.1605,
+            "elapsedMs": 61302.5385,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        },
+        {
+          "node": "P2 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+            "RoiName": "P2",
+            "Bounds": {
+              "RowBegin": 521,
+              "ColumnBegin": 131,
+              "RowEnd": 730,
+              "ColumnEnd": 306
+            },
+            "ExpectedClass": "P2",
+            "Objects": [
+              {
+                "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+                "RoiName": "P2",
+                "ClassId": 6,
+                "ClassName": "P2",
+                "Confidence": 0.998762845993042,
+                "Bounds": {
+                  "RowBegin": 573.095057040453,
+                  "ColumnBegin": 164.22989177703857,
+                  "RowEnd": 664.8746495246887,
+                  "ColumnEnd": 256.27257347106934
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "790f3f54-8703-48ce-970c-211c9d750945",
+                "RoiName": "P2",
+                "ClassId": 6,
+                "ClassName": "P2",
+                "Confidence": 0.998762845993042,
+                "Bounds": {
+                  "RowBegin": 573.095057040453,
+                  "ColumnBegin": 164.22989177703857,
+                  "RowEnd": 664.8746495246887,
+                  "ColumnEnd": 256.27257347106934
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 100.7977
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": false,
+            "modelLoadMs": 1186.5498,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 100.7977,
+            "elapsedMs": 1615.8249,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        }
+      ]
+    }
+  ],
+  "error": "System.InvalidOperationException: \u540C\u6A21\u578B\u4E0D\u540C\u8282\u70B9\u5FC5\u987B\u5171\u4EAB\u4E00\u4E2A\u4F1A\u8BDD\uFF0C\u7B2C\u4E8C\u8282\u70B9\u5E94\u547D\u4E2D\uFF08\u542B\u663E\u5F0F/\u7701\u7565\u9ED8\u8BA4\u8BBE\u5907\u53C2\u6570\uFF09\r\n   at Program.Check(Boolean value, String message) in D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconP1P6TaskTrial\\Program.cs:line 18\r\n   at Program.Main(String[] args) in D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconP1P6TaskTrial\\Program.cs:line 91"
+}

@@ -5,7 +5,7 @@ using HalconVision.Application;
 
 namespace HalconVision.Halcon;
 
-/// <summary>One model per node invocation, reused by its ROIs and disposed before outputs transfer to the run.</summary>
+/// <summary>Model runtime protected by an exclusive cache lease. Executors reset mutable options per invocation; frames are not cached.</summary>
 internal sealed class DlInferenceSession : IDisposable
 {
     private HDlModel? _model;

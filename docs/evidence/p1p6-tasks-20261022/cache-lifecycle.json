@@ -1,0 +1,700 @@
+{
+  "checks": 39,
+  "passed": [
+    "\u6CBF\u7528\u539F P1\u2013P6 \u516D\u533A\u57DF\u987A\u5E8F",
+    "\u72EC\u7ACB\u4EFB\u52A1\u914D\u7F6E\u8EAB\u4EFD\u6709\u6548",
+    "\u4E5D\u8282\u70B9\u516D\u5FC5\u68C0\u4EFB\u52A1\u56FE\u6821\u9A8C\u901A\u8FC7",
+    "package-a\u771F\u5B9E\u63A8\u7406OK",
+    "package-a\u7F13\u5B58\u547D\u4E2D\u7B26\u5408\u9884\u671F",
+    "package-a\u6A21\u578B\u5BB9\u91CF\u4E0D\u8D85\u8FC72",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "package-b\u771F\u5B9E\u63A8\u7406OK",
+    "package-b\u7F13\u5B58\u547D\u4E2D\u7B26\u5408\u9884\u671F",
+    "package-b\u6A21\u578B\u5BB9\u91CF\u4E0D\u8D85\u8FC72",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "package-a-hit\u771F\u5B9E\u63A8\u7406OK",
+    "package-a-hit\u7F13\u5B58\u547D\u4E2D\u7B26\u5408\u9884\u671F",
+    "package-a-hit\u6A21\u578B\u5BB9\u91CF\u4E0D\u8D85\u8FC72",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "original-evicts-b\u771F\u5B9E\u63A8\u7406OK",
+    "original-evicts-b\u7F13\u5B58\u547D\u4E2D\u7B26\u5408\u9884\u671F",
+    "original-evicts-b\u6A21\u578B\u5BB9\u91CF\u4E0D\u8D85\u8FC72",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "package-b-reload\u771F\u5B9E\u63A8\u7406OK",
+    "package-b-reload\u7F13\u5B58\u547D\u4E2D\u7B26\u5408\u9884\u671F",
+    "package-b-reload\u6A21\u578B\u5BB9\u91CF\u4E0D\u8D85\u8FC72",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "metadata-version-reload\u771F\u5B9E\u63A8\u7406OK",
+    "metadata-version-reload\u7F13\u5B58\u547D\u4E2D\u7B26\u5408\u9884\u671F",
+    "metadata-version-reload\u6A21\u578B\u5BB9\u91CF\u4E0D\u8D85\u8FC72",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "LRU\u4E0E\u6587\u4EF6\u5143\u6570\u636E\u53D8\u5316\u89E6\u53D1\u7CBE\u786E\u6B21\u6570\u91CD\u8F7D",
+    "\u76F8\u540C\u76EE\u5F55\u4E0D\u540C\u4EFB\u52A1\u7C7B\u578B\u4E0D\u80FD\u8BEF\u7528\u68C0\u6D4B\u4F1A\u8BDD",
+    "\u7C7B\u578B\u9519\u8BEF\u4E0D\u4EA7\u751F\u65E7\u68C0\u6D4B\u8F93\u51FA",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u7248\u672C\u5207\u6362\u540E\u5168\u90E8\u4F1A\u8BDD\u53EF\u6E05\u7A7A",
+    "reload-after-clear\u771F\u5B9E\u63A8\u7406OK",
+    "reload-after-clear\u7F13\u5B58\u547D\u4E2D\u7B26\u5408\u9884\u671F",
+    "reload-after-clear\u6A21\u578B\u5BB9\u91CF\u4E0D\u8D85\u8FC72",
+    "\u672C\u8F6E\u5168\u90E8 native \u8F93\u51FA\u91CA\u653E",
+    "\u6E05\u7A7A\u540E\u771F\u5B9E\u91CD\u8F7D\u4E00\u6B21",
+    "\u68C0\u67E5\u7ED3\u675F\u91CA\u653E\u5F62\u72B6\u4E0EDL\u7F13\u5B58",
+    "\u6E90\u9879\u76EE\u3001\u56FE\u7247\u3001\u6A21\u677F\u3001\u6A21\u578B\u548C\u9884\u5904\u7406\u6587\u4EF6\u54C8\u5E0C\u672A\u53D8"
+  ],
+  "runs": [
+    {
+      "name": "package-a",
+      "Status": 0,
+      "inspection": {
+        "RunId": "af0c0494-1ee2-4638-b79a-5e6cf2db6b44",
+        "FlowId": "a9ebd86e-9628-4cdd-84a7-97b7749ad723",
+        "Verdict": 1,
+        "Tasks": [
+          {
+            "TaskId": "c566fe4a-5531-4efc-924d-989e5b9783f1",
+            "Name": "P1 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 1,
+            "Reasons": [
+              "\u5168\u90E8\u89C4\u5219\u6EE1\u8DB3\u3002"
+            ]
+          }
+        ],
+        "Reasons": [],
+        "ConfigurationIdentity": "70E7700A353F0B1663B0795B1D7E7EEE3D44261CF21780D66B99AE5553D07817",
+        "Label": "OK"
+      },
+      "ms": 59024.9566,
+      "rows": [
+        {
+          "node": "P1 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+            "RoiName": "P1",
+            "Bounds": {
+              "RowBegin": 991,
+              "ColumnBegin": 957,
+              "RowEnd": 1489,
+              "ColumnEnd": 1225
+            },
+            "ExpectedClass": "P1",
+            "Objects": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 53134.6258
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\p1p6-cache-lifecycle-20261022\\model-a",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": false,
+            "modelLoadMs": 4225.3167,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 53134.6258,
+            "elapsedMs": 58746.5909,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        }
+      ]
+    },
+    {
+      "name": "package-b",
+      "Status": 0,
+      "inspection": {
+        "RunId": "dcebd947-6708-4f67-9de8-6f49643fed0a",
+        "FlowId": "a9ebd86e-9628-4cdd-84a7-97b7749ad723",
+        "Verdict": 1,
+        "Tasks": [
+          {
+            "TaskId": "c566fe4a-5531-4efc-924d-989e5b9783f1",
+            "Name": "P1 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 1,
+            "Reasons": [
+              "\u5168\u90E8\u89C4\u5219\u6EE1\u8DB3\u3002"
+            ]
+          }
+        ],
+        "Reasons": [],
+        "ConfigurationIdentity": "F0E0CC27DAB09AD334DCB023E8C4273B543F4F26BD59A0A4D377804BCA2ECB3C",
+        "Label": "OK"
+      },
+      "ms": 1471.9096,
+      "rows": [
+        {
+          "node": "P1 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+            "RoiName": "P1",
+            "Bounds": {
+              "RowBegin": 991,
+              "ColumnBegin": 957,
+              "RowEnd": 1489,
+              "ColumnEnd": 1225
+            },
+            "ExpectedClass": "P1",
+            "Objects": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 102.328
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\p1p6-cache-lifecycle-20261022\\model-b",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": false,
+            "modelLoadMs": 1028.3195,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 102.328,
+            "elapsedMs": 1426.6085,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        }
+      ]
+    },
+    {
+      "name": "package-a-hit",
+      "Status": 0,
+      "inspection": {
+        "RunId": "945a304b-6f06-4bea-a997-297e4a2ac33a",
+        "FlowId": "a9ebd86e-9628-4cdd-84a7-97b7749ad723",
+        "Verdict": 1,
+        "Tasks": [
+          {
+            "TaskId": "c566fe4a-5531-4efc-924d-989e5b9783f1",
+            "Name": "P1 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 1,
+            "Reasons": [
+              "\u5168\u90E8\u89C4\u5219\u6EE1\u8DB3\u3002"
+            ]
+          }
+        ],
+        "Reasons": [],
+        "ConfigurationIdentity": "70E7700A353F0B1663B0795B1D7E7EEE3D44261CF21780D66B99AE5553D07817",
+        "Label": "OK"
+      },
+      "ms": 483.5781,
+      "rows": [
+        {
+          "node": "P1 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+            "RoiName": "P1",
+            "Bounds": {
+              "RowBegin": 991,
+              "ColumnBegin": 957,
+              "RowEnd": 1489,
+              "ColumnEnd": 1225
+            },
+            "ExpectedClass": "P1",
+            "Objects": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 72.1591
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\p1p6-cache-lifecycle-20261022\\model-a",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": true,
+            "modelLoadMs": 0.0039,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 72.1591,
+            "elapsedMs": 438.1527,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        }
+      ]
+    },
+    {
+      "name": "original-evicts-b",
+      "Status": 0,
+      "inspection": {
+        "RunId": "d8913669-7bc2-4992-a5d7-a9e26f095a24",
+        "FlowId": "a9ebd86e-9628-4cdd-84a7-97b7749ad723",
+        "Verdict": 1,
+        "Tasks": [
+          {
+            "TaskId": "c566fe4a-5531-4efc-924d-989e5b9783f1",
+            "Name": "P1 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 1,
+            "Reasons": [
+              "\u5168\u90E8\u89C4\u5219\u6EE1\u8DB3\u3002"
+            ]
+          }
+        ],
+        "Reasons": [],
+        "ConfigurationIdentity": "2532C0DE2CA8307DFB7D604DCB37C2D2E7FAEEAD9C8EC65326B9D6ACD80534FD",
+        "Label": "OK"
+      },
+      "ms": 1601.3134,
+      "rows": [
+        {
+          "node": "P1 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+            "RoiName": "P1",
+            "Bounds": {
+              "RowBegin": 991,
+              "ColumnBegin": 957,
+              "RowEnd": 1489,
+              "ColumnEnd": 1225
+            },
+            "ExpectedClass": "P1",
+            "Objects": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 99.7663
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": false,
+            "modelLoadMs": 1158.2187,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 99.7663,
+            "elapsedMs": 1552.3298,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        }
+      ]
+    },
+    {
+      "name": "package-b-reload",
+      "Status": 0,
+      "inspection": {
+        "RunId": "f9dc22db-9c34-4f86-9243-d4a91dbf0202",
+        "FlowId": "a9ebd86e-9628-4cdd-84a7-97b7749ad723",
+        "Verdict": 1,
+        "Tasks": [
+          {
+            "TaskId": "c566fe4a-5531-4efc-924d-989e5b9783f1",
+            "Name": "P1 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 1,
+            "Reasons": [
+              "\u5168\u90E8\u89C4\u5219\u6EE1\u8DB3\u3002"
+            ]
+          }
+        ],
+        "Reasons": [],
+        "ConfigurationIdentity": "F0E0CC27DAB09AD334DCB023E8C4273B543F4F26BD59A0A4D377804BCA2ECB3C",
+        "Label": "OK"
+      },
+      "ms": 1531.2246,
+      "rows": [
+        {
+          "node": "P1 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+            "RoiName": "P1",
+            "Bounds": {
+              "RowBegin": 991,
+              "ColumnBegin": 957,
+              "RowEnd": 1489,
+              "ColumnEnd": 1225
+            },
+            "ExpectedClass": "P1",
+            "Objects": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 103.0776
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\p1p6-cache-lifecycle-20261022\\model-b",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": false,
+            "modelLoadMs": 1070.7273,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 103.0776,
+            "elapsedMs": 1487.3217,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        }
+      ]
+    },
+    {
+      "name": "metadata-version-reload",
+      "Status": 0,
+      "inspection": {
+        "RunId": "08ca2506-4411-4977-ae5f-9e0622c8c4ab",
+        "FlowId": "a9ebd86e-9628-4cdd-84a7-97b7749ad723",
+        "Verdict": 1,
+        "Tasks": [
+          {
+            "TaskId": "c566fe4a-5531-4efc-924d-989e5b9783f1",
+            "Name": "P1 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 1,
+            "Reasons": [
+              "\u5168\u90E8\u89C4\u5219\u6EE1\u8DB3\u3002"
+            ]
+          }
+        ],
+        "Reasons": [],
+        "ConfigurationIdentity": "F0E0CC27DAB09AD334DCB023E8C4273B543F4F26BD59A0A4D377804BCA2ECB3C",
+        "Label": "OK"
+      },
+      "ms": 1573.6926,
+      "rows": [
+        {
+          "node": "P1 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+            "RoiName": "P1",
+            "Bounds": {
+              "RowBegin": 991,
+              "ColumnBegin": 957,
+              "RowEnd": 1489,
+              "ColumnEnd": 1225
+            },
+            "ExpectedClass": "P1",
+            "Objects": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 105.492
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\p1p6-cache-lifecycle-20261022\\model-b",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": false,
+            "modelLoadMs": 1133.1223,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 105.492,
+            "elapsedMs": 1528.5548,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        }
+      ]
+    },
+    {
+      "name": "reload-after-clear",
+      "Status": 0,
+      "inspection": {
+        "RunId": "9961c42e-1e42-49d9-893a-91c32328686d",
+        "FlowId": "a9ebd86e-9628-4cdd-84a7-97b7749ad723",
+        "Verdict": 1,
+        "Tasks": [
+          {
+            "TaskId": "c566fe4a-5531-4efc-924d-989e5b9783f1",
+            "Name": "P1 \u5FC5\u68C0",
+            "Required": true,
+            "Verdict": 1,
+            "Reasons": [
+              "\u5168\u90E8\u89C4\u5219\u6EE1\u8DB3\u3002"
+            ]
+          }
+        ],
+        "Reasons": [],
+        "ConfigurationIdentity": "F0E0CC27DAB09AD334DCB023E8C4273B543F4F26BD59A0A4D377804BCA2ECB3C",
+        "Label": "OK"
+      },
+      "ms": 1397.199,
+      "rows": [
+        {
+          "node": "P1 \u68C0\u6D4B",
+          "row": {
+            "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+            "RoiName": "P1",
+            "Bounds": {
+              "RowBegin": 991,
+              "ColumnBegin": 957,
+              "RowEnd": 1489,
+              "ColumnEnd": 1225
+            },
+            "ExpectedClass": "P1",
+            "Objects": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Candidates": [
+              {
+                "RoiId": "dda43dc0-8edb-44ac-a799-5c3fa9d827d2",
+                "RoiName": "P1",
+                "ClassId": 5,
+                "ClassName": "P1",
+                "Confidence": 0.9973074197769165,
+                "Bounds": {
+                  "RowBegin": 998.010987997055,
+                  "ColumnBegin": 985.0188358128071,
+                  "RowEnd": 1467.8347797989845,
+                  "ColumnEnd": 1203.6376059055328
+                }
+              }
+            ],
+            "Decision": {
+              "Code": "OK",
+              "Message": "OK \u00B7 \u68C0\u51FA 1 \u4E2A"
+            },
+            "InferenceMilliseconds": 92.7161
+          },
+          "modelInfo": {
+            "directory": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\p1p6-cache-lifecycle-20261022\\model-b",
+            "device": "gpu",
+            "deviceIndex": 0,
+            "roiCount": 1,
+            "cacheHit": false,
+            "modelLoadMs": 980.2736,
+            "inputWidth": 256,
+            "inputHeight": 256,
+            "minimumConfidence": 0.5,
+            "maxOverlap": 0.5,
+            "maximum": 100,
+            "inferenceMs": 92.7161,
+            "elapsedMs": 1339.0001,
+            "countPolicy": "\u9010ROI\u8BA1\u6570\uFF1B\u91CD\u53E0ROI\u53EF\u80FD\u91CD\u590D\u8BA1\u6570",
+            "validationStatus": "bootstrap_unvalidated"
+          }
+        }
+      ]
+    }
+  ],
+  "readOnlyHashes": {
+    "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\aligned-detection-20261021\\1111_\u5B9A\u4F4D\u68C0\u6D4B\u9A8C\u8BC1.hvproj": "B43756CF822D333233E9999F08B2F64FC407E6480DF90C3B3B257A5337E135EB",
+    "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\1\\OR_1_N063000DCL_14_45_59.jpg": "B058B4831F5A3F244308275B6594A4E7653798C04CFA7A776E5D214A26FCD053",
+    "C:\\Users\\feng\\Desktop\\\u539F\u56FE\\1\\OR_1_N05A00522B_18_37_41.jpg": "3FB6D73609EFD55868E2877450DE40DB2A85AF8F95DB2D319F2B980D0A04A28D",
+    "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\desktop-1111-drawing-review\\assets\\templates\\0fc35b382d504104b7cf421c5dafb446\\e04e1b939b7642508dc522767948b025.png": "BF688EFFE540E3848B75361802E70A107639946D612A7EE7D473E357856DAE95",
+    "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3\\model.hdl": "200BACCD3143B293039E793927A13A4CBEC920C9621E2E033144E7C9C8207FF3",
+    "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3\\preprocess.hdict": "9702F7AF480704633E6EF730BF76FFAF7D66E1467CA6F32EFD937DE0CC61C481",
+    "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\\u7ED3\u679C\\run_20261020_182230_e5db1fd3\\manifest.json": "0C0ABC1319B6A955CA3287CD2D94D406CD8483DCB6E675B832C6CE94AE64B62C"
+  },
+  "note": "\u6807\u7B7E\u540C\u6E90\u6B63\u8D1F\u6837\u672C\u8054\u8C03\uFF0C\u4E0D\u662F\u72EC\u7ACB\u7CBE\u5EA6\u62A5\u544A\uFF1B\u73B0\u6709\u6A21\u578B\u4E0D\u542BNG\u7C7B\u522B\u3002"
+}

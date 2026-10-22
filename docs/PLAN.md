@@ -1,5 +1,9 @@
 # HALCON 视觉检测平台：独立项目开发计划
 
+## 2026-10-22 Phase 1 实物样本联调
+
+1111 方案已生成 P1–P6 六个独立必检任务的检查副本，九节点接通定位、矫正、六分支检测及统一产品判定。同模型会话跨节点复用，阈值相互隔离；真实正负样本、错误/取消、30 轮与保存恢复共 1219 项、缓存生命周期 39 项通过。原始项目未覆盖。模型精度、8 小时稳定性、真实相机/PLC 闭环仍待验收。[方案说明](P1_P6_INSPECTION_TASKS.md) · [本轮证据](evidence/2026-10-22-p1p6-inspection-tasks.md)。
+
 日期：2026-10-11
 项目名：HalconVisionPlatform
 独立仓库：https://github.com/wa52/HalconVisionPlatform

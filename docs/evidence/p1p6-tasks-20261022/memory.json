@@ -1,0 +1,38 @@
+[
+  {
+    "round": 5,
+    "privateBytes": 5355532288,
+    "workingSet": 1275293696,
+    "sessions": 1
+  },
+  {
+    "round": 10,
+    "privateBytes": 5695963136,
+    "workingSet": 1571311616,
+    "sessions": 1
+  },
+  {
+    "round": 15,
+    "privateBytes": 5691957248,
+    "workingSet": 1600208896,
+    "sessions": 1
+  },
+  {
+    "round": 20,
+    "privateBytes": 5783552000,
+    "workingSet": 1674522624,
+    "sessions": 1
+  },
+  {
+    "round": 25,
+    "privateBytes": 5717434368,
+    "workingSet": 1616646144,
+    "sessions": 1
+  },
+  {
+    "round": 30,
+    "privateBytes": 5805522944,
+    "workingSet": 1688428544,
+    "sessions": 1
+  }
+]

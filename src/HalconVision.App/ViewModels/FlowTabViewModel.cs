@@ -59,7 +59,7 @@ public sealed class FlowTabViewModel : ObservableModel
     public string TabLabel => $"{Name}{(IsDirty ? " ●" : string.Empty)}";
     public bool CanUndo => _undo.Count > 0;
     public bool CanRedo => _redo.Count > 0;
-    public double Zoom { get => _zoom; private set => Set(ref _zoom, Math.Clamp(value, 0.25, 1.8)); }
+    public double Zoom { get => _zoom; private set => Set(ref _zoom, Math.Clamp(value, 0.1, 1.8)); }
     public void AdjustZoom(double delta) => Zoom += delta;
     public void SetZoom(double zoom) => Zoom = zoom;
     public IReadOnlyList<WorkflowValidationIssue> ValidationIssues => _validator.Validate(_document);

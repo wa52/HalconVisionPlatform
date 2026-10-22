@@ -4,6 +4,8 @@
 
 基于 HALCON 24.11 x64、.NET 8 和 WPF 的节点式视觉检测工作台。
 
+2026-10-22：1111 / P1–P6 已接入六个独立必检任务和统一产品判定，同模型六分支共享一个会话，各节点阈值独立。真实正负样本、30 轮、保存恢复、错误/取消及工作区关闭共 1219 项通过，另有缓存生命周期 39 项。原始方案保持不变；模型仍待独立精度和长期稳定性验收。[本机方案及使用](docs/P1_P6_INSPECTION_TASKS.md) · [检查记录](docs/evidence/2026-10-22-p1p6-inspection-tasks.md)。
+
 2026-10-22：Phase 1 独立 ROI 任务与统一产品判定已实施。在“项目 → 检测任务”定义命名区域、算法分支及必检规则；产品结论明确区分 OK / NG / ERROR，未配置任务不形成产品合格结论。47 项判定/持久化、262 项真实 HALCON/WPF 检查及实际 ROI 绘制、连续启停、NG 规则编辑通过。首版为矩形 ROI 与串行流程，不含 PLC 放行或真实物料精度验收。[使用说明](docs/INSPECTION_TASKS.md) · [实际检查及截图](docs/evidence/2026-10-21-inspection-tasks.md)。
 
 2026-10-20：快捷匹配完成第一轮可靠性改造，区分原始候选与可信位姿，歧义/越界/超时/无效模板阻断位置矫正。基础5项参数、高级折叠，实际HALCON 235项、位置链532项、布局128项通过；真实产品准确率和8小时实测未完成。旧 maximumMatches 的精确数量语义及状态码变化见 [说明](docs/QUICK_MATCH_NODE.md)；[四轮计划](docs/QUICK_MATCH_RELIABILITY_PLAN.md)、[验证记录](docs/evidence/2026-10-20-quick-match-reliability.md)。

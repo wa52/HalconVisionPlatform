@@ -222,7 +222,34 @@ public partial class MainWindow : Window
         else { if (BottomRow.Height.Value > 0) _bottomRowHeight = BottomRow.Height; BottomRow.Height = new GridLength(0); BottomSplitterRow.Height = new GridLength(0); }
     }
 
-    private void FitCanvas_Click(object sender, RoutedEventArgs e) => _vm.SelectedFlow?.SetZoom(0.85);
+    private void FitCanvas_Click(object sender, RoutedEventArgs e)
+    {
+        if (_vm.SelectedFlow is not { } flow) return;
+        var scroller = CanvasDescendants((DependencyObject)Content).OfType<ScrollViewer>()
+            .FirstOrDefault(s => s.Name == "FlowCanvasScrollViewer" && ReferenceEquals(s.DataContext, flow));
+        if (scroller is null || scroller.ViewportWidth <= 32 || scroller.ViewportHeight <= 32) return;
+        var nodes = CanvasDescendants(scroller).OfType<ContentPresenter>()
+            .Where(p => p.DataContext is FlowNodeViewModel && VisualTreeHelper.GetParent(p) is Canvas && p.ActualWidth > 0)
+            .Select(p => { var node = (FlowNodeViewModel)p.DataContext; return new Rect(node.X, node.Y, p.ActualWidth, p.ActualHeight); }).ToArray();
+        if (nodes.Length == 0) { flow.SetZoom(0.85); scroller.ScrollToHome(); return; }
+        var bounds = nodes.Aggregate(Rect.Empty, (area, node) => Rect.Union(area, node));
+        flow.SetZoom(Math.Min((scroller.ViewportWidth - 32) / bounds.Width, (scroller.ViewportHeight - 32) / bounds.Height));
+        scroller.UpdateLayout();
+        // Scaling the fixed canvas can introduce a scrollbar and reduce the viewport.
+        // Only shrink during this correction so scrollbar visibility cannot oscillate.
+        flow.SetZoom(Math.Min(flow.Zoom, Math.Min((scroller.ViewportWidth - 32) / bounds.Width, (scroller.ViewportHeight - 32) / bounds.Height)));
+        scroller.UpdateLayout();
+        scroller.ScrollToHorizontalOffset(Math.Max(0, bounds.Left * flow.Zoom - 16));
+        scroller.ScrollToVerticalOffset(Math.Max(0, bounds.Top * flow.Zoom - 16));
+    }
+    private static IEnumerable<DependencyObject> CanvasDescendants(DependencyObject root)
+    {
+        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+        {
+            var child = VisualTreeHelper.GetChild(root, i); yield return child;
+            foreach (var descendant in CanvasDescendants(child)) yield return descendant;
+        }
+    }
     private void OpenImageViewer_Click(object sender, RoutedEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(_previewImagePath) || !File.Exists(_previewImagePath))
