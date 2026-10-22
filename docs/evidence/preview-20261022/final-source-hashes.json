@@ -1,0 +1,107 @@
+[
+  {
+    "path": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\aligned-detection-20261021\\1111_定位检测验证.hvproj",
+    "sha256": "B43756CF822D333233E9999F08B2F64FC407E6480DF90C3B3B257A5337E135EB",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Users\\feng\\Desktop\\原图\\1\\OR_1_N063000DCL_14_45_59.jpg",
+    "sha256": "B058B4831F5A3F244308275B6594A4E7653798C04CFA7A776E5D214A26FCD053",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Users\\feng\\Desktop\\原图\\1\\OR_1_N05A00522B_18_37_41.jpg",
+    "sha256": "3FB6D73609EFD55868E2877450DE40DB2A85AF8F95DB2D319F2B980D0A04A28D",
+    "unchanged": true
+  },
+  {
+    "path": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\desktop-1111-drawing-review\\assets\\templates\\0fc35b382d504104b7cf421c5dafb446\\e04e1b939b7642508dc522767948b025.png",
+    "sha256": "BF688EFFE540E3848B75361802E70A107639946D612A7EE7D473E357856DAE95",
+    "unchanged": true
+  },
+  {
+    "path": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\结果\\run_20261020_182230_e5db1fd3\\model.hdl",
+    "sha256": "200BACCD3143B293039E793927A13A4CBEC920C9621E2E033144E7C9C8207FF3",
+    "unchanged": true
+  },
+  {
+    "path": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\结果\\run_20261020_182230_e5db1fd3\\preprocess.hdict",
+    "sha256": "9702F7AF480704633E6EF730BF76FFAF7D66E1467CA6F32EFD937DE0CC61C481",
+    "unchanged": true
+  },
+  {
+    "path": "D:\\AiProjects\\HalconTrainingPlatform\\models\\detection\\结果\\run_20261020_182230_e5db1fd3\\manifest.json",
+    "sha256": "0C0ABC1319B6A955CA3287CD2D94D406CD8483DCB6E675B832C6CE94AE64B62C",
+    "unchanged": true
+  },
+  {
+    "path": "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\annotations.json",
+    "sha256": "02F875684BD909DAB758E2D5773071219B1E2AFDDE82088BB9533DEFF4E129EC",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Users\\feng\\Desktop\\原图\\结果\\NGP1\\0.jpg",
+    "sha256": "564261D37B6A7CBB07539E56C5814064B9A0FB061D1594328A770586B4BB8D4E",
+    "unchanged": true
+  },
+  {
+    "path": "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000001_0.jpg",
+    "sha256": "564261D37B6A7CBB07539E56C5814064B9A0FB061D1594328A770586B4BB8D4E",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Users\\feng\\Desktop\\原图\\结果\\P2\\0.jpg",
+    "sha256": "8B7DC111BF6B13E52B6666E6EAFAF1280DC965062EF1E725F26500CE2A65A2F9",
+    "unchanged": true
+  },
+  {
+    "path": "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000310_0.jpg",
+    "sha256": "8B7DC111BF6B13E52B6666E6EAFAF1280DC965062EF1E725F26500CE2A65A2F9",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Users\\feng\\Desktop\\原图\\结果\\P3\\0.jpg",
+    "sha256": "E0790B38DC3DDE90F7BF94CC4B2C37215F2289CCC90831498CE39ACDDAE319BB",
+    "unchanged": true
+  },
+  {
+    "path": "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000577_0.jpg",
+    "sha256": "E0790B38DC3DDE90F7BF94CC4B2C37215F2289CCC90831498CE39ACDDAE319BB",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Users\\feng\\Desktop\\原图\\结果\\NGP4\\0.jpg",
+    "sha256": "5F1F3F575D8F8B784AF4FE67BE6EDA2F0BEEC763DE6C9DB6D295F63896E56D1E",
+    "unchanged": true
+  },
+  {
+    "path": "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000015_0.jpg",
+    "sha256": "5F1F3F575D8F8B784AF4FE67BE6EDA2F0BEEC763DE6C9DB6D295F63896E56D1E",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Users\\feng\\Desktop\\原图\\结果\\NGP5\\0.jpg",
+    "sha256": "C717C2A829F2318C8D860564B7F5B1DDB7690C5E7457E5D98B0D65CF7EC773A3",
+    "unchanged": true
+  },
+  {
+    "path": "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000029_0.jpg",
+    "sha256": "C717C2A829F2318C8D860564B7F5B1DDB7690C5E7457E5D98B0D65CF7EC773A3",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Users\\feng\\Desktop\\原图\\结果\\NGP6\\0.jpg",
+    "sha256": "CE73456BD79D3B9C6A85FF58BA0789F254E488375C16AA83818567AC5B76535B",
+    "unchanged": true
+  },
+  {
+    "path": "D:\\AiProjects\\HalconTrainingPlatform\\active-learning\\exports\\20261020_102230_931bff24\\images\\000043_0.jpg",
+    "sha256": "CE73456BD79D3B9C6A85FF58BA0789F254E488375C16AA83818567AC5B76535B",
+    "unchanged": true
+  },
+  {
+    "path": "D:\\AiProjects\\HalconVisionPlatform\\docs\\evidence\\detection-negative-audit-20261022\\audit-summary.json",
+    "sha256": "EA3962D7EE68275DEEC1C4F042B05CFB5F5CE9CB5D3219F3A447B9F029EAAE74",
+    "unchanged": true
+  }
+]

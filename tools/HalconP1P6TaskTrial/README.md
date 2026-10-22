@@ -28,3 +28,5 @@ dotnet run --project tools/HalconP1P6TaskTrial/HalconP1P6TaskTrial.csproj -c Rel
 `memory-probe` 的 60 轮不强制 GC；清空模型后仅在诊断阶段显式 GC，用于区分托管堆与进程保留内存。此调用只存在于检查工具，不能移入产品循环。HALCON 的线程临时缓存采样只代表采样线程，进程私有内存不是 GPU 显存，也不能据短时波动认定泄漏。`preprocessing.json` 保存逐次像素哈希和耗时，过程加载耗时与首个调用、热调用分别记录。
 
 首次新进程 GPU 推理可能耗时约一分钟，冷启动和后续耗时分开记录。未执行真实窗口操作的工作区检查只代表 ViewModel 生命周期，UI 必须另用实际程序验证。
+
+`verify` 还对正、负两张图的六节点预览逐像素对照旧 RGB `PaintRegion` 路径，并检查六节点绘制没有污染矫正底图。当前完整检查数为 1233；灰度颜色和共享通道等独立契约见 [HalconPreviewTrial](../HalconPreviewTrial/README.md)。

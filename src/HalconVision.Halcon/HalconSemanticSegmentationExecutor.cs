@@ -87,14 +87,15 @@ public sealed class HalconSemanticSegmentationExecutor(DlModelSessionCache? cach
                     catch (Exception ex) when (ex is not OperationCanceledException)
                     { throw new InvalidOperationException($"ROI“{roi.Name}”分割失败：{ex.Message}", ex); }
                 }
-                using var rgb = channels.I == 1 ? first.Compose3(first, first) : first.CopyImage();
+                using var previewBuilder = new OwnedPreviewImage(first, cancellation);
                 using var green = new HTuple(new int[] { 0, 255, 0 }); using var yellow = new HTuple(new int[] { 255, 220, 0 });
-                preview = objects.Count > 0 ? rgb.PaintRegion(regions, green, "margin") : rgb.CopyImage();
+                if (objects.Count > 0) previewBuilder.PaintMargin(regions ?? throw new InvalidDataException("分割区域输出缺失。"), green);
                 foreach (var roi in rois.Where(item => item.Crop.IsExplicit))
                 {
                     using var boundary = roi.Crop.Region();
-                    var marked = preview.PaintRegion(boundary, yellow, "margin"); preview.Dispose(); preview = marked;
+                    previewBuilder.PaintMargin(boundary, yellow);
                 }
+                preview = previewBuilder.TakeImage();
                 var total = objects.Sum(item => item.Area);
                 var statusAll = new SegmentationStatus(objects.Count > 0 ? SegmentationStatus.Detected : SegmentationStatus.Empty,
                     $"{results.Count} 个 ROI，共检出 {objects.Count} 个区域，面积累计 {total:F0} 像素。");

@@ -29,6 +29,18 @@ internal static class Program
     [STAThread]
     private static void Main(string[] args)
     {
+        if (args.FirstOrDefault() == "--fixture-only")
+        {
+            if (args.Length != 2) { Console.Error.WriteLine("用法：--fixture-only <新输出目录>"); Environment.ExitCode = 2; return; }
+            _root = Path.GetFullPath(args[1]);
+            if (Directory.Exists(_root) || File.Exists(_root))
+            { Console.Error.WriteLine("检查输出目录必须不存在，避免覆盖已有文件。"); Environment.ExitCode = 2; return; }
+            Directory.CreateDirectory(_root);
+            File.WriteAllText(Path.Combine(_root, "process.txt"), Environment.ProcessId.ToString());
+            try { CreateFixture(); Console.WriteLine("PASS: isolated native fixture startup"); }
+            catch (Exception ex) { File.WriteAllText(Path.Combine(_root, "error.txt"), ex.ToString()); Environment.ExitCode = 1; }
+            return;
+        }
         if (args.FirstOrDefault() == "--rectangle-line-check")
         {
             _root = Path.GetFullPath(args.ElementAtOrDefault(1) ?? "artifacts/rectangle-line-check");
@@ -408,11 +420,16 @@ internal static class Program
     {
         var folder = Path.Combine(_root, "images");
         Directory.CreateDirectory(folder);
+        void Stage(string phase) => File.AppendAllText(Path.Combine(_root, "startup-stages.txt"), phase + Environment.NewLine);
+        Stage("before-gen-image-const");
         using var black = new HImage();
         black.GenImageConst("byte", 64, 64);
+        Stage("after-gen-image-const");
         black.WriteImage("png", 0, Path.Combine(folder, "01.png"));
+        Stage("after-write-first-png");
         using var white = black.ScaleImage(0d, 255d);
         white.WriteImage("png", 0, Path.Combine(folder, "02.png"));
+        Stage("after-write-second-png");
         var input = new NodeInstance { TypeId = HalconNodeProvider.ImageRead, DisplayName = "读取图像", X = 50, Y = 70,
             Parameters = new() { ["path"] = JsonSerializer.SerializeToElement(folder) } };
         var threshold = new NodeInstance { TypeId = HalconNodeProvider.Threshold, DisplayName = "二值化", X = 250, Y = 90,

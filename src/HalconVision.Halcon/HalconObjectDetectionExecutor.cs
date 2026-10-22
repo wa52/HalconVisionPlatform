@@ -73,7 +73,7 @@ public sealed class HalconObjectDetectionExecutor(DlModelSessionCache? cache = n
                     }
                     context.Log($"{roi.Name}：{judgement.Message}；候选 {candidates.Length}，接受 {accepted.Length}；推理 {milliseconds:F1} ms。");
                 }
-                preview = channels.I == 1 ? first.Compose3(first, first) : first.CopyImage();
+                using var previewBuilder = new OwnedPreviewImage(first, cancellation);
                 foreach (var label in labels)
                 {
                     var box = label.Bounds;
@@ -83,8 +83,9 @@ public sealed class HalconObjectDetectionExecutor(DlModelSessionCache? cache = n
                         ClassificationDecision.Ok => new int[] { 50, 205, 50 },
                         ClassificationDecision.DetectedNg => new int[] { 30, 144, 255 }, _ => new int[] { 255, 0, 0 }
                     });
-                    var marked = preview.PaintRegion(region, color, "margin"); preview.Dispose(); preview = marked;
+                    previewBuilder.PaintMargin(region, color);
                 }
+                preview = previewBuilder.TakeImage();
                 var ok = results.Count(item => item.Decision.Code == ClassificationDecision.Ok);
                 var missing = results.Count(item => item.Decision.Code == ClassificationDecision.NotDetected);
                 var summary = new ClassificationDecision(missing > 0 ? ClassificationDecision.NotDetected : ok == results.Count ? ClassificationDecision.Ok : ClassificationDecision.DetectedNg,

@@ -1,0 +1,242 @@
+[
+  {
+    "variant": "previous",
+    "round": 1,
+    "exitCode": 0,
+    "console": "PASS: isolated native fixture startup",
+    "stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ]
+  },
+  {
+    "variant": "current",
+    "round": 1,
+    "exitCode": 0,
+    "console": "PASS: isolated native fixture startup",
+    "stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ]
+  },
+  {
+    "variant": "previous",
+    "round": 2,
+    "exitCode": 0,
+    "console": "PASS: isolated native fixture startup",
+    "stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ]
+  },
+  {
+    "variant": "current",
+    "round": 2,
+    "exitCode": 0,
+    "console": "PASS: isolated native fixture startup",
+    "stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ]
+  },
+  {
+    "variant": "previous",
+    "round": 3,
+    "exitCode": 0,
+    "console": "PASS: isolated native fixture startup",
+    "stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ]
+  },
+  {
+    "variant": "current",
+    "round": 3,
+    "exitCode": 0,
+    "console": "PASS: isolated native fixture startup",
+    "stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ]
+  },
+  {
+    "variant": "previous",
+    "round": 4,
+    "exitCode": 0,
+    "console": "PASS: isolated native fixture startup",
+    "stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ]
+  },
+  {
+    "variant": "current",
+    "round": 4,
+    "exitCode": 0,
+    "console": "PASS: isolated native fixture startup",
+    "stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ]
+  },
+  {
+    "variant": "previous",
+    "round": 5,
+    "exitCode": 0,
+    "console": "PASS: isolated native fixture startup",
+    "stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ]
+  },
+  {
+    "variant": "current",
+    "round": 5,
+    "exitCode": 0,
+    "console": "PASS: isolated native fixture startup",
+    "stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ]
+  },
+  {
+    "variant": "previous",
+    "round": 6,
+    "exitCode": 0,
+    "console": "PASS: isolated native fixture startup",
+    "stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ]
+  },
+  {
+    "variant": "current",
+    "round": 6,
+    "exitCode": 0,
+    "console": "PASS: isolated native fixture startup",
+    "stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ]
+  },
+  {
+    "variant": "previous",
+    "round": 7,
+    "exitCode": 0,
+    "console": "PASS: isolated native fixture startup",
+    "stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ]
+  },
+  {
+    "variant": "current",
+    "round": 7,
+    "exitCode": 0,
+    "console": "PASS: isolated native fixture startup",
+    "stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ]
+  },
+  {
+    "variant": "previous",
+    "round": 8,
+    "exitCode": 0,
+    "console": "PASS: isolated native fixture startup",
+    "stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ]
+  },
+  {
+    "variant": "current",
+    "round": 8,
+    "exitCode": 0,
+    "console": "PASS: isolated native fixture startup",
+    "stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ]
+  },
+  {
+    "variant": "previous",
+    "round": 9,
+    "exitCode": 0,
+    "console": "PASS: isolated native fixture startup",
+    "stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ]
+  },
+  {
+    "variant": "current",
+    "round": 9,
+    "exitCode": 0,
+    "console": "PASS: isolated native fixture startup",
+    "stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ]
+  },
+  {
+    "variant": "previous",
+    "round": 10,
+    "exitCode": 0,
+    "console": "PASS: isolated native fixture startup",
+    "stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ]
+  },
+  {
+    "variant": "current",
+    "round": 10,
+    "exitCode": 0,
+    "console": "PASS: isolated native fixture startup",
+    "stages": [
+      "before-gen-image-const",
+      "after-gen-image-const",
+      "after-write-first-png",
+      "after-write-second-png"
+    ]
+  }
+]

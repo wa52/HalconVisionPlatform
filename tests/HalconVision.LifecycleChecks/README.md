@@ -18,4 +18,6 @@ tests/HalconVision.LifecycleChecks/bin/Debug/net8.0-windows/HalconVision.Lifecyc
 
 检查程序自己拥有 Application 启动入口，创建 MainWindow 前加载产品共享图标主题，避免遗漏资源或启动第二个 App 窗口。NuGet 审计保持默认启用；出现网络缓存警告时联网重新 restore 后再构建。
 
+`--fixture-only <全新输出目录>` 只执行独立测试图的 HALCON 生成和 PNG 保存，不创建窗口、不运行预览构建器；拒绝覆盖已有目录。`startup-stages.txt` 记录关键原生调用前后阶段，`process.txt` 记录检查 PID，供启动异常对照使用。该模式不能证明 GUI、模型或长期稳定性通过。
+
 停止连续运行会结束采集并释放采集句柄，最后一次完整结果留在内存供节点预览；再次运行释放旧结果，切换项目或关闭工作区释放全部运行期 HALCON 图像/区域。相机停止后需要重新连接再启动。

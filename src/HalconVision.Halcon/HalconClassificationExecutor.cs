@@ -52,7 +52,7 @@ public sealed class HalconClassificationExecutor(DlModelSessionCache? cache = nu
                     catch (Exception ex) when (ex is not OperationCanceledException)
                     { throw new InvalidOperationException($"ROI“{roi.Name}”分类失败：{ex.Message}", ex); }
                 }
-                preview = channels.I == 1 ? first.Compose3(first, first) : first.CopyImage();
+                using var previewBuilder = new OwnedPreviewImage(first, cancellation);
                 foreach (var result in results)
                 {
                     using var region = new HRegion(result.Bounds.RowBegin, result.Bounds.ColumnBegin, result.Bounds.RowEnd, result.Bounds.ColumnEnd);
@@ -62,8 +62,9 @@ public sealed class HalconClassificationExecutor(DlModelSessionCache? cache = nu
                         ClassificationDecision.DetectedNg => new int[] { 30, 144, 255 },
                         _ => new int[] { 255, 0, 0 }
                     });
-                    var marked = preview.PaintRegion(region, color, "margin"); preview.Dispose(); preview = marked;
+                    previewBuilder.PaintMargin(region, color);
                 }
+                preview = previewBuilder.TakeImage();
                 var single = results.Count == 1 ? results[0] : null;
                 var lowCount = results.Count(item => item.Status.Code == ClassificationStatus.LowConfidence);
                 var summary = single?.Status ?? new ClassificationStatus(lowCount == 0 ? ClassificationStatus.Classified : ClassificationStatus.LowConfidence,

@@ -85,6 +85,26 @@ internal static class Program
                 run.Dispose(); Check(iconic.All(o=>!o.IsInitialized()),"本轮全部 native 输出释放");
             }
             RoiObjectDetectionResult Row(WorkflowExecutionRun run,NodeInstance node)=>run.NodeResults.Single(n=>n.NodeId==node.Id).Outputs["roiResults"].Deserialize<RoiObjectDetectionResult[]>()!.Single();
+            void CheckDetectionPreviews(WorkflowExecutionRun run)
+            {
+                var sourceImage=(HImage)run.RuntimeOutputs![corrected.Id]["image"]!;var sourcePixels=PreviewHash(sourceImage);
+                foreach(var node in nodes)
+                {
+                    var overlay=(MultiRoiOverlay)run.RuntimeOutputs[node.Id]["roiOverlay"]!;var expected=sourceImage.CopyImage();
+                    try
+                    {
+                        foreach(var label in overlay.Rois)
+                        {
+                            var box=label.Bounds;using var region=new HRegion(box.RowBegin,box.ColumnBegin,box.RowEnd,box.ColumnEnd);
+                            using var color=new HTuple(label.Decision!.Code switch{ClassificationDecision.Ok=>new[]{50,205,50},ClassificationDecision.DetectedNg=>new[]{30,144,255},_=>new[]{255,0,0}});
+                            var next=expected.PaintRegion(region,color,"margin");expected.Dispose();expected=next;
+                        }
+                        Check(PreviewHash((HImage)run.RuntimeOutputs[node.Id]["preview"]!)==PreviewHash(expected),"真实检测节点预览与原RGB PaintRegion路径像素一致："+node.DisplayName);
+                    }
+                    finally{expected.Dispose();}
+                }
+                Check(PreviewHash(sourceImage)==sourcePixels,"六节点预览绘制不污染矫正底图");
+            }
             void Record(WorkflowExecutionRun run,string name)
             {
                 var rows=nodes.Where(n=>run.NodeResults.Any(r=>r.NodeId==n.Id&&r.Status==NodeExecutionStatus.Success)).Select(n=>new{node=n.DisplayName,row=Row(run,n),
@@ -294,8 +314,8 @@ internal static class Program
                     }
                     Check(sessions.Count==1,"六节点只保留一个DL模型会话");
                 }
-                var positiveRun=Execute(flow,positive);try{Inspect(positiveRun,true,false);Record(positiveRun,"positive-cold");}finally{Release(positiveRun);}
-                var negativeRun=Execute(flow,negative);try{Inspect(negativeRun,false,true);Record(negativeRun,"negative-warm");}finally{Release(negativeRun);}
+                var positiveRun=Execute(flow,positive);try{Inspect(positiveRun,true,false);CheckDetectionPreviews(positiveRun);Record(positiveRun,"positive-cold");}finally{Release(positiveRun);}
+                var negativeRun=Execute(flow,negative);try{Inspect(negativeRun,false,true);CheckDetectionPreviews(negativeRun);Record(negativeRun,"negative-warm");}finally{Release(negativeRun);}
                 var threshold=flow with{Nodes=flow.Nodes.Select(n=>n.Id==nodes[0].Id?n with{Parameters=new(n.Parameters){["minimumConfidence"]=J(1d)}}:n).ToList()};
                 var thresholdRun=Execute(threshold,positive);try{Check(thresholdRun.Inspection?.Verdict==InspectionVerdict.Ng&&Row(thresholdRun,nodes[0]).Objects.Count==0,"P1独立阈值1导致NG");Check(nodes.Skip(1).All(n=>Row(thresholdRun,n).Decision.Code==ClassificationDecision.Ok),"共享会话每节点重设阈值，不污染P2–P6");Record(thresholdRun,"threshold-isolation");}finally{Release(thresholdRun);}
                 var reference=corrected.Parameters["reference"].Deserialize<PositionReference>()!;
@@ -346,6 +366,17 @@ internal static class Program
         }
     }
     private static string Hash(string path){using var stream=File.OpenRead(path);return Convert.ToHexString(SHA256.HashData(stream));}
+    private static string PreviewHash(HImage image)
+    {
+        using var hash=IncrementalHash.CreateHash(HashAlgorithmName.SHA256);using var channels=image.CountChannels();
+        for(var i=1;i<=channels.I;i++)
+        {
+            using var plane=image.AccessChannel(i);var pointer=plane.GetImagePointer1(out string type,out int width,out int height);
+            if(type!="byte")throw new InvalidDataException("本轮RGB预览对照只接受实际byte输入。");
+            var data=new byte[width*height];Marshal.Copy(pointer,data,0,data.Length);hash.AppendData(data);
+        }
+        return Convert.ToHexString(hash.GetHashAndReset());
+    }
     private static void VerifyWorkspace(string project,string positive,string negative,Guid reader,Guid firstDetector)
     {
         var workspace=new WorkflowWorkspaceViewModel();

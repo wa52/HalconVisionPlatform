@@ -1,0 +1,14 @@
+[
+  {
+    "TimeCreated": "2026-10-22T21:23:46.2796589+08:00",
+    "Message": "出错应用程序名称： HalconVision.LifecycleChecks.exe，版本： 1.0.0.0，时间戳： 0x6a5a0000\r\n出错模块名称： unknown， 版本： 0.0.0.0，时间戳： 0x00000000\r\n异常代码： 0xc0000005\r\n错误偏移： 0x0000000183eea820\r\n出错进程 ID： 0x1B50\r\n出错应用程序开始时间： 0x1DD622890A0CD91\r\nFaulting 应用程序路径： D:\\AiProjects\\HalconVisionPlatform\\tests\\HalconVision.LifecycleChecks\\bin\\Release\\net8.0-windows\\HalconVision.LifecycleChecks.exe\r\nFaulting 模块路径： unknown\r\nReport ID： 8d1f6381-6edb-43f2-bc90-3fafbd577764\r\nFaulting 包全名： \r\nFaulting 程序包相对应用程序 ID：  个"
+  },
+  {
+    "TimeCreated": "2026-10-22T21:23:42.4804943+08:00",
+    "Message": "出错应用程序名称： HalconLayoutCheck.exe，版本： 1.0.0.0，时间戳： 0x6a5a0000\r\n出错模块名称： unknown， 版本： 0.0.0.0，时间戳： 0x00000000\r\n异常代码： 0xc0000005\r\n错误偏移： 0x0000000183eea820\r\n出错进程 ID： 0xA8F8\r\n出错应用程序开始时间： 0x1DD62288E38340C\r\nFaulting 应用程序路径： D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconLayoutCheck\\bin\\Release\\net8.0-windows\\HalconLayoutCheck.exe\r\nFaulting 模块路径： unknown\r\nReport ID： 42a51fd6-3364-47b3-b916-29ec170dd3fb\r\nFaulting 包全名： \r\nFaulting 程序包相对应用程序 ID：  个"
+  },
+  {
+    "TimeCreated": "2026-10-22T21:18:14.9712128+08:00",
+    "Message": "出错应用程序名称： HalconPreviewTrial.exe，版本： 1.0.0.0，时间戳： 0x6a5a0000\r\n出错模块名称： unknown， 版本： 0.0.0.0，时间戳： 0x00000000\r\n异常代码： 0xc0000005\r\n错误偏移： 0x0000000183eea820\r\n出错进程 ID： 0x3C28\r\n出错应用程序开始时间： 0x1DD6227CB52A762\r\nFaulting 应用程序路径： D:\\AiProjects\\HalconVisionPlatform\\tools\\HalconPreviewTrial\\bin\\Release\\net8.0-windows\\HalconPreviewTrial.exe\r\nFaulting 模块路径： unknown\r\nReport ID： a65cd084-b230-450a-9467-d7cef08db151\r\nFaulting 包全名： \r\nFaulting 程序包相对应用程序 ID：  个"
+  }
+]
