@@ -9,7 +9,12 @@
     <PlatformTarget>x64</PlatformTarget>
     <AssemblyName>HalconVision.App</AssemblyName>
     <RootNamespace>HalconVision.App</RootNamespace>
+    <ApplicationIcon>Assets\HalconVision.ico</ApplicationIcon>
   </PropertyGroup>
+  <ItemGroup>
+    <Resource Include="Assets\HalconVision.ico" />
+    <Content Include="Assets\HalconVision.ico" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HalconVision.Application\HalconVision.Application.csproj" />
     <ProjectReference Include="..\HalconVision.Domain\HalconVision.Domain.csproj" />

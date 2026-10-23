@@ -1,0 +1,27 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- 64-unit application mark: inspection frame, optical axis and focal point. -->
+  <DrawingImage x:Key="ApplicationMark">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#087E83">
+          <GeometryDrawing.Geometry>
+            <RectangleGeometry Rect="0,0,64,64" RadiusX="14" RadiusY="14"/>
+          </GeometryDrawing.Geometry>
+        </GeometryDrawing>
+        <GeometryDrawing Geometry="M14,24 V14 H24 M40,14 H50 V24 M50,40 V50 H40 M24,50 H14 V40">
+          <GeometryDrawing.Pen>
+            <Pen Brush="#FFFFFF" Thickness="4" StartLineCap="Round" EndLineCap="Round" LineJoin="Round"/>
+          </GeometryDrawing.Pen>
+        </GeometryDrawing>
+        <GeometryDrawing>
+          <GeometryDrawing.Geometry><EllipseGeometry Center="32,32" RadiusX="10" RadiusY="10"/></GeometryDrawing.Geometry>
+          <GeometryDrawing.Pen><Pen Brush="#FFFFFF" Thickness="3.5"/></GeometryDrawing.Pen>
+        </GeometryDrawing>
+        <GeometryDrawing Brush="#91E6D5">
+          <GeometryDrawing.Geometry><EllipseGeometry Center="32,32" RadiusX="4" RadiusY="4"/></GeometryDrawing.Geometry>
+        </GeometryDrawing>
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+</ResourceDictionary>

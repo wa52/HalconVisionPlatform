@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-23",
+  "sizes": [
+    16,
+    20,
+    24,
+    32,
+    40,
+    48,
+    64,
+    128,
+    256
+  ],
+  "transparentCorners": true,
+  "opaqueCenters": true,
+  "exeIcon": {
+    "width": 48,
+    "height": 48,
+    "center": "Color [A=255, R=145, G=230, B=213]"
+  },
+  "assets": [
+    {
+      "path": "src/HalconVision.App/Assets/Brand.xaml",
+      "sha256": "2EF7EFC2A19107830BBAC4B7F24FD1F784BD45DC961FEBB750A24A16F25352B2"
+    },
+    {
+      "path": "src/HalconVision.App/Assets/HalconVision.ico",
+      "sha256": "FD7118D8092DF999F87802C30C01A00AF3F336B6E3BBFA8089EF8AB98307D274"
+    },
+    {
+      "path": "src/HalconVision.App/Assets/HalconVision.png",
+      "sha256": "1DC4A8AB9CCF7DB044263DDFBEB64E4EF00495861D6BB8C89F15E21F75600B92"
+    }
+  ],
+  "layoutChecks": 148,
+  "buildWarnings": 0,
+  "buildErrors": 0
+}

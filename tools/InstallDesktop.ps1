@@ -12,6 +12,7 @@ if (-not $destination.StartsWith($artifactsRoot + '\', [StringComparison]::Ordin
     throw '安装目录必须位于本项目 artifacts 目录内。'
 }
 $executable = Join-Path $destination 'HalconVision.App.exe'
+$icon = Join-Path $destination 'Assets\HalconVision.ico'
 foreach ($required in @('HalconVision.App.exe', 'HalconVision.App.dll', 'HalconVision.App.runtimeconfig.json')) {
     if (-not (Test-Path -LiteralPath (Join-Path $source $required))) { throw "发布目录缺少：$required" }
 }
@@ -53,6 +54,9 @@ foreach ($progId in @('HalconVisionPlatform.Project', 'Applications\HalconVision
     $key = Join-Path $classes ($progId + '\shell\open\command')
     New-Item -Path $key -Force | Out-Null
     Set-Item -Path $key -Value $command
+    $iconKey = Join-Path $classes ($progId + '\DefaultIcon')
+    New-Item -Path $iconKey -Force | Out-Null
+    Set-Item -Path $iconKey -Value ('"' + $executable + '",0')
 }
 $extension = Join-Path $classes '.hvproj'
 New-Item -Path $extension -Force | Out-Null
@@ -68,7 +72,7 @@ $shortcut.TargetPath = $executable
 $shortcut.Arguments = ''
 $shortcut.WorkingDirectory = $destination
 $shortcut.Description = 'HALCON 视觉检测平台'
-$shortcut.IconLocation = $executable + ',0'
+$shortcut.IconLocation = if (Test-Path -LiteralPath $icon) { $icon + ',0' } else { $executable + ',0' }
 $shortcut.Save()
 
 Add-Type 'using System; using System.Runtime.InteropServices; public static class HalconDesktopAssociationRefresh {

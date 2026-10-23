@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-24",
+  "desktopTarget": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\desktop-preprocessing-checked\\HalconVision.App.exe",
+  "desktopIcon": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\desktop-preprocessing-checked\\Assets\\HalconVision.ico,0",
+  "targetArgumentsAndWorkingDirectoryUnchanged": true,
+  "installedIconMatchesSource": true,
+  "all16InstalledFilesVerified": true,
+  "builtAppDllMatchesInstalled": true,
+  "ownedPid": 12740,
+  "ownedProcessExited": true,
+  "scriptSyntaxChecks": 2,
+  "softwareTitle": "HalconVisionPlatform · 工业视觉检测平台"
+}
