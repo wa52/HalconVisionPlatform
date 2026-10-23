@@ -43,7 +43,13 @@ public sealed class NodeParameterViewModel : ObservableModel
     }
 
     public NodeParameterDefinition Definition { get; }
-    public string Name => Definition.Name;
+    public string Name => Definition.Name + (IsInspectionBoundRoi ? "（任务区域）" : "");
+    public bool IsInspectionBoundRoi => Definition.Id == "roi" && _owner.Document.InspectionTasks.Any(t => t.NodeIds.Contains(_nodeId));
+    public bool CanClearRoi => !IsInspectionBoundRoi;
+    public string RoiDrawHelp => IsInspectionBoundRoi ? "编辑此节点绑定的任务区域；共用该区域的任务也会更新" : "在节点图像中拖动绘制矩形检测范围";
+    public string ClearRoiHelp => IsInspectionBoundRoi ? "任务区域不能在节点中清空，请在检测任务中调整引用" : "清除已绘制范围；重新运行时按该节点的范围要求处理";
+    internal void RefreshInspectionBinding()
+    { Raise(nameof(Name)); Raise(nameof(IsInspectionBoundRoi)); Raise(nameof(CanClearRoi)); Raise(nameof(RoiDrawHelp)); Raise(nameof(ClearRoiHelp)); }
     public string DataType => Definition.DataType;
     public bool IsPath => DataType is "path" or "imageFile";
     public bool IsImageFile => DataType == "imageFile";
@@ -186,10 +192,13 @@ public sealed class FlowNodeViewModel : ObservableModel
     public ObservableCollection<NodeParameterViewModel> Parameters { get; }
     private static readonly HashSet<string> QuickMatchBasic = ["templateRoi", "roi", "minimumScore", "maximumMatches"];
     public IEnumerable<NodeParameterViewModel> PrimaryParameters => TypeId == HalconNodeProvider.QuickMatch
-        ? Parameters.Where(p => QuickMatchBasic.Contains(p.Definition.Id)) : Parameters;
+        ? Parameters.Where(p => QuickMatchBasic.Contains(p.Definition.Id)) : Parameters.Where(p => !p.Definition.Advanced);
     public IEnumerable<NodeParameterViewModel> AdvancedParameters => TypeId == HalconNodeProvider.QuickMatch
-        ? Parameters.Where(p => !QuickMatchBasic.Contains(p.Definition.Id) && !p.IsQuickMatchTemplate) : [];
-    public bool HasAdvancedParameters => TypeId == HalconNodeProvider.QuickMatch;
+        ? Parameters.Where(p => !QuickMatchBasic.Contains(p.Definition.Id) && !p.IsQuickMatchTemplate) : Parameters.Where(p => p.Definition.Advanced);
+    public bool HasAdvancedParameters => AdvancedParameters.Any();
+    public string AdvancedTitle => TypeId == HalconNodeProvider.QuickMatch ? "高级匹配参数" : "高级测量参数";
+    public string AdvancedHelp => TypeId == HalconNodeProvider.QuickMatch
+        ? "展开候选搜索、歧义判定、允许位置及搜索超时参数" : "展开测量卡尺、半径范围、残差校验和诊断显示参数";
     public double X { get => _x; private set => Set(ref _x, value); }
     public double Y { get => _y; private set => Set(ref _y, value); }
     public string DisplayName { get => _displayName; set { if (Set(ref _displayName, value)) _owner.RenameNode(Id, value); } }

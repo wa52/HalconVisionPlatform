@@ -854,6 +854,18 @@ public partial class MainWindow : Window
     private async void DrawRoi_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: NodeParameterViewModel parameter }) return;
+        if (parameter.IsInspectionBoundRoi && _vm.SelectedFlow is { } taskFlow && taskFlow.SelectedNode is { } taskNode)
+        {
+            if (_closing || _switchingProject || _executionTask is not null || _vm.IsRunning) return;
+            var binding = taskFlow.Document.InspectionTasks.First(t => t.NodeIds.Contains(taskNode.Id));
+            var region = taskFlow.Document.InspectionRegions.FirstOrDefault(r => r.Id == binding.RegionId);
+            if (region is null) { _vm.ProjectStatus = "任务区域缺失，请先修复检测任务配置。"; return; }
+            var drawing = DrawInspectionRegionAsync(taskFlow, region); _executionTask = drawing;
+            try { await drawing; }
+            catch (Exception error) { if (!_closing) ShowError("准备任务区域绘制失败", error); }
+            finally { if (ReferenceEquals(_executionTask, drawing)) _executionTask = null; }
+            return;
+        }
         if (parameter.IsQuickMatchTemplateRoi && _vm.SelectedFlow is { } flow && flow.SelectedNode is { } node &&
             string.IsNullOrWhiteSpace(node.Parameters.Single(p => p.IsQuickMatchTemplate).ValueText))
         {
@@ -884,7 +896,7 @@ public partial class MainWindow : Window
         FinishRoiDrawing();
         if (
             _vm.SelectedFlow?.SelectedNode is not { } lineNode ||
-            lineNode.TypeId is not (HalconNodeProvider.StraightLineFind or HalconNodeProvider.SemanticSegmentation or HalconNodeProvider.Classification or HalconNodeProvider.ObjectDetection or HalconNodeProvider.QuickMatch or HalconNodeProvider.Threshold)) return;
+            lineNode.TypeId is not (HalconNodeProvider.StraightLineFind or HalconNodeProvider.SemanticSegmentation or HalconNodeProvider.Classification or HalconNodeProvider.ObjectDetection or HalconNodeProvider.QuickMatch or HalconNodeProvider.Threshold or HalconCircleNodeProvider.CircleFind)) return;
         var flow = _vm.SelectedFlow;
         var templateDrawing = lineNode.TypeId == HalconNodeProvider.QuickMatch && parameter.Definition.Id == "templateRoi";
         var edge = flow.Document.Edges.FirstOrDefault(item => item.ToNodeId == lineNode.Id && item.ToPortId == "image");
@@ -970,12 +982,14 @@ public partial class MainWindow : Window
     private void ClearRoi_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: NodeParameterViewModel parameter }) return;
+        if (!parameter.CanClearRoi) { _vm.ProjectStatus = parameter.ClearRoiHelp; return; }
         FinishRoiDrawing();
         parameter.ValueText = string.Empty; parameter.Commit();
         DetectionSummary.Text = _vm.SelectedFlow?.SelectedNode?.TypeId == HalconNodeProvider.QuickMatch
             ? parameter.Definition.Id switch { "templateRoi" => "模板范围已清除 · 下次运行使用整幅模板图像",
                 "acceptanceRoi" => "允许位置范围已清除 · 仍按评分、角度及目标数量验证", _ => "搜索范围已清除 · 下次运行搜索全图" }
-            : "矩形范围已清除 · 重新运行后使用节点默认范围";
+            : _vm.SelectedFlow?.SelectedNode?.TypeId is HalconCircleNodeProvider.CircleFind or HalconNodeProvider.StraightLineFind
+                ? "检测范围已清除 · 请重新绘制后运行" : "矩形范围已清除 · 重新运行后使用节点默认范围";
         _vm.Log("已清除检测范围，请重新运行检测。");
     }
 
@@ -1105,14 +1119,28 @@ public partial class MainWindow : Window
             PreviewWindow.HalconWindow.GetPart(out int r1, out int c1, out int r2, out int c2);
             var displayRois = _inspectionOutlineRegion is { } taskRegion ? new[] { new DetectionRoi(taskRegion.Id, taskRegion.Name, taskRegion.Bounds.RowBegin, taskRegion.Bounds.ColumnBegin, taskRegion.Bounds.RowEnd, taskRegion.Bounds.ColumnEnd) }
                 : ReadConfiguredDisplayRois(_roiOutlineParameter!);
-            foreach (var item in displayRois.Where(item => item.Enabled))
+            var mapped = displayRois.Where(item => item.Enabled).Select(item => (Item: item, Box: new Rect(
+                (Math.Min(item.ColumnBegin, item.ColumnEnd) - c1) * RoiDrawingOverlay.ActualWidth / (c2 - c1 + 1d),
+                (Math.Min(item.RowBegin, item.RowEnd) - r1) * RoiDrawingOverlay.ActualHeight / (r2 - r1 + 1d),
+                Math.Abs(item.ColumnEnd - item.ColumnBegin) * RoiDrawingOverlay.ActualWidth / (c2 - c1 + 1d),
+                Math.Abs(item.RowEnd - item.RowBegin) * RoiDrawingOverlay.ActualHeight / (r2 - r1 + 1d)))).ToArray();
+            var labels = new List<Rect>();
+            foreach (var (item, box) in mapped)
             {
-                var left = (Math.Min(item.ColumnBegin, item.ColumnEnd) - c1) * RoiDrawingOverlay.ActualWidth / (c2 - c1 + 1d);
-                var top = (Math.Min(item.RowBegin, item.RowEnd) - r1) * RoiDrawingOverlay.ActualHeight / (r2 - r1 + 1d);
-                var rectangle = new System.Windows.Shapes.Rectangle { Width = Math.Abs(item.ColumnEnd - item.ColumnBegin) * RoiDrawingOverlay.ActualWidth / (c2 - c1 + 1d),
-                    Height = Math.Abs(item.RowEnd - item.RowBegin) * RoiDrawingOverlay.ActualHeight / (r2 - r1 + 1d), Stroke = Brushes.Gold, StrokeThickness = 1.5, IsHitTestVisible = false };
-                var label = new TextBlock { Text = item.Name, Foreground = Brushes.Gold, Background = Brushes.Black, IsHitTestVisible = false };
-                Canvas.SetLeft(rectangle, left); Canvas.SetTop(rectangle, top); Canvas.SetLeft(label, left + 2); Canvas.SetTop(label, top + 2);
+                var rectangle = new System.Windows.Shapes.Rectangle { Width = box.Width, Height = box.Height, Stroke = Brushes.Gold, StrokeThickness = 1.5, IsHitTestVisible = false };
+                var label = new TextBlock { Text = item.Name, Foreground = Brushes.Gold, Background = Brushes.Black, IsHitTestVisible = false,
+                    MaxWidth = Math.Max(1, RoiDrawingOverlay.ActualWidth - 4), TextTrimming = TextTrimming.CharacterEllipsis };
+                label.Measure(new Size(label.MaxWidth, double.PositiveInfinity));
+                var size = label.DesiredSize;
+                var x = Math.Clamp(box.Left, 0, Math.Max(0, RoiDrawingOverlay.ActualWidth - size.Width));
+                var choices = new[] { new Point(x, box.Top - size.Height - 3), new Point(x, box.Bottom + 3),
+                    new Point(box.Right + 3, box.Top), new Point(box.Left - size.Width - 3, box.Top) };
+                var placement = choices.Select(p => new Rect(p, size)).FirstOrDefault(candidate =>
+                    candidate.Left >= 0 && candidate.Top >= 0 && candidate.Right <= RoiDrawingOverlay.ActualWidth && candidate.Bottom <= RoiDrawingOverlay.ActualHeight &&
+                    !mapped.Any(other => candidate.IntersectsWith(other.Box)) && !labels.Any(other => candidate.IntersectsWith(other)), Rect.Empty);
+                Canvas.SetLeft(rectangle, box.Left); Canvas.SetTop(rectangle, box.Top);
+                if (placement.IsEmpty) label.Visibility = Visibility.Collapsed;
+                else { Canvas.SetLeft(label, placement.Left); Canvas.SetTop(label, placement.Top); labels.Add(placement); }
                 RoiDrawingOverlay.Children.Add(rectangle); RoiDrawingOverlay.Children.Add(label); _roiOutlines.Add(rectangle); _roiOutlines.Add(label);
             }
             RoiDrawingOverlay.IsHitTestVisible = _isDrawingRoi;

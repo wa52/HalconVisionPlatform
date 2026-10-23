@@ -1,0 +1,19 @@
+{
+  "candidate": "artifacts/desktop-circle-final",
+  "foundDiameter": 126.97976044061822,
+  "edgePoints": 48,
+  "score": 1,
+  "threshold": 30,
+  "notFoundThreshold": 65535,
+  "notFoundVerdict": "NG",
+  "continuousSequence": "two identical copies of official circle_plate.png",
+  "elapsedBeforeStopSeconds": 24.194,
+  "stopObservation": [
+    "\t\t20 文本 产品：OK · 1 项任务 Description: 产品：OK · 1 项任务 ID: ProductVerdict",
+    "\t\t725 文本 22:08:20 连续运行已停止。 Description: 22:08:20 连续运行已停止。",
+    "\t\t216 文本 状态：Success Description: 状态：Success",
+    "\t\t222 文本 连续运行已停止 Description: 连续运行已停止"
+  ],
+  "restartAndClose": "停止后再次连续运行，随后 Alt+F4；窗口列表及环境进程核对确认退出",
+  "note": "人工通过实际窗口操作；无真实物料计量真值"
+}

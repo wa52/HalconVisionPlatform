@@ -3,7 +3,7 @@ using HalconVision.Domain;
 
 namespace HalconVision.Application;
 
-public sealed record NodeParameterDefinition(string Id, string Name, string DataType, bool Required, JsonElement? DefaultValue = null);
+public sealed record NodeParameterDefinition(string Id, string Name, string DataType, bool Required, JsonElement? DefaultValue = null, bool Advanced = false);
 
 public sealed record NodeDefinition(
     string TypeId,

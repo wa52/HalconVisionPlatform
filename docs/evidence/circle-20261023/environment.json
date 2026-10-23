@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-23",
+  "runtime": [
+    "Microsoft.NETCore.App 8.0.8 [C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App]",
+    "Microsoft.NETCore.App 8.0.22 [C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App]",
+    "Microsoft.NETCore.App 8.0.25 [C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App]",
+    "Microsoft.NETCore.App 8.0.30 [C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App]"
+  ],
+  "halconRoot": "C:\\Users\\feng\\AppData\\Local\\Programs\\MVTec\\HALCON-24.11-Progress-Steady",
+  "halconArch": "x64-win64",
+  "files": [
+    {
+      "sha256": "32D2F4ABDE5D131B3795E11D28B58CCFD657CB68B0CF95AEBEBA7DEAEBC5A9B4",
+      "path": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\desktop-circle-final\\HalconVision.App.dll",
+      "version": "1.0.0.0"
+    },
+    {
+      "sha256": "80BA98D647153D45387529B402C1DD58CC303BE9A85DFDFA03E46BD8C7DD27EC",
+      "path": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\desktop-circle-final\\HalconVision.Halcon.dll",
+      "version": "1.0.0.0"
+    },
+    {
+      "sha256": "8C6A241B7AAAA368B4DDAEB0A7F1BCF953F15A1A883CC4850CFC3C69C1FCC29A",
+      "path": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\desktop-circle-final\\MVTec.HalconDotNet.dll",
+      "version": "24111.0.0.0"
+    },
+    {
+      "sha256": "6D69CF569BEA06A834FD5CF964C0B32E4DFF15166035B783E2A2C82157945FF1",
+      "path": "C:\\Users\\feng\\AppData\\Local\\Programs\\MVTec\\HALCON-24.11-Progress-Steady\\bin\\x64-win64\\halcon.dll",
+      "version": "24.11.1.0"
+    },
+    {
+      "sha256": "FE9E6E99832A9CC4C526AA07D38E93F5F33364ECE3EFBADA0E9BEC87009B36CB",
+      "path": "C:\\Users\\feng\\AppData\\Roaming\\MVTec\\HALCON-24.11-Progress-Steady\\examples\\images\\circle_plate.png",
+      "version": null
+    }
+  ],
+  "shortcutTarget": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\desktop-preprocessing-checked\\HalconVision.App.exe",
+  "ownedCandidateProcesses": []
+}

@@ -38,6 +38,7 @@ public sealed class FlowTabViewModel : ObservableModel
     {
         PushUndo();
         _document = _document with { SchemaVersion = 2, InspectionRegions = regions.ToList(), InspectionTasks = tasks.ToList() };
+        foreach (var parameter in Nodes.SelectMany(n => n.Parameters)) parameter.RefreshInspectionBinding();
         IsDirty = true; Raise(nameof(Document)); Raise(nameof(ValidationIssues));
     }
     public void EnsureRoiEditsValid()

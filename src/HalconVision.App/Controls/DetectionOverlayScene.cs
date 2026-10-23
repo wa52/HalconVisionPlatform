@@ -14,13 +14,15 @@ public sealed class DetectionOverlayScene
     public static IReadOnlyDictionary<string, string> ImportantFields { get; } = new Dictionary<string, string>
     {
         ["score"] = "评分", ["angle"] = "角度（°）", ["length"] = "长度（像素）", ["count"] = "数量", ["area"] = "面积（像素）",
-        ["className"] = "分类类别", ["confidence"] = "分类置信度"
+        ["className"] = "分类类别", ["confidence"] = "分类置信度", ["diameter"] = "直径（像素）"
     };
     public static IReadOnlyDictionary<string, string> AdvancedFields { get; } = new Dictionary<string, string>
     {
         ["line.RowBegin"] = "起点行坐标", ["line.ColumnBegin"] = "起点列坐标",
         ["line.RowEnd"] = "终点行坐标", ["line.ColumnEnd"] = "终点列坐标", ["classId"] = "类别 ID",
-        ["row"] = "模板参考点行", ["column"] = "模板参考点列"
+        ["row"] = "模板参考点行", ["column"] = "模板参考点列",
+        ["circle.Row"] = "圆心行坐标", ["circle.Column"] = "圆心列坐标", ["circle.Radius"] = "半径（像素）",
+        ["circle.Circumference"] = "周长（像素）", ["residualRms"] = "径向残差（像素）"
     };
     public List<DisplayGeometry> Geometry { get; } = [];
     public List<DisplayCaption> Captions { get; } = [];
@@ -57,6 +59,25 @@ public sealed class DetectionOverlayScene
                         new(box.RowEnd, box.ColumnEnd), new(box.RowEnd, box.ColumnBegin), new(box.RowBegin, box.ColumnBegin)], color));
                     scene.Captions.Add(new($"{name} / {item.Name}：{item.Summary}", color, new(box.RowEnd, box.ColumnBegin)));
                 }
+            if (runtime.Values.OfType<CircleGeometryOverlay>().FirstOrDefault() is { } circleOverlay)
+            {
+                var b = circleOverlay.SearchRegion;
+                if (circleOverlay.ShowDiagnostics)
+                {
+                    foreach (var measure in circleOverlay.MeasureRegions) scene.Geometry.Add(new(measure, "DodgerBlue"));
+                    foreach (var point in circleOverlay.EdgePoints.Points)
+                        scene.Geometry.Add(new([new(point.Row - 2, point.Column), new(point.Row + 2, point.Column)], "LimeGreen"));
+                }
+                if (circleOverlay.ShowSearchRegion)
+                    scene.Geometry.Add(new([new(b.RowBegin,b.ColumnBegin),new(b.RowBegin,b.ColumnEnd),new(b.RowEnd,b.ColumnEnd),new(b.RowEnd,b.ColumnBegin),new(b.RowBegin,b.ColumnBegin)],circleOverlay.FittedCircle is null ? "Red" : "Gold"));
+                if (circleOverlay.ShowFittedCircle && circleOverlay.FittedCircle is { } circle)
+                {
+                    scene.Geometry.Add(new(circle.Outline(), "LimeGreen"));
+                    scene.Geometry.Add(new([new(circle.Row - 5, circle.Column), new(circle.Row + 5, circle.Column)], "LimeGreen"));
+                    scene.Geometry.Add(new([new(circle.Row, circle.Column - 5), new(circle.Row, circle.Column + 5)], "LimeGreen"));
+                }
+                continue;
+            }
             if (runtime.Values.OfType<GeometryOverlay>().FirstOrDefault() is { } overlay)
             {
                 if (overlay.SearchRegion is { } roi)

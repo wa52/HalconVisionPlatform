@@ -26,6 +26,8 @@ public sealed class NodeResultSummary : IValueConverter
             return "语义分割检出目标 · " + (status.TryGetProperty("Message", out var message) ? message.GetString() : "请查看区域数据");
         if (code.GetString() == SegmentationStatus.Empty)
             return "未检出分割目标 · 请检查模型、类别和面积条件";
+        if (code.GetString() is CircleFindStatus.Found or CircleFindStatus.NotFound)
+            return status.TryGetProperty("Message", out var circleMessage) ? circleMessage.GetString() ?? "请查看圆查找结果" : "请查看圆查找结果";
         if (code.GetString() == LineFindStatus.NotFound)
             return "未找到直线 · 请调整矩形范围、方向或边缘阈值";
         if (code.GetString() != LineFindStatus.Found) return "检测状态未知";
@@ -46,6 +48,10 @@ public sealed class NodeResultSummary : IValueConverter
     {
         if (ReadClassificationDecision(result) is { } decision) return ClassificationColor(decision);
         var text = Describe(result);
+        if (result?.Status == NodeExecutionStatus.Success && result.Outputs.TryGetValue("status", out var circleStatus) &&
+            circleStatus.ValueKind == JsonValueKind.Object && circleStatus.TryGetProperty("Code", out var circleCode) &&
+            circleCode.GetString() is CircleFindStatus.Found or CircleFindStatus.NotFound)
+            return circleCode.GetString() == CircleFindStatus.Found ? Brushes.LimeGreen : Brushes.Red;
         if (result?.Status == NodeExecutionStatus.Success && result.Outputs.TryGetValue("status", out var status) &&
             status.ValueKind == JsonValueKind.Object && status.TryGetProperty("Code", out var code) && QuickMatchStatus.IsKnown(code.GetString()))
             return code.GetString() is QuickMatchStatus.Found or "MATCH_FOUND" ? Brushes.LimeGreen : Brushes.Red;

@@ -102,6 +102,8 @@ public partial class InspectionTaskEditorWindow : Window
         var nodeId=_editing.NodeIds.LastOrDefault();var outputs=Outputs(nodeId);var rule=new InspectionRuleEdit{NodeId=nodeId,OutputLookup=Outputs};
         if(_flow.Document.Nodes.FirstOrDefault(n=>n.Id==nodeId)?.TypeId==HalconVision.Halcon.HalconNodeProvider.StraightLineFind)
         {rule.PortId="status";rule.Kind=InspectionRuleKind.TextEquals;rule.Pointer="/Code";rule.Expected="FOUND";}
+        else if(_flow.Document.Nodes.FirstOrDefault(n=>n.Id==nodeId)?.TypeId==HalconVision.Halcon.HalconCircleNodeProvider.CircleFind)
+        {rule.PortId="status";rule.Kind=InspectionRuleKind.TextEquals;rule.Pointer="/Code";rule.Expected=CircleFindStatus.Found;}
         else if(outputs.Any(p=>p.Id=="decision")){rule.PortId="decision";rule.Kind=InspectionRuleKind.DetectionDecision;rule.Pointer="/Code";}
         else if(outputs.Any(p=>p.Id=="count"))rule.PortId="count";
         else if(outputs.Any(p=>p.Id=="area"))rule.PortId="area";
