@@ -59,6 +59,14 @@ internal static class Program
         // before constructing MainWindow, without launching a second App window.
         _app.Resources.MergedDictionaries.Add(new ResourceDictionary
         {
+            Source = new Uri("/HalconVision.App;component/Themes/Workbench.xaml", UriKind.Relative)
+        });
+        _app.Resources.MergedDictionaries.Add(new ResourceDictionary
+        {
+            Source = new Uri("/HalconVision.App;component/Assets/Brand.xaml", UriKind.Relative)
+        });
+        _app.Resources.MergedDictionaries.Add(new ResourceDictionary
+        {
             Source = new Uri("/HalconVision.App;component/Themes/IconControls.xaml", UriKind.Relative)
         });
         _app.DispatcherUnhandledException += (_, e) => Fail(e.Exception);

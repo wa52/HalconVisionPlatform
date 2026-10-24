@@ -1,0 +1,97 @@
+{
+  "NodeId": "234c79e9-acc5-4a4d-93d8-9515c7b76c8e",
+  "NodeName": "\u5706\u5706\u6D4B\u91CF",
+  "Status": 2,
+  "StartedAtUtc": "2026-10-24T14:20:17.5689547Z",
+  "EndedAtUtc": "2026-10-24T14:20:17.570007Z",
+  "ElapsedMilliseconds": 1.0519,
+  "Outputs": {
+    "centerDistance": 209.99808525646353,
+    "boundaryDistance": 130.03933387008746,
+    "measurement": {
+      "CircleA": {
+        "Row": 159.46003871596577,
+        "Column": 139.47641317238765,
+        "Radius": 45.0183428149436,
+        "Diameter": 90.0366856298872,
+        "Circumference": 282.85859012842735
+      },
+      "CircleB": {
+        "Row": 159.45407004154796,
+        "Column": 349.4744983440288,
+        "Radius": 34.94040857143248,
+        "Diameter": 69.88081714286496,
+        "Circumference": 219.53706176287622
+      },
+      "CenterDistance": 209.99808525646353,
+      "BoundaryDistance": 130.03933387008746,
+      "Relation": "\u76F8\u79BB",
+      "CenterLine": {
+        "RowBegin": 159.46003871596577,
+        "ColumnBegin": 139.47641317238765,
+        "RowEnd": 159.45407004154796,
+        "ColumnEnd": 349.4744983440288,
+        "Length": 209.99808525646353,
+        "AngleDegrees": 0.0016284903410242614
+      },
+      "BoundaryLine": {
+        "RowBegin": 159.458759181294,
+        "ColumnBegin": 184.49475596914746,
+        "RowEnd": 159.45506313594944,
+        "ColumnEnd": 314.53408978670944,
+        "Length": 130.03933387008743,
+        "AngleDegrees": 0.0016284903410226743
+      }
+    },
+    "overlay": {
+      "Measurement": {
+        "CircleA": {
+          "Row": 159.46003871596577,
+          "Column": 139.47641317238765,
+          "Radius": 45.0183428149436,
+          "Diameter": 90.0366856298872,
+          "Circumference": 282.85859012842735
+        },
+        "CircleB": {
+          "Row": 159.45407004154796,
+          "Column": 349.4744983440288,
+          "Radius": 34.94040857143248,
+          "Diameter": 69.88081714286496,
+          "Circumference": 219.53706176287622
+        },
+        "CenterDistance": 209.99808525646353,
+        "BoundaryDistance": 130.03933387008746,
+        "Relation": "\u76F8\u79BB",
+        "CenterLine": {
+          "RowBegin": 159.46003871596577,
+          "ColumnBegin": 139.47641317238765,
+          "RowEnd": 159.45407004154796,
+          "ColumnEnd": 349.4744983440288,
+          "Length": 209.99808525646353,
+          "AngleDegrees": 0.0016284903410242614
+        },
+        "BoundaryLine": {
+          "RowBegin": 159.458759181294,
+          "ColumnBegin": 184.49475596914746,
+          "RowEnd": 159.45506313594944,
+          "ColumnEnd": 314.53408978670944,
+          "Length": 130.03933387008743,
+          "AngleDegrees": 0.0016284903410226743
+        }
+      },
+      "ShowCenterLine": true,
+      "ShowBoundaryLine": true
+    },
+    "status": {
+      "Code": "CIRCLE_PAIR_MEASURED",
+      "Message": "\u6D4B\u91CF\u5B8C\u6210 \u00B7 \u5706\u5FC3\u8DDD 210.00 px \u00B7 \u5706\u5468\u6700\u77ED 130.04 px \u00B7 \u76F8\u79BB"
+    },
+    "preview": {
+      "width": 512,
+      "height": 320,
+      "count": 1,
+      "channels": 3
+    }
+  },
+  "Error": null
+}

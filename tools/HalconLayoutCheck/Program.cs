@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
@@ -54,6 +54,19 @@ internal static class Program
     while (parent is not null && parent is not Border) parent = VisualTreeHelper.GetParent(parent);
     if (parent is FrameworkElement boundary) Check(text, boundary, "画布工具提示", width);
    }
+  }
+  var header=(FrameworkElement)window.FindName("WorkspaceHeader");
+  var menu=(Menu)window.FindName("EditorMenu");
+  var verdict=(FrameworkElement)window.FindName("ProductVerdict");
+  foreach(var width in new[]{1180d,1366d,1580d})
+  {
+      root.Measure(new Size(width,680));root.Arrange(new Rect(0,0,width,680));root.UpdateLayout();
+      checks++;if(header.ActualHeight>52)failures.Add("顶部操作栏不应叠为多层");
+      checks++;if(Descendants(header).OfType<System.Windows.Controls.Image>().Any()||Descendants(header).OfType<TextBlock>().Any(t=>t.Text=="HalconVisionPlatform"))failures.Add("顶部重复显示品牌");
+      Check(menu,header,"菜单",width);Check(verdict,header,"产品判定",width);
+      var run=Descendants(header).OfType<Button>().Single(b=>b.Content as string=="单次运行");Check(run,header,"单次运行",width);
+      checks++;var m=menu.TranslatePoint(new Point(),header);var r=run.TranslatePoint(new Point(),header);var v=verdict.TranslatePoint(new Point(),header);
+      if(m.X+menu.ActualWidth>v.X||v.X+verdict.ActualWidth>r.X)failures.Add("顶部菜单/状态/运行入口重叠");
   }
   var registry = new NodeRegistry(); registry.Register(new PositionDefinition(), [new HalconPositionCorrectionExecutor()]);
   var definition = registry.Definitions.Single();

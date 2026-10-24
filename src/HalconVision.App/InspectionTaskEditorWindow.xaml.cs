@@ -104,6 +104,8 @@ public partial class InspectionTaskEditorWindow : Window
         {rule.PortId="status";rule.Kind=InspectionRuleKind.TextEquals;rule.Pointer="/Code";rule.Expected="FOUND";}
         else if(_flow.Document.Nodes.FirstOrDefault(n=>n.Id==nodeId)?.TypeId==HalconVision.Halcon.HalconCircleNodeProvider.CircleFind)
         {rule.PortId="status";rule.Kind=InspectionRuleKind.TextEquals;rule.Pointer="/Code";rule.Expected=CircleFindStatus.Found;}
+        else if(_flow.Document.Nodes.FirstOrDefault(n=>n.Id==nodeId)?.TypeId==HalconVision.Halcon.HalconCirclePairNodeProvider.CirclePair)
+        {rule.PortId="centerDistance";rule.Kind=InspectionRuleKind.NumberRange;rule.Pointer="";}
         else if(outputs.Any(p=>p.Id=="decision")){rule.PortId="decision";rule.Kind=InspectionRuleKind.DetectionDecision;rule.Pointer="/Code";}
         else if(outputs.Any(p=>p.Id=="count"))rule.PortId="count";
         else if(outputs.Any(p=>p.Id=="area"))rule.PortId="area";

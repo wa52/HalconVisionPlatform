@@ -1,0 +1,64 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Desktop engineering workbench: shared semantic tokens, not marketing-page styles. -->
+  <SolidColorBrush x:Key="WorkbenchCanvasBrush" Color="#141D26"/>
+  <SolidColorBrush x:Key="WorkbenchSurfaceBrush" Color="#1B2731"/>
+  <SolidColorBrush x:Key="WorkbenchRaisedBrush" Color="#24333F"/>
+  <SolidColorBrush x:Key="WorkbenchInputBrush" Color="#121B22"/>
+  <SolidColorBrush x:Key="WorkbenchBorderBrush" Color="#435866"/>
+  <SolidColorBrush x:Key="WorkbenchTextBrush" Color="#E5EDF2"/>
+  <SolidColorBrush x:Key="WorkbenchMutedBrush" Color="#A4B4BF"/>
+  <SolidColorBrush x:Key="WorkbenchAccentBrush" Color="#63D8CF"/>
+  <SolidColorBrush x:Key="WorkbenchSelectedBrush" Color="#21434B"/>
+  <SolidColorBrush x:Key="WorkbenchFocusBrush" Color="#91E6D5"/>
+  <FontFamily x:Key="WorkbenchFont">Microsoft YaHei UI, Segoe UI</FontFamily>
+  <Style x:Key="WorkbenchFocusVisual" TargetType="Control">
+    <Setter Property="Template"><Setter.Value><ControlTemplate>
+      <Rectangle Margin="1" RadiusX="3" RadiusY="3" Stroke="{StaticResource WorkbenchFocusBrush}" StrokeThickness="2" IsHitTestVisible="False" SnapsToDevicePixels="True"/>
+    </ControlTemplate></Setter.Value></Setter>
+  </Style>
+  <Style x:Key="WorkbenchTextBoxStyle" TargetType="TextBox">
+    <Setter Property="Foreground" Value="{StaticResource WorkbenchTextBrush}"/>
+    <Setter Property="Background" Value="{StaticResource WorkbenchInputBrush}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource WorkbenchBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="8,6"/>
+    <Setter Property="FontSize" Value="12"/><Setter Property="MinHeight" Value="30"/>
+    <Setter Property="CaretBrush" Value="{StaticResource WorkbenchFocusBrush}"/>
+    <Setter Property="FocusVisualStyle" Value="{StaticResource WorkbenchFocusVisual}"/>
+    <Style.Triggers>
+      <Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter Property="BorderBrush" Value="{StaticResource WorkbenchFocusBrush}"/></Trigger>
+      <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.5"/></Trigger>
+    </Style.Triggers>
+  </Style>
+  <Style x:Key="WorkbenchCatalogItem" TargetType="ListBoxItem">
+    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    <Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="6,2"/>
+    <Setter Property="FocusVisualStyle" Value="{StaticResource WorkbenchFocusVisual}"/>
+    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBoxItem">
+      <Border x:Name="Card" Padding="9,8" CornerRadius="4" BorderThickness="1" BorderBrush="Transparent" Background="Transparent">
+        <ContentPresenter/>
+      </Border>
+      <ControlTemplate.Triggers>
+        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Card" Property="Background" Value="{StaticResource WorkbenchRaisedBrush}"/></Trigger>
+        <Trigger Property="IsSelected" Value="True"><Setter TargetName="Card" Property="Background" Value="{StaticResource WorkbenchSelectedBrush}"/><Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource WorkbenchAccentBrush}"/></Trigger>
+        <Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource WorkbenchFocusBrush}"/></Trigger>
+      </ControlTemplate.Triggers>
+    </ControlTemplate></Setter.Value></Setter>
+  </Style>
+  <Style x:Key="WorkbenchCellText" TargetType="TextBlock">
+    <Setter Property="VerticalAlignment" Value="Center"/><Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+    <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+    <Setter Property="FontSize" Value="12"/>
+  </Style>
+  <Style TargetType="DataGrid">
+    <Setter Property="FontSize" Value="12"/><Setter Property="MinRowHeight" Value="30"/>
+    <Setter Property="HeadersVisibility" Value="Column"/><Setter Property="CanUserAddRows" Value="False"/>
+    <Setter Property="EnableRowVirtualization" Value="True"/><Setter Property="EnableColumnVirtualization" Value="True"/>
+    <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
+    <Setter Property="BorderThickness" Value="0"/><Setter Property="ColumnHeaderHeight" Value="32"/>
+  </Style>
+  <Style TargetType="DataGridRow">
+    <Setter Property="Foreground" Value="{StaticResource WorkbenchTextBrush}"/>
+    <Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="{StaticResource WorkbenchSelectedBrush}"/><Setter Property="Foreground" Value="White"/></Trigger></Style.Triggers>
+  </Style>
+</ResourceDictionary>

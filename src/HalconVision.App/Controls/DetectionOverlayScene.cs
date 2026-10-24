@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using HalconDotNet;
 using HalconVision.Domain;
 using HalconVision.Application;
@@ -14,7 +14,8 @@ public sealed class DetectionOverlayScene
     public static IReadOnlyDictionary<string, string> ImportantFields { get; } = new Dictionary<string, string>
     {
         ["score"] = "评分", ["angle"] = "角度（°）", ["length"] = "长度（像素）", ["count"] = "数量", ["area"] = "面积（像素）",
-        ["className"] = "分类类别", ["confidence"] = "分类置信度", ["diameter"] = "直径（像素）"
+        ["className"] = "分类类别", ["confidence"] = "分类置信度", ["diameter"] = "直径（像素）",
+        ["centerDistance"] = "圆心距（像素）", ["boundaryDistance"] = "圆周最短距离（像素）"
     };
     public static IReadOnlyDictionary<string, string> AdvancedFields { get; } = new Dictionary<string, string>
     {
@@ -26,6 +27,11 @@ public sealed class DetectionOverlayScene
     };
     public List<DisplayGeometry> Geometry { get; } = [];
     public List<DisplayCaption> Captions { get; } = [];
+
+    // Display only: structured outputs and rule comparisons retain their original precision.
+    public static string FormatDisplayValue(string value) =>
+        double.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var number) && double.IsFinite(number)
+            ? number.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) : value;
 
     public static DetectionOverlayScene Create(FlowTabViewModel flow, WorkflowExecutionRun? run,
         DetectionContentSettings settings, int width, int height)
@@ -43,7 +49,7 @@ public sealed class DetectionOverlayScene
             foreach (var row in rows.Where(row => (ImportantFields.ContainsKey(row.Name) || AdvancedFields.ContainsKey(row.Name)) &&
                 (layer.Fields ?? ImportantFields.Keys.ToList()).Contains(row.Name) &&
                 (!result.Outputs.TryGetValue(row.Name, out var scalar) || scalar.ValueKind != JsonValueKind.Null)))
-                scene.Captions.Add(new($"{name} · {ImportantFields.GetValueOrDefault(row.Name) ?? AdvancedFields[row.Name]}：{row.Value}", "White"));
+                scene.Captions.Add(new($"{name} · {ImportantFields.GetValueOrDefault(row.Name) ?? AdvancedFields[row.Name]}：{FormatDisplayValue(row.Value)}", "White"));
             if (!layer.ShowGeometry || run is null || run.RuntimeOutputs is null || !run.RuntimeOutputs.TryGetValue(layer.NodeId, out var runtime)) continue;
             if (!SharesImageSpace(flow, run, settings.NodeId, layer.NodeId) || !HasDimensions(result.Outputs, width, height))
             { scene.Captions.Add(new($"{name}：图像坐标来源或尺寸不匹配，未叠加图形", "Orange")); continue; }
@@ -59,6 +65,19 @@ public sealed class DetectionOverlayScene
                         new(box.RowEnd, box.ColumnEnd), new(box.RowEnd, box.ColumnBegin), new(box.RowBegin, box.ColumnBegin)], color));
                     scene.Captions.Add(new($"{name} / {item.Name}：{item.Summary}", color, new(box.RowEnd, box.ColumnBegin)));
                 }
+            if (runtime.Values.OfType<CirclePairOverlay>().FirstOrDefault() is { } pairOverlay)
+            {
+                if (pairOverlay.Measurement is { } pair)
+                {
+                    scene.Geometry.Add(new(pair.CircleA.Outline(), "LimeGreen"));
+                    scene.Geometry.Add(new(pair.CircleB.Outline(), "LimeGreen"));
+                    if (pairOverlay.ShowCenterLine && pair.CenterLine.Length > 1e-12)
+                        scene.Geometry.Add(new([new(pair.CenterLine.RowBegin,pair.CenterLine.ColumnBegin),new(pair.CenterLine.RowEnd,pair.CenterLine.ColumnEnd)], "DeepSkyBlue"));
+                    if (pairOverlay.ShowBoundaryLine && pair.BoundaryLine is { Length: > 1e-12 } segment)
+                        scene.Geometry.Add(new([new(segment.RowBegin,segment.ColumnBegin),new(segment.RowEnd,segment.ColumnEnd)], "Gold"));
+                }
+                continue;
+            }
             if (runtime.Values.OfType<CircleGeometryOverlay>().FirstOrDefault() is { } circleOverlay)
             {
                 var b = circleOverlay.SearchRegion;

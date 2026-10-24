@@ -154,6 +154,13 @@ public sealed class WorkflowExecutionEngine(INodeRegistry registry, WorkflowGrap
                     Width = width, Height = height, Count = count, Annotated = parent.Annotated || port.Annotated,
                     Corrected = parent.Corrected || definition.ImageSpace == ImageSpaceBehavior.NewSpace, ConfigurationIdentity = signature };
         }
+        // Typed geometry keeps frame identity. Ambiguous captures/spaces have no
+        // inferred provenance and must be rejected by downstream measurement.
+        var geometrySources = inputs.Values.DistinctBy(f => (f.RunId, f.FrameId, f.SourceNodeId, f.SourcePortId, f.SpaceId, f.Width, f.Height, f.Count, f.ImageIndex, f.Annotated, f.Corrected)).ToArray();
+        if (geometrySources is [var geometrySource] && geometrySource.RunId == runId && geometrySource.Count == 1)
+            foreach (var port in definition.Ports.Where(p => p.Direction == PortDirection.Output && p.DataType is "halcon.circle2d" or "halcon.line2d" or "halcon.measurement2d"))
+                if (outputs.TryGetValue(port.Id, out var geometry) && geometry.ValueKind == JsonValueKind.Object)
+                    result[port.Id] = geometrySource with { ConfigurationIdentity = signature };
         return result;
     }
 
