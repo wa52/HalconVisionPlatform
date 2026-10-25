@@ -15,7 +15,8 @@ public sealed class DetectionOverlayScene
     {
         ["score"] = "评分", ["angle"] = "角度（°）", ["length"] = "长度（像素）", ["count"] = "数量", ["area"] = "面积（像素）",
         ["className"] = "分类类别", ["confidence"] = "分类置信度", ["diameter"] = "直径（像素）",
-        ["centerDistance"] = "圆心距（像素）", ["boundaryDistance"] = "圆周最短距离（像素）"
+        ["centerDistance"] = "圆心距（像素）", ["boundaryDistance"] = "圆周最短距离（像素）",
+        ["centerToLine"] = "圆心到直线（像素）", ["boundaryToLine"] = "圆周到直线（像素）"
     };
     public static IReadOnlyDictionary<string, string> AdvancedFields { get; } = new Dictionary<string, string>
     {
@@ -23,7 +24,7 @@ public sealed class DetectionOverlayScene
         ["line.RowEnd"] = "终点行坐标", ["line.ColumnEnd"] = "终点列坐标", ["classId"] = "类别 ID",
         ["row"] = "模板参考点行", ["column"] = "模板参考点列",
         ["circle.Row"] = "圆心行坐标", ["circle.Column"] = "圆心列坐标", ["circle.Radius"] = "半径（像素）",
-        ["circle.Circumference"] = "周长（像素）", ["residualRms"] = "径向残差（像素）"
+        ["circle.Circumference"] = "周长（像素）", ["residualRms"] = "径向残差（像素）", ["signedClearance"] = "圆周净距（像素，负值为穿过）"
     };
     public List<DisplayGeometry> Geometry { get; } = [];
     public List<DisplayCaption> Captions { get; } = [];
@@ -65,6 +66,26 @@ public sealed class DetectionOverlayScene
                         new(box.RowEnd, box.ColumnEnd), new(box.RowEnd, box.ColumnBegin), new(box.RowBegin, box.ColumnBegin)], color));
                     scene.Captions.Add(new($"{name} / {item.Name}：{item.Summary}", color, new(box.RowEnd, box.ColumnBegin)));
                 }
+            if (runtime.Values.OfType<LineCircleOverlay>().FirstOrDefault() is { } lineCircleOverlay)
+            {
+                if (lineCircleOverlay.Measurement is { } measured)
+                {
+                    scene.Geometry.Add(new(measured.Circle.Outline(), "LimeGreen"));
+                    scene.Geometry.Add(new([new(measured.Line.RowBegin, measured.Line.ColumnBegin), new(measured.Line.RowEnd, measured.Line.ColumnEnd)], "LimeGreen"));
+                    if (!measured.ProjectionWithinSegment)
+                    {
+                        var start = Math.Pow(measured.Line.RowBegin - measured.Projection.Row, 2) + Math.Pow(measured.Line.ColumnBegin - measured.Projection.Column, 2) <
+                            Math.Pow(measured.Line.RowEnd - measured.Projection.Row, 2) + Math.Pow(measured.Line.ColumnEnd - measured.Projection.Column, 2)
+                            ? new Point2D(measured.Line.RowBegin, measured.Line.ColumnBegin) : new Point2D(measured.Line.RowEnd, measured.Line.ColumnEnd);
+                        scene.Geometry.Add(new([start, measured.Projection], "SlateGray"));
+                    }
+                    if (lineCircleOverlay.ShowNormal && measured.CenterNormal.Length > 1e-12)
+                        scene.Geometry.Add(new([new(measured.CenterNormal.RowBegin, measured.CenterNormal.ColumnBegin), measured.Projection], "DeepSkyBlue"));
+                    if (lineCircleOverlay.ShowBoundaryLine && measured.BoundaryLine is { Length: > 1e-12 } segment)
+                        scene.Geometry.Add(new([new(segment.RowBegin,segment.ColumnBegin),new(segment.RowEnd,segment.ColumnEnd)], "Gold"));
+                }
+                continue;
+            }
             if (runtime.Values.OfType<CirclePairOverlay>().FirstOrDefault() is { } pairOverlay)
             {
                 if (pairOverlay.Measurement is { } pair)

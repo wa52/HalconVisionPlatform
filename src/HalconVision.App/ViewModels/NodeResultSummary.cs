@@ -26,7 +26,7 @@ public sealed class NodeResultSummary : IValueConverter
             return "语义分割检出目标 · " + (status.TryGetProperty("Message", out var message) ? message.GetString() : "请查看区域数据");
         if (code.GetString() == SegmentationStatus.Empty)
             return "未检出分割目标 · 请检查模型、类别和面积条件";
-        if (code.GetString() is CirclePairStatus.Measured or CirclePairStatus.Missing)
+        if (code.GetString() is CirclePairStatus.Measured or CirclePairStatus.Missing or LineCircleStatus.Measured or LineCircleStatus.Missing)
             return status.TryGetProperty("Message", out var measureMessage) ? measureMessage.GetString() ?? "请查看测量结果" : "请查看测量结果";
         if (code.GetString() is CircleFindStatus.Found or CircleFindStatus.NotFound)
             return status.TryGetProperty("Message", out var circleMessage) ? circleMessage.GetString() ?? "请查看圆查找结果" : "请查看圆查找结果";
@@ -52,8 +52,8 @@ public sealed class NodeResultSummary : IValueConverter
         var text = Describe(result);
         if (result?.Status == NodeExecutionStatus.Success && result.Outputs.TryGetValue("status", out var measurementStatus) &&
             measurementStatus.ValueKind == JsonValueKind.Object && measurementStatus.TryGetProperty("Code", out var measurementCode) &&
-            measurementCode.GetString() is CirclePairStatus.Measured or CirclePairStatus.Missing)
-            return measurementCode.GetString() == CirclePairStatus.Measured ? Brushes.LightGreen : Brushes.Orange;
+            measurementCode.GetString() is CirclePairStatus.Measured or CirclePairStatus.Missing or LineCircleStatus.Measured or LineCircleStatus.Missing)
+            return measurementCode.GetString() is CirclePairStatus.Measured or LineCircleStatus.Measured ? Brushes.LightGreen : Brushes.Orange;
         if (result?.Status == NodeExecutionStatus.Success && result.Outputs.TryGetValue("status", out var circleStatus) &&
             circleStatus.ValueKind == JsonValueKind.Object && circleStatus.TryGetProperty("Code", out var circleCode) &&
             circleCode.GetString() is CircleFindStatus.Found or CircleFindStatus.NotFound)
