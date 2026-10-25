@@ -1,0 +1,2 @@
+实际拟合：垂距 149.9563980377677，圆周距 110.03804294559475，圆半径 39.91835509217296，直线 Line2D { RowBegin = 89.5, ColumnBegin = 40, RowEnd = 89.5, ColumnEnd = 470, Length = 430, AngleDegrees = -0 }
+PASS 409 项线圆测量检查

@@ -16,6 +16,7 @@ public sealed class DetectionOverlayScene
         ["score"] = "评分", ["angle"] = "角度（°）", ["length"] = "长度（像素）", ["count"] = "数量", ["area"] = "面积（像素）",
         ["className"] = "分类类别", ["confidence"] = "分类置信度", ["diameter"] = "直径（像素）",
         ["centerDistance"] = "圆心距（像素）", ["boundaryDistance"] = "圆周最短距离（像素）",
+        ["segmentDistance"] = "线段最短距离（像素）",
         ["centerToLine"] = "圆心到直线（像素）", ["boundaryToLine"] = "圆周到直线（像素）"
     };
     public static IReadOnlyDictionary<string, string> AdvancedFields { get; } = new Dictionary<string, string>
@@ -66,6 +67,19 @@ public sealed class DetectionOverlayScene
                         new(box.RowEnd, box.ColumnEnd), new(box.RowEnd, box.ColumnBegin), new(box.RowBegin, box.ColumnBegin)], color));
                     scene.Captions.Add(new($"{name} / {item.Name}：{item.Summary}", color, new(box.RowEnd, box.ColumnBegin)));
                 }
+            if(runtime.Values.OfType<LinePairOverlay>().FirstOrDefault() is {} pairLines)
+            {
+                if(pairLines.Measurement is {} measured)
+                {
+                    if(pairLines.ShowLines)
+                    {
+                        scene.Geometry.Add(new([new(measured.LineA.RowBegin,measured.LineA.ColumnBegin),new(measured.LineA.RowEnd,measured.LineA.ColumnEnd)],"LimeGreen"));
+                        scene.Geometry.Add(new([new(measured.LineB.RowBegin,measured.LineB.ColumnBegin),new(measured.LineB.RowEnd,measured.LineB.ColumnEnd)],"DeepSkyBlue"));
+                    }
+                    if(pairLines.ShowConnector && measured.SegmentDistance>1e-12)scene.Geometry.Add(new([measured.ClosestA,measured.ClosestB],"Gold"));
+                }
+                continue;
+            }
             if (runtime.Values.OfType<LineCircleOverlay>().FirstOrDefault() is { } lineCircleOverlay)
             {
                 if (lineCircleOverlay.Measurement is { } measured)

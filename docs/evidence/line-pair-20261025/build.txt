@@ -1,0 +1,11 @@
+  HalconVision.Domain -> D:\AiProjects\HalconVisionPlatform\src\HalconVision.Domain\bin\Release\net8.0\HalconVision.Domain.dll
+  HalconVision.Persistence -> D:\AiProjects\HalconVisionPlatform\src\HalconVision.Persistence\bin\Release\net8.0\HalconVision.Persistence.dll
+  HalconVision.Application -> D:\AiProjects\HalconVisionPlatform\src\HalconVision.Application\bin\Release\net8.0\HalconVision.Application.dll
+  HalconVision.Halcon -> D:\AiProjects\HalconVisionPlatform\src\HalconVision.Halcon\bin\Release\net8.0-windows\HalconVision.Halcon.dll
+  HalconVision.App -> D:\AiProjects\HalconVisionPlatform\src\HalconVision.App\bin\Release\net8.0-windows\HalconVision.App.dll
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:01.04

@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
@@ -54,6 +54,7 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
         registry.Register(new HalconCircleNodeProvider(), [new HalconCircleFindExecutor()]);
         registry.Register(new HalconCirclePairNodeProvider(), [new HalconCirclePairExecutor()]);
         registry.Register(new HalconLineCircleNodeProvider(), [new HalconLineCircleExecutor()]);
+        registry.Register(new HalconLinePairNodeProvider(), [new HalconLinePairExecutor()]);
         _registry = registry;
         _validator = new WorkflowGraphValidator(_registry);
         _engine = new WorkflowExecutionEngine(_registry, _validator);
