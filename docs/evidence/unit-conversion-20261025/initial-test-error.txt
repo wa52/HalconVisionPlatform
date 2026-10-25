@@ -1,0 +1,4 @@
+System.InvalidOperationException: 毫米公差超限为NG
+   at Program.Check(Boolean condition, String label) in D:\AiProjects\HalconVisionPlatform\tools\HalconUnitConversionTrial\Program.cs:line 19
+   at Program.Pipeline() in D:\AiProjects\HalconVisionPlatform\tools\HalconUnitConversionTrial\Program.cs:line 123
+   at Program.Main(String[] args) in D:\AiProjects\HalconVisionPlatform\tools\HalconUnitConversionTrial\Program.cs:line 36

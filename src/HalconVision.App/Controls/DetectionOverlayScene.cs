@@ -16,6 +16,7 @@ public sealed class DetectionOverlayScene
         ["score"] = "评分", ["angle"] = "角度（°）", ["length"] = "长度（像素）", ["count"] = "数量", ["area"] = "面积（像素）",
         ["className"] = "分类类别", ["confidence"] = "分类置信度", ["diameter"] = "直径（像素）",
         ["centerDistance"] = "圆心距（像素）", ["boundaryDistance"] = "圆周最短距离（像素）",
+        ["lengthMm"] = "长度/净距（mm）", ["mmPerPixel"] = "比例（mm/px）",
         ["segmentDistance"] = "线段最短距离（像素）",
         ["centerToLine"] = "圆心到直线（像素）", ["boundaryToLine"] = "圆周到直线（像素）"
     };
@@ -33,7 +34,7 @@ public sealed class DetectionOverlayScene
     // Display only: structured outputs and rule comparisons retain their original precision.
     public static string FormatDisplayValue(string value) =>
         double.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var number) && double.IsFinite(number)
-            ? number.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) : value;
+            ? number.ToString(number != 0 && Math.Abs(number) < .001 || Math.Abs(number) >= 1e9 ? "G6" : "0.###", System.Globalization.CultureInfo.InvariantCulture) : value;
 
     public static DetectionOverlayScene Create(FlowTabViewModel flow, WorkflowExecutionRun? run,
         DetectionContentSettings settings, int width, int height)
@@ -53,6 +54,8 @@ public sealed class DetectionOverlayScene
                 (!result.Outputs.TryGetValue(row.Name, out var scalar) || scalar.ValueKind != JsonValueKind.Null)))
                 scene.Captions.Add(new($"{name} · {ImportantFields.GetValueOrDefault(row.Name) ?? AdvancedFields[row.Name]}：{FormatDisplayValue(row.Value)}", "White"));
             if (!layer.ShowGeometry || run is null || run.RuntimeOutputs is null || !run.RuntimeOutputs.TryGetValue(layer.NodeId, out var runtime)) continue;
+            // Unit nodes publish caption data only, including a null result on missing input.
+            if(runtime.Values.OfType<UnitConversionStatus>().Any()) continue;
             if (!SharesImageSpace(flow, run, settings.NodeId, layer.NodeId) || !HasDimensions(result.Outputs, width, height))
             { scene.Captions.Add(new($"{name}：图像坐标来源或尺寸不匹配，未叠加图形", "Orange")); continue; }
             if (runtime.Values.OfType<ImageRoiOverlay>().FirstOrDefault() is { Bounds: var bounds })

@@ -1,0 +1,32 @@
+[
+  {
+    "File": "HalconVision.App.exe",
+    "SHA256": "83A2B31CE9397CF5399C901F5EC054AE878B5CF1BD0842B530C67BB6311FEFFA",
+    "Matched": true
+  },
+  {
+    "File": "HalconVision.App.dll",
+    "SHA256": "E9F4BDBE8ECD52774B42D9D288356BF193708F1126F1530CA5908EE29F1008D4",
+    "Matched": true
+  },
+  {
+    "File": "HalconVision.Application.dll",
+    "SHA256": "AB7E91299E5EC598F09FEFE3B0CF8E1F59D79C0BB71608D751E71F9A1289E5C6",
+    "Matched": true
+  },
+  {
+    "File": "HalconVision.Domain.dll",
+    "SHA256": "3CE92185DDDF3317CF0BB9F9A5825A151D3A7776EE8F7E58336F3D7D2814EA92",
+    "Matched": true
+  },
+  {
+    "File": "HalconVision.Halcon.dll",
+    "SHA256": "677C7AFF4FA46058CE9E1413F77929A8A9E84BA396F49791EC539EBC9FEBEAE8",
+    "Matched": true
+  },
+  {
+    "File": "Assets\\HalconVision.ico",
+    "SHA256": "FD7118D8092DF999F87802C30C01A00AF3F336B6E3BBFA8089EF8AB98307D274",
+    "Matched": true
+  }
+]

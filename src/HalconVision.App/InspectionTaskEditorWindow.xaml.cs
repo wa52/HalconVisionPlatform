@@ -110,6 +110,8 @@ public partial class InspectionTaskEditorWindow : Window
         {rule.PortId="boundaryToLine";rule.Kind=InspectionRuleKind.NumberRange;rule.Pointer="";}
         else if(_flow.Document.Nodes.FirstOrDefault(n=>n.Id==nodeId)?.TypeId==HalconVision.Halcon.HalconLinePairNodeProvider.LinePair)
         {rule.PortId="segmentDistance";rule.Kind=InspectionRuleKind.NumberRange;rule.Pointer="";}
+        else if(_flow.Document.Nodes.FirstOrDefault(n=>n.Id==nodeId)?.TypeId==HalconVision.Halcon.HalconUnitConversionNodeProvider.LengthConversion)
+        {rule.PortId="lengthMm";rule.Kind=InspectionRuleKind.NumberRange;rule.Pointer="";}
         else if(outputs.Any(p=>p.Id=="decision")){rule.PortId="decision";rule.Kind=InspectionRuleKind.DetectionDecision;rule.Pointer="/Code";}
         else if(outputs.Any(p=>p.Id=="count"))rule.PortId="count";
         else if(outputs.Any(p=>p.Id=="area"))rule.PortId="area";

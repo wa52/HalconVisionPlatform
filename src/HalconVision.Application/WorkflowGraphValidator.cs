@@ -80,6 +80,8 @@ public sealed class WorkflowGraphValidator(INodeRegistry registry)
             }
             if (sourcePort.DataType != "any" && targetPort.DataType != "any" && sourcePort.DataType != targetPort.DataType)
                 issues.Add(new WorkflowValidationIssue($"端口类型不匹配：{sourcePort.DataType} → {targetPort.DataType}。", target.Id, edge.Id));
+            if(targetPort.Unit is not null && sourcePort.Unit!=targetPort.Unit)
+                issues.Add(new WorkflowValidationIssue($"端口单位不匹配：{sourcePort.Unit ?? "未声明"} → {targetPort.Unit}；请连接已声明像素长度的端口。",target.Id,edge.Id));
             if (targetPort.RequiresUnannotatedImage && sourcePort.Annotated)
                 issues.Add(new WorkflowValidationIssue($"“{target.DisplayName} / {targetPort.Name}”需要未标注图像，不能连接“{source.DisplayName} / {sourcePort.Name}”；请改接未绘制检测标注的原始图像输出。", target.Id, edge.Id));
             incoming[(target.Id, targetPort.Id)] = incoming.GetValueOrDefault((target.Id, targetPort.Id)) + 1;

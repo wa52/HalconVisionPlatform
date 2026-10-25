@@ -19,7 +19,7 @@ public sealed class ProjectTreeItem(string name, string relativePath, bool isDir
     public ObservableCollection<ProjectTreeItem> Children { get; } = [];
 }
 
-public sealed class NodePortViewModel(Guid nodeId, string id, string name, PortDirection direction, string dataType, bool required) : ObservableModel
+public sealed class NodePortViewModel(Guid nodeId, string id, string name, PortDirection direction, string dataType, bool required, string? unit = null) : ObservableModel
 {
     public Guid NodeId { get; } = nodeId;
     public string Id { get; } = id;
@@ -27,8 +27,9 @@ public sealed class NodePortViewModel(Guid nodeId, string id, string name, PortD
     public PortDirection Direction { get; } = direction;
     public string DataType { get; } = dataType;
     public bool Required { get; } = required;
+    public string? Unit => unit;
     public string ConnectionHelp => $"{Name} · {(Direction == PortDirection.Input ? "输入" : "输出")} · {DataType switch
-    { "halcon.image" => "图像", "halcon.circle2d" => "圆几何", "halcon.line2d" => "直线几何", "number" => "数值", "halcon.geometry" => "叠加图形", "halcon.measurement2d" => "测量数据", "inspection.result" => "检测状态", _ => DataType }}\n拖拽连接，或依次单击输出、输入端口；键盘可用 Tab 与空格。";
+    { "halcon.image" => "图像", "halcon.circle2d" => "圆几何", "halcon.line2d" => "直线几何", "number" => "数值", "halcon.geometry" => "叠加图形", "halcon.measurement2d" => "测量数据", "inspection.result" => "检测状态", _ => DataType }}{(Unit is null ? "" : " · 单位 " + Unit)}\n拖拽连接，或依次单击输出、输入端口；键盘可用 Tab 与空格。";
 }
 
 public sealed class NodeParameterViewModel : ObservableModel
@@ -163,9 +164,9 @@ public sealed class FlowNodeViewModel : ObservableModel
         _displayName = node.DisplayName; _x = node.X; _y = node.Y; Enabled = node.Enabled;
         Definition = definition;
         InputPorts = new ObservableCollection<NodePortViewModel>((definition?.Ports ?? []).Where(port => port.Direction == PortDirection.Input)
-            .Select(port => new NodePortViewModel(Id, port.Id, port.Name, port.Direction, port.DataType, port.Required)));
+            .Select(port => new NodePortViewModel(Id, port.Id, port.Name, port.Direction, port.DataType, port.Required, port.Unit)));
         OutputPorts = new ObservableCollection<NodePortViewModel>((definition?.Ports ?? []).Where(port => port.Direction == PortDirection.Output)
-            .Select(port => new NodePortViewModel(Id, port.Id, port.Name, port.Direction, port.DataType, port.Required)));
+            .Select(port => new NodePortViewModel(Id, port.Id, port.Name, port.Direction, port.DataType, port.Required, port.Unit)));
         Parameters = new ObservableCollection<NodeParameterViewModel>((definition?.Parameters ?? []).Select(parameter =>
             new NodeParameterViewModel(owner, Id, parameter,
                 ParameterValue(node, parameter))));

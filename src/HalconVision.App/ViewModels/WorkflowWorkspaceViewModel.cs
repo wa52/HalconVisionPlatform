@@ -55,6 +55,7 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
         registry.Register(new HalconCirclePairNodeProvider(), [new HalconCirclePairExecutor()]);
         registry.Register(new HalconLineCircleNodeProvider(), [new HalconLineCircleExecutor()]);
         registry.Register(new HalconLinePairNodeProvider(), [new HalconLinePairExecutor()]);
+        registry.Register(new HalconUnitConversionNodeProvider(), [new HalconPixelScaleExecutor(),new HalconLengthToMillimeterExecutor()]);
         _registry = registry;
         _validator = new WorkflowGraphValidator(_registry);
         _engine = new WorkflowExecutionEngine(_registry, _validator);

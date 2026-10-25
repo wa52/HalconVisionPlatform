@@ -117,7 +117,7 @@ public sealed class DetectionContentView : Border, IDisposable
         if (_configurationMode) BuildLayerChoices(flow, run);
         _values.Visibility = imageView ? Visibility.Collapsed : Visibility.Visible;
         _values.ItemsSource = Settings.OutputField != "全部" ? rows.Where(row => row.Name == Settings.OutputField || row.Name.StartsWith(Settings.OutputField + "."))
-            : Settings.View == "检测结果" ? rows.Where(row => row.Name is "检测结果" or "score" or "count" or "angle" or "length" or "area" or "diameter" or "centerDistance" or "boundaryDistance" or "centerToLine" or "boundaryToLine" or "signedClearance" or "segmentDistance" or "objects" or "classes" or "classId" or "className" or "confidence" or "scores" || row.Name.StartsWith("status.") || row.Name.StartsWith("decision.") || row.Name.StartsWith("roiResults")) : rows;
+            : Settings.View == "检测结果" ? rows.Where(row => row.Name is "检测结果" or "score" or "count" or "angle" or "length" or "area" or "diameter" or "centerDistance" or "boundaryDistance" or "centerToLine" or "boundaryToLine" or "signedClearance" or "segmentDistance" or "lengthMm" or "mmPerPixel" or "objects" or "classes" or "classId" or "className" or "confidence" or "scores" || row.Name.StartsWith("status.") || row.Name.StartsWith("decision.") || row.Name.StartsWith("roiResults")) : rows;
         if (!imageView || !IsLoaded || !IsVisible || _image.HalconWindow is null) return;
         var oldWidth = _width; var oldHeight = _height;
         var preservePart = oldWidth > 0 && _lastSource == Settings.NodeId && _lastPort == Settings.OutputField && _lastImageIndex == Settings.ImageIndex;

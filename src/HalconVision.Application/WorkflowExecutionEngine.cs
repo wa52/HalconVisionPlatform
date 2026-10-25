@@ -158,9 +158,14 @@ public sealed class WorkflowExecutionEngine(INodeRegistry registry, WorkflowGrap
         // inferred provenance and must be rejected by downstream measurement.
         var geometrySources = inputs.Values.DistinctBy(f => (f.RunId, f.FrameId, f.SourceNodeId, f.SourcePortId, f.SpaceId, f.Width, f.Height, f.Count, f.ImageIndex, f.Annotated, f.Corrected)).ToArray();
         if (geometrySources is [var geometrySource] && geometrySource.RunId == runId && geometrySource.Count == 1)
-            foreach (var port in definition.Ports.Where(p => p.Direction == PortDirection.Output && p.DataType is "halcon.circle2d" or "halcon.line2d" or "halcon.measurement2d"))
+        {
+            foreach (var port in definition.Ports.Where(p => p.Direction == PortDirection.Output && p.DataType is "halcon.circle2d" or "halcon.line2d" or "halcon.measurement2d" or "vision.pixel-scale" or "vision.unit-result"))
                 if (outputs.TryGetValue(port.Id, out var geometry) && geometry.ValueKind == JsonValueKind.Object)
                     result[port.Id] = geometrySource with { ConfigurationIdentity = signature };
+            foreach(var port in definition.Ports.Where(p=>p.Direction==PortDirection.Output && p.DataType=="number" && p.Unit is not null))
+                if(outputs.TryGetValue(port.Id,out var value) && value.ValueKind==JsonValueKind.Number)
+                    result[port.Id]=geometrySource with{ConfigurationIdentity=signature};
+        }
         return result;
     }
 

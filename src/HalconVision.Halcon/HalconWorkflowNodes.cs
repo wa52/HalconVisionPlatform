@@ -152,7 +152,7 @@ public sealed class HalconNodeProvider : INodeDefinitionProvider
             [new PortDefinition("image", "Image", PortDirection.Input, "halcon.image", Required: true),
              new PortDefinition("line", "Line", PortDirection.Output, "halcon.line2d"),
              new PortDefinition("angle", "Angle", PortDirection.Output, "number"),
-             new PortDefinition("length", "Length", PortDirection.Output, "number"),
+             new PortDefinition("length", "Length", PortDirection.Output, "number", Unit:"px"),
              new PortDefinition("edgePoints", "EdgePoints", PortDirection.Output, "halcon.point-set"),
              new PortDefinition("score", "Score", PortDirection.Output, "number"),
              new PortDefinition("overlay", "Overlay", PortDirection.Output, "halcon.geometry"),

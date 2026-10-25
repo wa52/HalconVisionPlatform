@@ -15,7 +15,7 @@ public sealed class HalconLinePairNodeProvider : INodeDefinitionProvider
              new("lineA", "线段 A", PortDirection.Input, "halcon.line2d", Required: true),
              new("lineB", "线段 B", PortDirection.Input, "halcon.line2d", Required: true),
              new("angle", "小夹角（0～90°）", PortDirection.Output, "number"),
-             new("segmentDistance", "线段最短距离（像素）", PortDirection.Output, "number"),
+             new("segmentDistance", "线段最短距离（像素）", PortDirection.Output, "number", Unit:"px"),
              new("measurement", "完整测量数据", PortDirection.Output, "halcon.measurement2d"),
              new("overlay", "测量图形", PortDirection.Output, "halcon.geometry"),
              new("preview", "测量预览", PortDirection.Output, "halcon.image", Annotated: true),
