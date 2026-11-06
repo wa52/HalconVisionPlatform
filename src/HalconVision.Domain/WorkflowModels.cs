@@ -11,7 +11,10 @@ public sealed record ProjectDocument
     public DateTime UpdatedAtUtc { get; init; } = DateTime.UtcNow;
     public string DefaultFlowId { get; init; } = string.Empty;
     public List<FlowDocument> Flows { get; init; } = [];
+    public RunArchiveSettings RunArchive { get; init; } = new();
 }
+
+public sealed record RunArchiveSettings(bool Enabled = false, string Directory = "");
 
 public sealed record FlowDocument
 {

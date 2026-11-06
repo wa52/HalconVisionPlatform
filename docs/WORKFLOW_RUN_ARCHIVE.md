@@ -1,6 +1,6 @@
 # 检测运行归档基础
 
-2026-11-06：完成存储 API，尚未接入工作台自动保存和历史查询界面。桌面入口保持上次已验证版本。
+2026-11-06：存储 API 已接入工作台自动保存和历史查询，入口为“项目 → 运行归档”。操作与边界见[工作台说明](RUN_ARCHIVE_WORKBENCH.md)。
 
 `WorkflowRunArchiveStore.Save` 接收项目身份、执行时流程快照和完成结果；`ProjectStore.SaveRun` 同样要求显式传入执行快照，避免从项目旧配置猜测本轮参数。调用方必须提供真正执行的快照；归档不能自行证明调用方没有传错参数。
 
@@ -17,4 +17,4 @@ dotnet build tools/HalconRunArchiveTrial/HalconRunArchiveTrial.csproj -c Release
 dotnet tools/HalconRunArchiveTrial/bin/Release/net8.0/HalconRunArchiveTrial.dll artifacts/run-archive-new
 ```
 
-后续：接入显式配置的归档目录与保存策略、保存失败反馈、原图/模型哈希与资源保留、历史检索和复现入口，再进行真实检测链及磁盘故障验收。本次仅完成存储基础，不宣称完成生产追溯。
+后续仍需原图/模型哈希与资源保留、全局检索和复现入口，以及真实磁盘故障与现场验收。当前不是完整的生产追溯方案。

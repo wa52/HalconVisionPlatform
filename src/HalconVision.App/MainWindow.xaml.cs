@@ -649,6 +649,7 @@ public partial class MainWindow : Window
                     break;
                 }
                 _vm.SetExecutionRun(run);
+                if (_vm.ArchiveFailed) { DisplaySelectedNodePreview(); break; }
                 if (run.Status == WorkflowRunStatus.Success)
                 {
                     DisplayLastSuccessfulNode(flow);

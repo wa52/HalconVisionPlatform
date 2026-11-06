@@ -126,6 +126,23 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
     public string NodeSearchText { get => _nodeSearchText; set { if (Set(ref _nodeSearchText, value)) Raise(nameof(FilteredNodeCatalog)); } }
     public bool HasUnsavedFlows => Flows.Any(flow => flow.IsDirty);
     public bool IsRunning => _runCancellation is not null;
+    private string _archiveStatus = "自动归档未启用";
+    public string ArchiveStatus { get => _archiveStatus; private set => Set(ref _archiveStatus, value); }
+    public bool ArchiveFailed { get; private set; }
+    public void ConfigureRunArchive(RunArchiveSettings settings)
+    {
+        EnsureActive();
+        if (IsRunning || IsContinuousRunning) throw new InvalidOperationException("请先停止运行再修改归档设置。");
+        if (Workspace is null) throw new InvalidOperationException("请先打开项目。");
+        if (settings.Enabled && (string.IsNullOrWhiteSpace(settings.Directory) || !Path.IsPathFullyQualified(settings.Directory)))
+            throw new InvalidDataException("启用归档需选择完整的文件夹路径。");
+        var updated = Workspace with { Project = Workspace.Project with { RunArchive = settings } };
+        foreach (var flow in Flows) flow.EnsureRoiEditsValid();
+        var saved = _projectStore.SaveProject(updated, Flows.Select(f => f.Document).ToArray());
+        Workspace = updated with { Project = saved };
+        foreach (var flow in Flows) flow.MarkSaved();
+        ArchiveStatus = settings.Enabled ? "自动归档已启用" : "自动归档未启用";
+    }
     private bool _isContinuousRunning;
     public bool IsContinuousRunning
     {
@@ -479,9 +496,27 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
         {
             var document = flowOverride ?? SelectedFlow.Document;
             var token = cancellation.Token;
-            var configuration = SelectedFlow.Document;
-            _activeRunTask = Task.Run(() => _engine.RunAsync(document, progress, token, configuration));
+            var configuration = JsonSerializer.Deserialize<FlowDocument>(JsonSerializer.Serialize(SelectedFlow.Document))!;
+            var snapshot = JsonSerializer.Deserialize<FlowDocument>(JsonSerializer.Serialize(document))!;
+            var project = Workspace.Project;
+            var archiveSettings = project.RunArchive ?? new();
+            var fullRun = document.Nodes.Select(n => n.Id).ToHashSet().SetEquals(configuration.Nodes.Select(n => n.Id));
+            ArchiveFailed = false;
+            ArchiveStatus = archiveSettings.Enabled && fullRun ? "等待本轮归档" : fullRun ? "自动归档未启用" : "上游调试不归档";
+            string? archiveError = null; string? archivePath = null;
+            _activeRunTask = Task.Run(async () =>
+            {
+                var completed = await _engine.RunAsync(snapshot, progress, token, configuration);
+                if (archiveSettings.Enabled && fullRun)
+                {
+                    try { archivePath = new WorkflowRunArchiveStore().Save(archiveSettings.Directory, project.Id, project.Name, snapshot, completed); }
+                    catch (Exception error) { archiveError = error.Message; }
+                }
+                return completed;
+            });
             var run = await _activeRunTask;
+            if (archiveError is not null) { ArchiveFailed = true; ArchiveStatus = "归档失败：" + archiveError; Log(ArchiveStatus); }
+            else if (archivePath is not null) { ArchiveStatus = "已归档：" + archivePath; Log(ArchiveStatus); }
             if (_shuttingDown) run.Dispose();
             return run;
         }
@@ -519,6 +554,7 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
         _imageSequenceCursors.Clear();
         var tabs = flows.Select(flow => new FlowTabViewModel(flow, _registry, _validator)).ToArray();
         Workspace = workspace; Flows.Clear(); foreach (var tab in tabs) Flows.Add(tab);
+        ArchiveFailed = false; ArchiveStatus = workspace.Project.RunArchive?.Enabled == true ? "自动归档已启用" : "自动归档未启用";
         SelectedFlow = tabs.FirstOrDefault(tab => tab.Id.ToString("N") == workspace.Project.DefaultFlowId) ?? tabs[0];
         RefreshProjectTree(); ProjectStatus = $"已打开项目：{workspace.Project.Name}";
     }

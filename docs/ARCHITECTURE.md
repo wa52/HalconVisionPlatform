@@ -12,6 +12,8 @@ HalconVision.App ──> HalconVision.Application ──> HalconVision.Domain
 
 ## 模块职责
 
+2026-11-06：工作区在执行前冻结项目身份、执行流程及归档设置；后台任务顺序完成算法和可选归档后才返回本轮结果，关闭/停止等待同一任务。归档失败保留检测结果并独立通知，连续调度阻止下一轮。历史查询通过 Persistence 的校验读取与有界分页，在独立只读窗口显示，不替换 LastRun 或当前流程。项目的 RunArchive 设置默认关闭并随项目保存。
+
 | 模块 | 当前职责 |
 | --- | --- |
 | Domain | 项目、流程、节点、端口、连线、执行结果，以及 Line2D、GeometryOverlay 等数据契约；不依赖 WPF 或 HALCON |
