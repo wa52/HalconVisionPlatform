@@ -1,0 +1,377 @@
+﻿{
+  "SchemaVersion": 1,
+  "ExportedAtUtc": "2026-10-25T23:20:19.5916886Z",
+  "Settings": {
+    "FlowId": "80132974-922c-4192-a52f-195bf22a4e88",
+    "NodeId": "3ae2c251-389a-4377-b3f7-de364cf36770",
+    "NodeName": "\u6BEB\u7C73\u95F4\u8DDD",
+    "PortId": "lengthMm",
+    "PortName": "\u957F\u5EA6/\u51C0\u8DDD\uFF08mm\uFF09",
+    "Unit": "mm",
+    "ConfigurationIdentity": "B34DD2A09C80FC29A4D18E9FED4BC1969B99F88832F3C21FD4F87A391EA27004",
+    "ReferenceName": "\u5408\u6210\u6807\u51C6\u4EF6 \u00B7 \u6F14\u7B97\u9A8C\u8BC1",
+    "ReferenceValue": 15
+  },
+  "Statistics": {
+    "Total": 2,
+    "Valid": 2,
+    "Missing": 0,
+    "Mean": 15,
+    "Bias": 0,
+    "SampleStandardDeviation": 0,
+    "Minimum": 15,
+    "Maximum": 15,
+    "Range": 0,
+    "MaximumAbsoluteError": 0
+  },
+  "Samples": [
+    {
+      "Index": 1,
+      "RunId": "245c907b-45b3-4ade-b11f-92ae942d5ba4",
+      "CapturedAtUtc": "2026-10-25T23:17:51.8341552Z",
+      "SampleName": "\u4E2D\u5FC3 \u00B7 \u540C\u56FE\u6F14\u7B97",
+      "Value": 15,
+      "State": "\u6709\u6548",
+      "Reason": "",
+      "Frame": {
+        "RunId": "245c907b-45b3-4ade-b11f-92ae942d5ba4",
+        "FrameId": "ba2eaf10-c709-4cac-bed1-3d70894f3030",
+        "SourceNodeId": "3a352d76-07eb-4f23-a4e5-44f28bf1de9c",
+        "SourcePortId": "image",
+        "SpaceId": "a4108594-dd4d-43d2-b023-031e0b541615",
+        "Width": 512,
+        "Height": 384,
+        "Count": 1,
+        "Annotated": false,
+        "Corrected": false,
+        "ConfigurationIdentity": "5742CE45FEE475A4C703B9E2BD8E697FFC8DC3C1A85ECA48A96F7D6C70D0B644",
+        "ImageIndex": 1
+      },
+      "ImageSource": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\unit-conversion-final-20261025\\line-pair.png"
+    },
+    {
+      "Index": 2,
+      "RunId": "2213b9af-279a-4afa-bc60-62109f8c8b0d",
+      "CapturedAtUtc": "2026-10-25T23:19:09.5633662Z",
+      "SampleName": "\u4E2D\u5FC3 \u00B7 \u540C\u56FE\u6F14\u7B97",
+      "Value": 15,
+      "State": "\u6709\u6548",
+      "Reason": "",
+      "Frame": {
+        "RunId": "2213b9af-279a-4afa-bc60-62109f8c8b0d",
+        "FrameId": "6b183a4e-a85a-49ad-b0fd-b8515db6d75e",
+        "SourceNodeId": "3a352d76-07eb-4f23-a4e5-44f28bf1de9c",
+        "SourcePortId": "image",
+        "SpaceId": "d952fc23-7052-4830-9e9c-5ef70759f9a4",
+        "Width": 512,
+        "Height": 384,
+        "Count": 1,
+        "Annotated": false,
+        "Corrected": false,
+        "ConfigurationIdentity": "5742CE45FEE475A4C703B9E2BD8E697FFC8DC3C1A85ECA48A96F7D6C70D0B644",
+        "ImageIndex": 1
+      },
+      "ImageSource": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\unit-conversion-final-20261025\\line-pair.png"
+    }
+  ],
+  "Configuration": {
+    "SchemaVersion": 2,
+    "Id": "80132974-922c-4192-a52f-195bf22a4e88",
+    "Name": "\u5408\u6210\u56FE\u6BEB\u7C73\u6362\u7B97\u68C0\u67E5",
+    "Nodes": [
+      {
+        "Id": "3a352d76-07eb-4f23-a4e5-44f28bf1de9c",
+        "TypeId": "halcon.image-read",
+        "TypeVersion": 1,
+        "DisplayName": "\u8BFB\u53D6\u56FE\u50CF",
+        "X": 20,
+        "Y": 145,
+        "Enabled": true,
+        "Parameters": {
+          "path": "D:\\AiProjects\\HalconVisionPlatform\\artifacts\\unit-conversion-final-20261025\\line-pair.png"
+        }
+      },
+      {
+        "Id": "db9d35ae-a361-47f6-86d4-5855efb4c6ce",
+        "TypeId": "halcon.straight-line-find",
+        "TypeVersion": 1,
+        "DisplayName": "\u76F4\u7EBF A",
+        "X": 300,
+        "Y": 25,
+        "Enabled": true,
+        "Parameters": {
+          "roi": "60,40,105,470",
+          "lineOrientation": "horizontal",
+          "measureTransition": "all"
+        }
+      },
+      {
+        "Id": "a77e1abb-c4ff-4691-a017-4c29a396a47b",
+        "TypeId": "halcon.straight-line-find",
+        "TypeVersion": 1,
+        "DisplayName": "\u76F4\u7EBF B",
+        "X": 300,
+        "Y": 300,
+        "Enabled": true,
+        "Parameters": {
+          "roi": "210,40,255,470",
+          "lineOrientation": "horizontal",
+          "measureTransition": "all"
+        }
+      },
+      {
+        "Id": "c8275e64-1ac3-486f-812c-c342e36c30e6",
+        "TypeId": "halcon.line-pair-measure",
+        "TypeVersion": 1,
+        "DisplayName": "\u7EBF\u7EBF\u6D4B\u91CF",
+        "X": 650,
+        "Y": 80,
+        "Enabled": true,
+        "Parameters": {
+          "showLines": true,
+          "showConnector": true
+        }
+      },
+      {
+        "Id": "8a97a426-a34c-4ab2-8038-e6c745ebb1c6",
+        "TypeId": "halcon.pixel-scale",
+        "TypeVersion": 1,
+        "DisplayName": "\u6BD4\u4F8B\u6807\u5B9A",
+        "X": 20,
+        "Y": 450,
+        "Enabled": true,
+        "Parameters": {
+          "referencePixels": 100,
+          "referenceMillimeters": 10,
+          "imageWidth": 512,
+          "imageHeight": 384,
+          "confirmed": true
+        }
+      },
+      {
+        "Id": "3ae2c251-389a-4377-b3f7-de364cf36770",
+        "TypeId": "halcon.length-to-mm",
+        "TypeVersion": 1,
+        "DisplayName": "\u6BEB\u7C73\u95F4\u8DDD",
+        "X": 950,
+        "Y": 180,
+        "Enabled": true,
+        "Parameters": {}
+      }
+    ],
+    "Edges": [
+      {
+        "Id": "c3596ebf-f526-4ae1-b089-8d6182dcb52d",
+        "FromNodeId": "3a352d76-07eb-4f23-a4e5-44f28bf1de9c",
+        "FromPortId": "image",
+        "ToNodeId": "db9d35ae-a361-47f6-86d4-5855efb4c6ce",
+        "ToPortId": "image"
+      },
+      {
+        "Id": "eafc5ac0-5a41-4272-a4e8-75195359f1ac",
+        "FromNodeId": "3a352d76-07eb-4f23-a4e5-44f28bf1de9c",
+        "FromPortId": "image",
+        "ToNodeId": "a77e1abb-c4ff-4691-a017-4c29a396a47b",
+        "ToPortId": "image"
+      },
+      {
+        "Id": "637933e6-a711-4ec7-8820-632542ac78d5",
+        "FromNodeId": "3a352d76-07eb-4f23-a4e5-44f28bf1de9c",
+        "FromPortId": "image",
+        "ToNodeId": "c8275e64-1ac3-486f-812c-c342e36c30e6",
+        "ToPortId": "image"
+      },
+      {
+        "Id": "3387f72e-a5aa-40dd-8dee-d34cd27fe2cb",
+        "FromNodeId": "db9d35ae-a361-47f6-86d4-5855efb4c6ce",
+        "FromPortId": "line",
+        "ToNodeId": "c8275e64-1ac3-486f-812c-c342e36c30e6",
+        "ToPortId": "lineA"
+      },
+      {
+        "Id": "05c3be1d-ccd8-4a2a-b19a-b276d9d221b8",
+        "FromNodeId": "a77e1abb-c4ff-4691-a017-4c29a396a47b",
+        "FromPortId": "line",
+        "ToNodeId": "c8275e64-1ac3-486f-812c-c342e36c30e6",
+        "ToPortId": "lineB"
+      },
+      {
+        "Id": "6f2acfb6-0803-4114-823d-5301b7314ae9",
+        "FromNodeId": "3a352d76-07eb-4f23-a4e5-44f28bf1de9c",
+        "FromPortId": "image",
+        "ToNodeId": "8a97a426-a34c-4ab2-8038-e6c745ebb1c6",
+        "ToPortId": "image"
+      },
+      {
+        "Id": "b927d50c-649e-4dcc-9937-59bd45f4a901",
+        "FromNodeId": "c8275e64-1ac3-486f-812c-c342e36c30e6",
+        "FromPortId": "segmentDistance",
+        "ToNodeId": "3ae2c251-389a-4377-b3f7-de364cf36770",
+        "ToPortId": "pixels"
+      },
+      {
+        "Id": "c093070e-fbab-4b87-b842-99a70245de4c",
+        "FromNodeId": "8a97a426-a34c-4ab2-8038-e6c745ebb1c6",
+        "FromPortId": "calibration",
+        "ToNodeId": "3ae2c251-389a-4377-b3f7-de364cf36770",
+        "ToPortId": "calibration"
+      }
+    ],
+    "Variables": {},
+    "AssetReferences": [],
+    "DetectionPanels": [
+      {
+        "Id": "668145bc-c3ae-40b7-9aec-c45ac3fd67d9",
+        "NodeId": "3a352d76-07eb-4f23-a4e5-44f28bf1de9c",
+        "View": "\u56FE\u50CF",
+        "OutputField": "\u5168\u90E8",
+        "Contents": [
+          {
+            "Id": "fe0d1d34-1fbc-4662-8b89-53eace71905f",
+            "NodeId": "3a352d76-07eb-4f23-a4e5-44f28bf1de9c",
+            "View": "\u56FE\u50CF",
+            "OutputField": "\u5168\u90E8",
+            "Overlays": [
+              {
+                "NodeId": "c8275e64-1ac3-486f-812c-c342e36c30e6",
+                "ShowGeometry": true,
+                "ShowDecision": true,
+                "Fields": [
+                  "angle",
+                  "segmentDistance"
+                ]
+              },
+              {
+                "NodeId": "3ae2c251-389a-4377-b3f7-de364cf36770",
+                "ShowGeometry": true,
+                "ShowDecision": true,
+                "Fields": [
+                  "lengthMm"
+                ]
+              }
+            ],
+            "ImageIndex": 1
+          }
+        ]
+      }
+    ],
+    "InspectionRegions": [
+      {
+        "Id": "abdddc54-3d02-4151-89dc-a499dd085eb6",
+        "Name": "\u76F4\u7EBF A \u8303\u56F4",
+        "ImageNodeId": "3a352d76-07eb-4f23-a4e5-44f28bf1de9c",
+        "ImagePortId": "image",
+        "Bounds": {
+          "RowBegin": 60,
+          "ColumnBegin": 40,
+          "RowEnd": 105,
+          "ColumnEnd": 470
+        }
+      },
+      {
+        "Id": "555a1873-fb32-48ca-a833-40d97d4bce88",
+        "Name": "\u76F4\u7EBF B \u8303\u56F4",
+        "ImageNodeId": "3a352d76-07eb-4f23-a4e5-44f28bf1de9c",
+        "ImagePortId": "image",
+        "Bounds": {
+          "RowBegin": 210,
+          "ColumnBegin": 40,
+          "RowEnd": 255,
+          "ColumnEnd": 470
+        }
+      },
+      {
+        "Id": "f9810bd1-d14d-4d57-bd57-14d47f14d429",
+        "Name": "\u7EBF\u7EBF\u6D4B\u91CF\u8303\u56F4",
+        "ImageNodeId": "3a352d76-07eb-4f23-a4e5-44f28bf1de9c",
+        "ImagePortId": "image",
+        "Bounds": {
+          "RowBegin": 50,
+          "ColumnBegin": 20,
+          "RowEnd": 280,
+          "ColumnEnd": 490
+        }
+      }
+    ],
+    "InspectionTasks": [
+      {
+        "Id": "7c8604f3-fa99-4b7f-827f-2f7e5ec73fe9",
+        "Name": "\u76F4\u7EBF A \u5B58\u5728",
+        "RegionId": "abdddc54-3d02-4151-89dc-a499dd085eb6",
+        "NodeIds": [
+          "db9d35ae-a361-47f6-86d4-5855efb4c6ce"
+        ],
+        "Rules": [
+          {
+            "Id": "51dc817a-f853-4213-96c4-5f71d7c449b3",
+            "NodeId": "db9d35ae-a361-47f6-86d4-5855efb4c6ce",
+            "PortId": "status",
+            "Kind": 1,
+            "Pointer": "/Code",
+            "Minimum": 0,
+            "Maximum": 1,
+            "Expected": "FOUND"
+          }
+        ],
+        "Required": true,
+        "Enabled": true
+      },
+      {
+        "Id": "36358937-6f7f-4113-82f1-34184d58e4b1",
+        "Name": "\u76F4\u7EBF B \u5B58\u5728",
+        "RegionId": "555a1873-fb32-48ca-a833-40d97d4bce88",
+        "NodeIds": [
+          "a77e1abb-c4ff-4691-a017-4c29a396a47b"
+        ],
+        "Rules": [
+          {
+            "Id": "57b7871b-cd85-452d-9655-f795a130fcdf",
+            "NodeId": "a77e1abb-c4ff-4691-a017-4c29a396a47b",
+            "PortId": "status",
+            "Kind": 1,
+            "Pointer": "/Code",
+            "Minimum": 0,
+            "Maximum": 1,
+            "Expected": "FOUND"
+          }
+        ],
+        "Required": true,
+        "Enabled": true
+      },
+      {
+        "Id": "1caf9f7c-607a-49c2-bc16-bb3511c22701",
+        "Name": "\u95F4\u8DDD\u4E0E\u5E73\u884C\u5EA6",
+        "RegionId": "f9810bd1-d14d-4d57-bd57-14d47f14d429",
+        "NodeIds": [
+          "3ae2c251-389a-4377-b3f7-de364cf36770",
+          "c8275e64-1ac3-486f-812c-c342e36c30e6"
+        ],
+        "Rules": [
+          {
+            "Id": "92f90978-4821-4de3-9fdf-e452bb4ceade",
+            "NodeId": "3ae2c251-389a-4377-b3f7-de364cf36770",
+            "PortId": "lengthMm",
+            "Kind": 0,
+            "Pointer": "",
+            "Minimum": 14.9,
+            "Maximum": 15.1,
+            "Expected": ""
+          },
+          {
+            "Id": "65bf66cb-8265-4254-acc5-38c8aae13796",
+            "NodeId": "c8275e64-1ac3-486f-812c-c342e36c30e6",
+            "PortId": "angle",
+            "Kind": 0,
+            "Pointer": "",
+            "Minimum": 0,
+            "Maximum": 1,
+            "Expected": ""
+          }
+        ],
+        "Required": true,
+        "Enabled": true
+      }
+    ]
+  },
+  "Limitation": "\u7EDF\u8BA1\u4EC5\u63CF\u8FF0\u5DF2\u8BB0\u5F55\u6837\u672C\uFF1B\u540C\u56FE\u91CD\u590D\u8BA1\u7B97\u4E0D\u4EE3\u8868\u771F\u5B9E\u91CD\u590D\u53D6\u50CF\u3002\u672A\u8BC4\u4F30\u53C2\u8003\u91CF\u5177\u4E0D\u786E\u5B9A\u5EA6\u3001\u5168\u89C6\u573A\u3001\u8DE8\u65E5\u671F/\u4EBA\u5458\u53CA MSA\uFF0C\u4E0D\u81EA\u52A8\u5224\u5B9A\u6807\u5B9A\u5408\u683C\u3002"
+}

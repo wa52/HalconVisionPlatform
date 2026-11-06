@@ -2,6 +2,8 @@
 
 更新：2026-10-19。平台采用五工程模块化单体架构。
 
+2026-10-26 增量：`Application/MeasurementStudy` 负责独立托管数值快照、配置身份、逐轮收录保护、统计与报告序列化；WPF `MeasurementStudyWindow` 只负责字段选择、记录/导出和反馈。记录不持有 `WorkflowExecutionRun`、HALCON 图像或模型，不订阅常驻检测事件；旧运行释放后报告仍可读取。JSON 冻结流程配置，CSV 提供汇总及逐轮数据。记录是单独导出的报告，不修改项目格式或算法输出。
+
 ```text
 HalconVision.App ──> HalconVision.Application ──> HalconVision.Domain
        ├──────────> HalconVision.Halcon ────────> Domain / Application

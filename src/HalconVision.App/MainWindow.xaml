@@ -45,7 +45,7 @@
   <Menu x:Name="EditorMenu" Grid.Column="0" VerticalAlignment="Center" Background="Transparent" Foreground="#C7D2D8" Padding="0" BorderThickness="0">
    <MenuItem Header="文件"><MenuItem Header="新建项目…" Click="NewProject_Click"/><MenuItem Header="打开项目…" Click="OpenProject_Click"/><Separator/><MenuItem Header="保存项目" Click="Save_Click"/><Separator/><MenuItem Header="退出" Click="Exit_Click"/></MenuItem>
    <MenuItem Header="视图"><MenuItem Header="检测显示配置…" IsEnabled="{Binding HasProject}" Click="ConfigureDetectionDisplay_Click"/><Separator/><MenuItem Header="节点库面板" Click="ToggleLeft_Click"/><MenuItem Header="属性面板" Click="ToggleRight_Click"/><MenuItem Header="下方调试面板" Click="ToggleBottom_Click"/></MenuItem>
-   <MenuItem Header="项目"><MenuItem Header="新建流程…" Click="NewFlow_Click"/><MenuItem Header="导入流程…" Click="ImportFlow_Click"/><MenuItem Header="导出当前流程…" Click="ExportFlow_Click"/><MenuItem Header="检测任务…" Click="ConfigureInspectionTasks_Click"/></MenuItem>
+   <MenuItem Header="项目"><MenuItem Header="新建流程…" Click="NewFlow_Click"/><MenuItem Header="导入流程…" Click="ImportFlow_Click"/><MenuItem Header="导出当前流程…" Click="ExportFlow_Click"/><MenuItem Header="检测任务…" Click="ConfigureInspectionTasks_Click"/><MenuItem Header="测量验证…" Click="MeasurementStudy_Click"/></MenuItem>
    <MenuItem Header="帮助"><MenuItem Header="关于 HALCON 节点平台" Click="About_Click"/></MenuItem>
   </Menu>
     <Grid Grid.Column="1" Margin="14,0" VerticalAlignment="Center"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>

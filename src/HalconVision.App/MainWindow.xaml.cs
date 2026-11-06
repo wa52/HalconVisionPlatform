@@ -1205,6 +1205,7 @@ public partial class MainWindow : Window
         if (_closeReady) return;
         e.Cancel = true;
         if (_closing) return;
+        if (_measurementStudyWindow is { } study && !study.TryCloseStudy()) return;
         if (!ConfirmSaveBeforeSwitch()) { e.Cancel = true; return; }
         _closing = true;
         await StopExecutionAsync();

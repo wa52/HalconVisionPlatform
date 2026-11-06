@@ -1,0 +1,57 @@
+<Window x:Class="HalconVision.App.MeasurementStudyWindow"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:local="clr-namespace:HalconVision.App" Title="测量验证" Width="1000" Height="720" MinWidth="780" MinHeight="600"
+ WindowStartupLocation="CenterOwner" Background="{StaticResource WorkbenchCanvasBrush}" Foreground="{StaticResource WorkbenchTextBrush}" FontFamily="{StaticResource WorkbenchFont}">
+ <Window.Resources>
+  <Style TargetType="TextBox" BasedOn="{StaticResource WorkbenchTextBoxStyle}"/>
+  <Style TargetType="ComboBoxItem"><Setter Property="Foreground" Value="{StaticResource WorkbenchTextBrush}"/><Setter Property="Background" Value="{StaticResource WorkbenchInputBrush}"/><Setter Property="Padding" Value="8,6"/><Setter Property="ToolTip" Value="{Binding Label}"/></Style>
+  <Style TargetType="ComboBox"><Setter Property="Foreground" Value="{StaticResource WorkbenchTextBrush}"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBox"><Grid>
+   <Border Background="{StaticResource WorkbenchInputBrush}" BorderBrush="{StaticResource WorkbenchBorderBrush}" BorderThickness="1" Padding="8,5"><DockPanel><TextBlock DockPanel.Dock="Right" Text="▾" Margin="6,0,0,0"/><TextBlock Text="{Binding SelectedItem.Label,RelativeSource={RelativeSource TemplatedParent}}" TextTrimming="CharacterEllipsis"/></DockPanel></Border>
+   <ToggleButton Focusable="False" IsChecked="{Binding IsDropDownOpen,Mode=TwoWay,RelativeSource={RelativeSource TemplatedParent}}"><ToggleButton.Template><ControlTemplate TargetType="ToggleButton"><Border Background="Transparent"/></ControlTemplate></ToggleButton.Template></ToggleButton>
+   <Popup x:Name="PART_Popup" Placement="Bottom" AllowsTransparency="True" IsOpen="{TemplateBinding IsDropDownOpen}" Focusable="False"><Border Background="{StaticResource WorkbenchInputBrush}" BorderBrush="{StaticResource WorkbenchBorderBrush}" BorderThickness="1" MinWidth="{Binding ActualWidth,RelativeSource={RelativeSource TemplatedParent}}" MaxHeight="260"><ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"><ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/></ScrollViewer></Border></Popup>
+  </Grid></ControlTemplate></Setter.Value></Setter></Style>
+  <Style TargetType="Button" BasedOn="{StaticResource IconButtonStyle}">
+   <Setter Property="Background" Value="{StaticResource WorkbenchRaisedBrush}"/><Setter Property="Foreground" Value="{StaticResource WorkbenchTextBrush}"/>
+   <Setter Property="Padding" Value="12,7"/><Setter Property="Margin" Value="0,0,8,0"/>
+   <Setter Property="FocusVisualStyle" Value="{StaticResource WorkbenchFocusVisual}"/>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+    <Border x:Name="Surface" Background="{TemplateBinding Background}" BorderBrush="{StaticResource WorkbenchBorderBrush}" BorderThickness="1" CornerRadius="3" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+    <ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Surface" Property="BorderBrush" Value="{StaticResource WorkbenchFocusBrush}"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter TargetName="Surface" Property="Opacity" Value="0.4"/></Trigger></ControlTemplate.Triggers>
+   </ControlTemplate></Setter.Value></Setter>
+  </Style>
+  <Style TargetType="DataGridCell"><Setter Property="Foreground" Value="{StaticResource WorkbenchTextBrush}"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/></Style>
+  <Style TargetType="DataGridColumnHeader"><Setter Property="Foreground" Value="{StaticResource WorkbenchTextBrush}"/><Setter Property="Background" Value="{StaticResource WorkbenchRaisedBrush}"/><Setter Property="Padding" Value="8,6"/></Style>
+ </Window.Resources>
+ <Grid Margin="20"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+  <StackPanel Margin="0,0,0,16"><TextBlock Text="测量验证" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="记录标准件的多次测量，比较参考值与实测值。" Foreground="{StaticResource WorkbenchMutedBrush}" Margin="0,5,0,0"/></StackPanel>
+  <Grid Grid.Row="1" x:Name="SettingsPanel"><Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+   <StackPanel><TextBlock Text="测量字段" Margin="0,0,0,5"/><ComboBox x:Name="FieldSelector" DisplayMemberPath="Label" MinHeight="32" AutomationProperties.Name="测量字段" ToolTip="只列出当前流程声明为 px 或 mm 的长度输出"/></StackPanel>
+   <StackPanel Grid.Column="2"><TextBlock Text="标准件名称" Margin="0,0,0,5"/><TextBox x:Name="ReferenceName" AutomationProperties.Name="标准件名称"/></StackPanel>
+   <StackPanel Grid.Column="4"><TextBlock Text="参考值（与字段单位一致）" Margin="0,0,0,5"/><TextBox x:Name="ReferenceValue" AutomationProperties.Name="参考值"/></StackPanel>
+  </Grid>
+  <Border Grid.Row="2" Background="{StaticResource WorkbenchSurfaceBrush}" BorderBrush="{StaticResource WorkbenchBorderBrush}" BorderThickness="0,1,0,1" Padding="12" Margin="0,16">
+   <StackPanel><TextBlock x:Name="Counts" Text="尚未记录 · 在主窗口运行流程后记录当前结果" FontWeight="SemiBold"/>
+    <TextBlock x:Name="StatisticsText" Text="均值、偏差、标准差与极差将在记录后显示。" TextWrapping="Wrap" Margin="0,8,0,0" Foreground="{StaticResource WorkbenchAccentBrush}" FontSize="14"/>
+   </StackPanel>
+  </Border>
+  <Grid Grid.Row="3"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+   <Grid Margin="0,0,0,10"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+    <StackPanel><TextBlock Text="采样位置 / 样本编号" Margin="0,0,0,5"/><TextBox x:Name="SampleName" AutomationProperties.Name="采样位置或样本编号" ToolTip="注明视场位置、方向或重复取像编号；新的一轮才可再次记录"/></StackPanel>
+    <WrapPanel Grid.Column="1" VerticalAlignment="Bottom" Margin="12,0,0,0"><Button x:Name="CaptureButton" Content="记录当前测量" Click="Capture_Click" Background="#087E83"><Button.ContentTemplate><DataTemplate><StackPanel Orientation="Horizontal"><TextBlock Text="&#xE710;" FontFamily="Segoe MDL2 Assets" Margin="0,0,6,0" VerticalAlignment="Center"/><TextBlock Text="{Binding}"/></StackPanel></DataTemplate></Button.ContentTemplate></Button><Button x:Name="ExportButton" Content="导出验证报告" Click="Export_Click"/><Button Content="新建验证记录" Click="New_Click"/></WrapPanel>
+   </Grid>
+   <Grid Grid.Row="1"><DataGrid x:Name="SamplesGrid" AutoGenerateColumns="False" IsReadOnly="True" Background="{StaticResource WorkbenchSurfaceBrush}" RowBackground="{StaticResource WorkbenchSurfaceBrush}" AlternatingRowBackground="{StaticResource WorkbenchRaisedBrush}" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{StaticResource WorkbenchBorderBrush}">
+    <DataGrid.Columns>
+     <DataGridTextColumn Header="#" Binding="{Binding Index}" Width="45"/>
+     <DataGridTextColumn Header="采样时间 (UTC)" Binding="{Binding CapturedAtUtc, StringFormat=HH:mm:ss.fff}" Width="110"/>
+     <DataGridTextColumn Header="样本 / 位置" Binding="{Binding SampleName}" Width="*" MinWidth="100" ElementStyle="{StaticResource WorkbenchCellText}"/>
+     <DataGridTextColumn Header="测量值" Binding="{Binding Value, StringFormat=G9, TargetNullValue=—}" Width="110"/>
+     <DataGridTextColumn Header="状态" Binding="{Binding State}" Width="60"/>
+     <DataGridTextColumn Header="说明" Binding="{Binding Reason}" Width="1.3*" MinWidth="100" ElementStyle="{StaticResource WorkbenchCellText}"/>
+    </DataGrid.Columns>
+   </DataGrid><TextBlock x:Name="EmptyHint" Text="先选测量字段、填写参考值，再在主窗口运行。&#x0a;每次重新取像后，记录一轮结果。" TextAlignment="Center" TextWrapping="Wrap" Margin="20" Foreground="{StaticResource WorkbenchMutedBrush}" VerticalAlignment="Center" IsHitTestVisible="False"/></Grid>
+  </Grid>
+  <StackPanel Grid.Row="4" Margin="0,12,0,0"><ScrollViewer MaxHeight="65" VerticalScrollBarVisibility="Auto"><TextBlock x:Name="Feedback" Text="首次记录后锁定字段和参考值；配置变化需新建验证。关闭前请导出，记录不写入项目。" TextWrapping="Wrap"/></ScrollViewer>
+   <Expander Header="统计范围说明" Foreground="{StaticResource WorkbenchTextBrush}" Margin="0,8,0,0"><Expander.HeaderTemplate><DataTemplate><StackPanel Orientation="Horizontal"><TextBlock Text="&#xE946;" FontFamily="Segoe MDL2 Assets" Margin="0,0,6,0" VerticalAlignment="Center"/><TextBlock Text="{Binding}"/></StackPanel></DataTemplate></Expander.HeaderTemplate><ScrollViewer MaxHeight="90" VerticalScrollBarVisibility="Auto"><TextBlock Text="{x:Static local:MeasurementStudyWindow.ScopeNotice}" Foreground="{StaticResource WorkbenchMutedBrush}" TextWrapping="Wrap" Margin="0,6,0,0"/></ScrollViewer></Expander>
+  </StackPanel>
+ </Grid>
+</Window>
