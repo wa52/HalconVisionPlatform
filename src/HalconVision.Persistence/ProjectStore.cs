@@ -151,11 +151,10 @@ public sealed class ProjectStore
 
     private static FlowDocument VersionForTasks(FlowDocument flow) => flow.InspectionTasks.Count > 0 || flow.InspectionRegions.Count > 0 ? flow with { SchemaVersion = 2 } : flow;
 
-    public string SaveRun(ProjectWorkspace workspace, WorkflowExecutionRun run)
+    public string SaveRun(ProjectWorkspace workspace, FlowDocument executedFlow, WorkflowExecutionRun run)
     {
-        var path = Resolve(workspace.RootPath, $"runs/{run.Id:N}.run.json");
-        AtomicWrite(path, JsonSerializer.Serialize(run, JsonOptions));
-        return path;
+        return new WorkflowRunArchiveStore().Save(Resolve(workspace.RootPath, "runs"),
+            workspace.Project.Id, workspace.Project.Name, executedFlow, run);
     }
 
     public string ImportImage(ProjectWorkspace workspace, string sourcePath)
