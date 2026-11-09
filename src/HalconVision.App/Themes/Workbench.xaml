@@ -32,10 +32,10 @@
   </Style>
   <Style x:Key="WorkbenchCatalogItem" TargetType="ListBoxItem">
     <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-    <Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="6,2"/>
+    <Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="6,0"/>
     <Setter Property="FocusVisualStyle" Value="{StaticResource WorkbenchFocusVisual}"/>
     <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBoxItem">
-      <Border x:Name="Card" Padding="9,8" CornerRadius="4" BorderThickness="1" BorderBrush="Transparent" Background="Transparent">
+      <Border x:Name="Card" Padding="12,5" CornerRadius="2" BorderThickness="2,0,0,0" BorderBrush="Transparent" Background="Transparent">
         <ContentPresenter/>
       </Border>
       <ControlTemplate.Triggers>

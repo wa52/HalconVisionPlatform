@@ -100,11 +100,11 @@ public sealed class WorkflowWorkspaceViewModel : ObservableModel
     public string CameraStatus { get => _cameraStatus; private set => Set(ref _cameraStatus, value); }
     public bool IsCameraConnected => _cameraManager.ConnectedDeviceId is not null;
     public IReadOnlyCollection<NodeDefinition> NodeCatalog => _registry.Definitions;
-    public IReadOnlyCollection<NodeDefinition> FilteredNodeCatalog => string.IsNullOrWhiteSpace(NodeSearchText)
-        ? NodeCatalog
-        : NodeCatalog.Where(node => node.DisplayName.Contains(NodeSearchText, StringComparison.OrdinalIgnoreCase) ||
-            node.Description.Contains(NodeSearchText, StringComparison.OrdinalIgnoreCase) ||
-            node.Category.Contains(NodeSearchText, StringComparison.OrdinalIgnoreCase)).ToArray();
+    public IReadOnlyCollection<NodeDefinition> FilteredNodeCatalog => NodeCatalog
+        .Where(node => string.IsNullOrWhiteSpace(NodeSearchText) || node.DisplayName.Contains(NodeSearchText.Trim(), StringComparison.OrdinalIgnoreCase) ||
+            node.Description.Contains(NodeSearchText.Trim(), StringComparison.OrdinalIgnoreCase) ||
+            node.Category.Contains(NodeSearchText.Trim(), StringComparison.OrdinalIgnoreCase))
+        .OrderBy(node => CatalogPresentation.CategoryRank(node.Category)).ThenBy(node => node.DisplayName, StringComparer.CurrentCulture).ToArray();
     public ProjectWorkspace? Workspace { get => _workspace; private set { if (Set(ref _workspace, value)) { Raise(nameof(ProjectName)); Raise(nameof(ProjectRoot)); Raise(nameof(HasProject)); } } }
     public string ProjectName => Workspace?.Project.Name ?? "未打开项目";
     public string ProjectRoot => Workspace?.ProjectFilePath ?? Workspace?.RootPath ?? string.Empty;

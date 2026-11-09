@@ -1,0 +1,82 @@
+[
+  {
+    "File": "HalconVision.App.deps.json",
+    "SHA256": "8BC99D2F4850E048D653F7657C15A74D49F825CC5FBC7F4AA4F9BB39145B8C0F",
+    "Matches": true
+  },
+  {
+    "File": "HalconVision.App.dll",
+    "SHA256": "C887E8A966206EED3316C2191684B38FC5F0F8D52D16A9867D2540F5C6F6B05C",
+    "Matches": true
+  },
+  {
+    "File": "HalconVision.App.exe",
+    "SHA256": "1664FFA54C78DBA73AA652EC2EABBE77220CE17C354E3E37DDDD8FA172AE74A8",
+    "Matches": true
+  },
+  {
+    "File": "HalconVision.App.pdb",
+    "SHA256": "33D2563155AF0C023BB5C5D4236690C8BAEF7F951CDE3294C82A03E3F3C55093",
+    "Matches": true
+  },
+  {
+    "File": "HalconVision.App.runtimeconfig.json",
+    "SHA256": "73B37384BB001E78DB2014D328750EB2990393712FD63CD00C0F41965B3DBE96",
+    "Matches": true
+  },
+  {
+    "File": "HalconVision.Application.dll",
+    "SHA256": "46706A76CA929C4439A84A5C9215EBFBEAA5977A11BFD4610D423A096CAF7C6D",
+    "Matches": true
+  },
+  {
+    "File": "HalconVision.Application.pdb",
+    "SHA256": "9C3DA2FAB806E7BC598155F9BBD43995132CC48EDE7525FC64DF4849E7D7BF85",
+    "Matches": true
+  },
+  {
+    "File": "HalconVision.Domain.dll",
+    "SHA256": "61F910FEE0F7438A5885DBCE5A91A881CC10AC7A90253A7024A3E862BCB91AE8",
+    "Matches": true
+  },
+  {
+    "File": "HalconVision.Domain.pdb",
+    "SHA256": "2EEB1A7F129EB0AF9B0366D7EED9A85F4815620B6E9F7333AE0329CDAF873A29",
+    "Matches": true
+  },
+  {
+    "File": "HalconVision.Halcon.dll",
+    "SHA256": "142038B4408FAAA2B43C0162A1B7F2E811A20AF01518D7F11AB2FBEA6CA53F1E",
+    "Matches": true
+  },
+  {
+    "File": "HalconVision.Halcon.pdb",
+    "SHA256": "A956261DD898F26FC17F42DF4A7AA1CFADDB7BC61857BB5243A06E7580F03538",
+    "Matches": true
+  },
+  {
+    "File": "HalconVision.Persistence.dll",
+    "SHA256": "F345E1C7923EF14EDC14CE4FED2C43A46A176B56F6121F49DB0B96D231EEE161",
+    "Matches": true
+  },
+  {
+    "File": "HalconVision.Persistence.pdb",
+    "SHA256": "53C59277EF081DEAD09A1D6DF756CA0A6A45710A34619928437AAE4380B4DCA6",
+    "Matches": true
+  },
+  {
+    "File": "MVTec.HalconDotNet-Windows.dll",
+    "SHA256": "D0565D7BD9845AAC4FD0B467A04A24447409BBEB0E279E84A744D44989D73BCE",
+    "Matches": true
+  },
+  {
+    "File": "MVTec.HalconDotNet.dll",
+    "SHA256": "8C6A241B7AAAA368B4DDAEB0A7F1BCF953F15A1A883CC4850CFC3C69C1FCC29A",
+    "Matches": true
+  },
+  {
+    "File": "Assets\\HalconVision.ico",
+    "SHA256": "FD7118D8092DF999F87802C30C01A00AF3F336B6E3BBFA8089EF8AB98307D274",
+    "Matches": true
+  }
+]

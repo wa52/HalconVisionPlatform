@@ -27,6 +27,19 @@ internal static class Program
         {
             var file=Path.GetFullPath(Path.Combine(args[0],"empty-project.hvproj"));
             var catalog=(ListBox)window.FindName("NodeCatalogList");
+            Check(vm.FilteredNodeCatalog.First().Category=="图像输入"&&vm.FilteredNodeCatalog.Last().Category=="测试节点","节点库按操作流程排序，测试分类最后");
+            rootCheck();
+            void rootCheck()
+            {
+                window.Dispatcher.Invoke(()=>{},DispatcherPriority.ApplicationIdle);
+                var testGroup=Descendants(catalog).OfType<Expander>().FirstOrDefault(e=>e.Header is System.Windows.Data.CollectionViewGroup g&&g.Name as string=="测试节点");
+                Check(testGroup is not null&&!testGroup.IsExpanded,"测试分类默认折叠");
+                vm.NodeSearchText="文本常量";window.Dispatcher.Invoke(()=>{},DispatcherPriority.ApplicationIdle);
+                var found=Descendants(catalog).OfType<Expander>().FirstOrDefault(e=>e.Header is System.Windows.Data.CollectionViewGroup g&&g.Name as string=="测试节点");
+                Check(vm.FilteredNodeCatalog.Count==1&&found?.IsExpanded==true,"搜索自动展开测试结果");
+                vm.NodeSearchText="不会存在的节点名称";Check(vm.FilteredNodeCatalog.Count==0,"空搜索结果不保留旧节点");
+                vm.NodeSearchText="";window.Dispatcher.Invoke(()=>{},DispatcherPriority.ApplicationIdle);
+            }
             catalog.SelectedItem=vm.NodeCatalog.Single(n=>n.TypeId==HalconNodeProvider.QuickMatch);
             var root=(FrameworkElement)window.Content;
             root.Measure(new Size(1180,680));root.Arrange(new Rect(0,0,1180,680));root.UpdateLayout();
